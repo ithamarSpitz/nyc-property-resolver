@@ -1,0 +1,17 @@
+version: 1
+policy:
+  ordinary_tasks_may_change_architecture: false
+  plan_changes_require_human_apply: true
+  remove_started_tasks: false
+  preserve_done_history: true
+  revalidate_affected_done_tasks: true
+classifications:
+  - IMPLEMENTATION_ONLY
+  - TASK_ADDITION
+  - ARCHITECTURE_CHANGE
+  - UNKNOWN
+apply_semantics:
+  newly_added_tasks: PENDING
+  affected_blocked_or_unintegrated_tasks: PENDING_WITH_FRESH_BUDGET
+  affected_done_tasks: DONE_PLUS_REVALIDATION_GATE
+  resume: EARLIEST_UNFINISHED_STAGE

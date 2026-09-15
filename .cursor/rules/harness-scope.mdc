@@ -1,0 +1,7 @@
+---
+description: Rules for task-scoped agent execution
+globs: "src/**,tests/**,prisma/**"
+alwaysApply: false
+---
+
+When work is launched from the harness, the task brief defines scope. Do not pull future tasks into the current change. If a required change falls outside the task's allowed paths, report the dependency instead of silently broadening the diff.

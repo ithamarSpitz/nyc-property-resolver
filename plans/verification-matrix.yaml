@@ -1,0 +1,89 @@
+version: 1
+source_sections:
+  automated: ARCHITECTURE.md#23
+  acceptance: ARCHITECTURE.md#24
+principles:
+- Every behavior-changing task must add or update focused tests when the behavior is testable.
+- The harness, not the coding agent, decides completion.
+- External NYC APIs are mocked in automated tests.
+- PostgreSQL semantics that matter to correctness are tested against real PostgreSQL integration environments, not only mocks.
+- Expensive real-data/10k acceptance is never part of ordinary retry loops.
+layers:
+  task:
+    always:
+    - git diff --check
+    - task-specific test command(s)
+    - typecheck once package scripts exist
+    - allowed-path/protected-path enforcement
+    reviewer: independent fresh-context review when configured or forced by protected/review-required paths
+  stage:
+  - merge all VERIFIED task branches atomically into the integration checkout
+  - run stage-specific integration tests
+  - rollback entire stage on merge or verification failure
+  sprint:
+  - run the sprint exit gate defined in plans/sprints.yaml
+  final:
+  - clean Docker build/start
+  - migrations
+  - full automated suite
+  - small real-data acceptance
+  - idempotent second ingestion
+  - 10k scale evidence
+coverage_by_sprint:
+  S0-foundation:
+  - test runner smoke
+  - TypeScript compile/typecheck
+  - Prisma validation/migration smoke
+  - Docker Compose config/build/start smoke
+  S1-property-resolution:
+  - address normalization
+  - Queens hyphen preservation
+  - normalized-input and canonical-property idempotency
+  - condo exact/ambiguous/unmatched behavior
+  - GeoSearch/footprint identifier conflict
+  - MAPPLUTO_BBL validation
+  - explicit NEVER_INGESTED / NO_VALID_BIN coverage initialization
+  - atomic BIN-set mutation + identifier_version + coverage invalidation
+  - alias-only change does not invalidate coverage
+  - single property create/get HTTP behavior and duplicate creation
+  - bulk BBL max-size validation, deduplication, bounded source-call shape, and idempotent persistence
+  S2-ingestion-lifecycle:
+  - ECB normalization
+  - raw version idempotency
+  - durable failed run on metadata failure
+  - crash-safe initialization transaction
+  - immutable Property<->BIN snapshot
+  - immutable batch definitions across resume
+  - retry/attempt exhaustion
+  - advisory-lock session loss aborts executor
+  - persisted-batch resume after watchlist changes
+  S3-ingestion-publication:
+  - successful staging promotion
+  - SOURCE_CHANGED rejection
+  - terminal failure preserves last_success
+  - run+failure-coverage atomicity
+  - coverage derives from run snapshot
+  - old run blocked by identifier_version mismatch
+  - successful run cannot mark CHECKED after identifiers changed post-snapshot
+  S4-api-operations:
+  - query validation
+  - unpaid/open filters
+  - exact newest-first order
+  - NULLS LAST semantics
+  - keyset cursor across dated -> NULL tail
+  - pagination within NULL tail
+  - checked/not-checked/failed coverage responses
+  - portfolio current-membership filtering
+  - updatedSince semantics
+  - local-store-only ECB query behavior
+  - scheduler/manual CLI share one ingestion service
+  - security headers/rate limit/body-size/error redaction
+  - clean Docker startup ordering postgres -> migrate -> api/worker
+  - manual worker-container ingestion command wiring
+  S5-acceptance-submission:
+  - required seed set
+  - two BIS manual spot-checks recorded
+  - baseline run log
+  - idempotent second-run log
+  - 10k run metrics
+  - clean-clone one-command Docker verification

@@ -1,0 +1,329 @@
+version: 1
+project: nyc-property-resolver-ecb
+status: blueprint_only
+runnable: false
+source_of_truth:
+  assignment: docs/assignment.md
+  architecture: ARCHITECTURE.md
+notes:
+- This file defines sprint/stage boundaries; executable task briefs live under tasks/.
+- S0-foundation through S5-acceptance-submission have executable task briefs in tasks/roadmap.yaml.
+- ARCHITECTURE.md remains authoritative; this blueprint is an execution plan, not a specification.
+sprints:
+  S0-foundation:
+    name: Repository, Runtime, Database and Test Foundation
+    depends_on: []
+    goal: Establish the reproducible Node/TypeScript/PostgreSQL/Docker foundation and the contracts every later sprint builds on.
+    context:
+    - architecture.foundations
+    - architecture.data_access_validation
+    - architecture.operations
+    - architecture.testing
+    - architecture.implementation_map
+    stages:
+    - id: 1
+      name: Toolchain and repository contract
+      intent:
+      - Node 22 + TypeScript project/tooling
+      - Jest/Supertest test harness foundation
+      - config/logging/error conventions
+      - package-lock and deterministic install path
+    - id: 2
+      name: PostgreSQL, Prisma and container foundation
+      depends_on:
+      - 1
+      intent:
+      - PostgreSQL/Prisma baseline
+      - migration workflow
+      - Dockerfile and Compose service skeleton
+      - deterministic postgres -> migrate -> api/worker startup ordering
+    - id: 3
+      name: Foundation integration gate
+      depends_on:
+      - 2
+      intent:
+      - clean install/build/typecheck/test
+      - Compose config/build/start smoke path
+      - establish scripts later reused by task/stage/final verification
+    exit_gate:
+    - repository builds from a clean checkout
+    - test runner executes deterministically
+    - Prisma migration path is deterministic
+    - Compose dependency chain is valid
+  S1-property-resolution:
+    name: Property Identity, Resolution and Registration
+    depends_on:
+    - S0-foundation
+    goal: Resolve addresses/BBLs reproducibly, persist canonical property/BIN identity, and enforce identifier-version/coverage invariants.
+    context:
+    - architecture.resolver
+    - architecture.storage
+    - architecture.data_access_validation
+    - architecture.api
+    - architecture.testing
+    stages:
+    - id: 1
+      name: Property identity and persistence contracts
+      intent:
+      - property_resolution_inputs / properties / property_bins / coverage schema contracts
+      - BBL/BIN primitives and placeholder-BIN rules
+      - identifier_version transactional mutation boundary
+      - coverage initialization semantics
+    - id: 2
+      name: Parallel resolver primitives and NYC clients
+      depends_on:
+      - 1
+      parallel_workstreams:
+      - address normalization and unit parsing
+      - GeoSearch client
+      - PLUTO client
+      - Building Footprints client
+      - condominium mapping clients
+    - id: 3
+      name: Resolver orchestration and identifier conflict handling
+      depends_on:
+      - 2
+      intent:
+      - deterministic candidate selection
+      - normal address and direct-BBL flows
+      - condo-unit resolution
+      - MAPPLUTO_BBL/BASE_BBL cross-checks
+      - GeoSearch BIN contradiction handling
+    - id: 4
+      name: Registration API and bulk BBL path
+      depends_on:
+      - 3
+      parallel_workstreams:
+      - single property create/get API
+      - bounded bulk registration path
+    - id: 5
+      name: Resolver behavior gate
+      depends_on:
+      - 4
+      intent:
+      - idempotency and alias behavior
+      - identifier-version/coverage invalidation behavior
+      - condo and Queens edge cases
+      - source-identifier conflict behavior
+    exit_gate:
+    - canonical identity and persistence invariants pass behavior tests
+    - property registration initializes coverage explicitly
+    - bulk path avoids per-property external-call shape
+  S2-ingestion-lifecycle:
+    name: ECB Source Contract, Durable Run Lifecycle and Resumability
+    depends_on:
+    - S1-property-resolution
+    goal: Build the durable, bounded ingestion executor up through raw/staging candidate production and resumable immutable batches.
+    context:
+    - architecture.ingestion_strategy
+    - architecture.ingestion_lifecycle
+    - architecture.storage
+    - architecture.data_access_validation
+    - architecture.operations
+    - architecture.testing
+    stages:
+    - id: 1
+      name: Ingestion persistence and source identity contracts
+      intent:
+      - ingestion_runs / ingestion_run_property_bins / ingestion_batches
+      - raw/staging tables and source identity fields
+      - active-run uniqueness and state invariants
+      - source-key verification probe contract
+    - id: 2
+      name: Parallel source-access primitives
+      depends_on:
+      - 1
+      parallel_workstreams:
+      - Socrata client with explicit :id/:updated_at selection and stable order
+      - Bottleneck concurrency/pacing and bounded request retry
+      - raw persistence + strict Zod normalization pipeline
+      - dedicated advisory-lock ownership/authorization primitive
+    - id: 3
+      name: Initialization and persisted-batch execution primitives
+      depends_on:
+      - 2
+      parallel_workstreams:
+      - new-run initialization with durable QUEUED creation, atomic Property<->BIN snapshot/batch creation, expected-count assertions, and atomic start-watermark/RUNNING transition
+      - replay-safe persisted-batch processor with page bounds, raw/staging writes, logical attempt accounting, and page-1 restart semantics
+    - id: 4
+      name: Resume, attempts and fail-stop execution authority
+      depends_on:
+      - 3
+      intent:
+      - immutable batch-definition resume
+      - partial batch restart from page 1
+      - logical batch attempt limits separate from HTTP retries
+      - start-watermark mismatch -> SOURCE_CHANGED
+      - advisory-lock session loss aborts execution authority
+    - id: 5
+      name: Lifecycle integration gate
+      depends_on:
+      - 4
+      intent:
+      - crash/restart paths
+      - immutable snapshot/batch behavior under watchlist changes
+      - bounded page/attempt failure paths
+    exit_gate:
+    - no resume path reloads/repartitions the live watchlist
+    - lock-session loss prevents further state-changing execution
+    - initialization crash windows leave only defined durable states
+    - raw/staging production is replay-safe
+  S3-ingestion-publication:
+    name: Promotion, Reconciliation, Coverage and Failure Publication
+    depends_on:
+    - S2-ingestion-lifecycle
+    goal: Complete accepted live-state publication and all success/failure coverage semantics atomically and version-safely.
+    context:
+    - architecture.resolver
+    - architecture.ingestion_lifecycle
+    - architecture.storage
+    - architecture.testing
+    stages:
+    - id: 1
+      name: Accepted live-state promotion primitive
+      intent:
+      - live ecb_violations schema
+      - staging -> live upsert
+      - is_current semantics
+      - negative reconciliation scoped to immutable scanned BINs
+    - id: 2
+      name: Successful coverage and identifier-version guards
+      depends_on:
+      - 1
+      intent:
+      - CHECKED publication from run snapshot
+      - dataset-level freshness
+      - identifier_version success guard
+      - IDENTIFIERS_CHANGED_AFTER_SNAPSHOT behavior
+    - id: 3
+      name: Atomic accepted-run publication
+      depends_on:
+      - 2
+      intent:
+      - promotion + reconciliation + success coverage + COMPLETED in one transaction
+      - publication precondition validation
+      - execution-authority guard
+      - rollback prevents hybrid accepted state
+    - id: 4
+      name: Atomic terminal failure publication
+      depends_on:
+      - 3
+      intent:
+      - pre-scope vs property-scoped failure
+      - FAILED/SOURCE_CHANGED + eligible coverage in one transaction
+      - concrete failed-BIN vs RUN_NOT_PROMOTED attribution
+      - preserve last_success and accepted live state
+    - id: 5
+      name: Full ingestion publication semantic gate
+      depends_on:
+      - 4
+      intent:
+      - compose S2 executor with concrete S3 publishers
+      - successful promotion/idempotency
+      - SOURCE_CHANGED rejection without live mutation
+      - old run blocked by identifier_version mismatch
+      - crash/rollback atomicity
+    exit_gate:
+    - live state always corresponds to last accepted run
+    - failed/source-changed runs never expose hybrid live state
+    - run and coverage terminal publication cannot diverge across crash windows
+  S4-api-operations:
+    name: Query API, Pagination, Scheduling and Production-Shaped Runtime
+    depends_on:
+    - S3-ingestion-publication
+    goal: Expose the required local-store API and operational entrypoints with exact pagination/filter/runtime semantics.
+    context:
+    - architecture.api
+    - architecture.operations
+    - architecture.data_access_validation
+    - architecture.testing
+    - architecture.implementation_map
+    stages:
+    - id: 1
+      name: Query primitives and operational foundations
+      parallel_workstreams:
+      - NULL-aware property ECB keyset pagination helper/contract
+      - portfolio membership and updatedSince query semantics
+      - scheduler/manual CLI using the same ingestion service
+      - structured logging/security/config middleware
+    - id: 2
+      name: API endpoint implementation
+      depends_on:
+      - 1
+      parallel_workstreams:
+      - property ECB endpoint with coverage/freshness/dataset-run metadata
+      - portfolio ECB endpoint
+      - query validation/filtering/cursors
+    - id: 3
+      name: Docker runtime and migration ordering gate
+      depends_on:
+      - 2
+      intent:
+      - postgres health -> migrate completion -> api/worker
+      - clean-machine one-command startup
+      - manual ingestion command from worker container
+    - id: 4
+      name: Full service integration gate
+      depends_on:
+      - 3
+      intent:
+      - API serves ECB only from PostgreSQL
+      - scheduler/manual paths share ingestion implementation
+      - pagination traverses dated rows into NULL tail correctly
+    exit_gate:
+    - required endpoints and filters match architecture contracts
+    - no ECB query path calls NYC APIs
+    - Docker clean startup is deterministic
+  S5-acceptance-submission:
+    name: Real-Data Acceptance, Scale, Evidence and Submission
+    depends_on:
+    - S4-api-operations
+    goal: Produce the evidence and documentation required for the take-home walkthrough and scale evaluation.
+    context:
+    - architecture.testing
+    - architecture.operations
+    - architecture.implementation_map
+    - assignment
+    stages:
+    - id: 1
+      name: Acceptance fixtures and reproducible tooling
+      intent:
+      - 5-8 required real NYC properties with auditable provenance
+      - cross-platform small-acceptance runner and evidence validator
+      - non-network dry validation before any real acceptance traffic
+    - id: 2
+      name: Real-data baseline, BIS and idempotency evidence
+      depends_on:
+      - 1
+      intent:
+      - resolve seed set and run real ECB ingestion
+      - record at least two BIS Property Profile spot-checks
+      - second identical ingestion and duplicate-safety evidence
+    - id: 3
+      name: 10,000-property scale evidence
+      depends_on:
+      - 2
+      intent:
+      - deterministic 10,000 BBL PLUTO seed through bulk path
+      - record measured wall time/call counts/rows/failures/final status
+      - preserve raw scale logs and machine-readable summary
+    - id: 4
+      name: Submission documentation from measured evidence
+      depends_on:
+      - 3
+      intent:
+      - README one-page operational/walkthrough guide
+      - DESIGN strategy/storage/idempotency/failure/scale/next-step argument
+      - RUN_LOG index for baseline/idempotent/BIS/scale evidence
+    - id: 5
+      name: Adversarial clean-repository final gate
+      depends_on:
+      - 4
+      intent:
+      - verify all hand-in artifacts and secret hygiene
+      - clean isolated Docker startup and full automated gates
+      - real Empire State resolve -> manual ingestion -> local ECB query
+    exit_gate:
+    - all assignment deliverables and measured evidence are present
+    - small acceptance and 10,000-property evidence are reproducible and auditable
+    - a clean repository copy runs with the documented Docker path and reference-property walkthrough

@@ -1,0 +1,7 @@
+---
+description: Test strategy rules
+globs: "tests/**,src/tests/**"
+alwaysApply: false
+---
+
+Read `architecture.testing`. External NYC APIs are mocked in automated tests. Test behavior/invariants rather than broad line coverage. Use real PostgreSQL integration environments for database semantics that depend on transactions, uniqueness, advisory locks, promotion, crash/retry or coverage publication. Keep real-data/BIS/10k work in acceptance tasks, not ordinary retries.

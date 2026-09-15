@@ -1,0 +1,70 @@
+version: 1
+risks:
+  - id: R1
+    area: property_identifier_version
+    risk: stale ingestion publishes coverage against a newer effective BIN set
+    controls:
+      - single transactional BIN-set mutation boundary
+      - snapshot property_identifier_version
+      - version guard on success and failure coverage publication
+    context: [architecture.resolver, architecture.storage]
+  - id: R2
+    area: advisory_lock_session_loss
+    risk: old executor continues state-changing work after losing lock ownership
+    controls:
+      - dedicated pg session is execution authority
+      - error/end abort signal
+      - authority checks before state-changing operations
+    context: [architecture.ingestion_lifecycle]
+  - id: R3
+    area: immutable_resume_scope
+    risk: resumed run mixes old completed batches with a changed watchlist
+    controls:
+      - persisted Property<->BIN snapshot
+      - immutable batch_definition
+      - resume never reloads/repartitions watchlist
+    context: [architecture.ingestion_lifecycle, architecture.storage]
+  - id: R4
+    area: run_initialization_crash_windows
+    risk: partial snapshots/batches or ambiguous start watermark state
+    controls:
+      - one initialization transaction
+      - expected-count assertions
+      - start watermark persisted atomically with RUNNING transition
+    context: [architecture.ingestion_lifecycle]
+  - id: R5
+    area: terminal_failure_publication
+    risk: run status and property coverage disagree after crash
+    controls:
+      - run terminalization and eligible failure coverage in one DB transaction
+      - no property failure before committed property scope
+    context: [architecture.storage]
+  - id: R6
+    area: partial_live_state
+    risk: failed run exposes partial normalized state or false deletions
+    controls:
+      - raw then staging
+      - accepted-only promotion
+      - negative reconciliation only after accepted run
+    context: [architecture.storage]
+  - id: R7
+    area: null_keyset_pagination
+    risk: rows skipped/repeated when issue_date is NULL
+    controls:
+      - explicit dated and NULL-tail cursor predicates
+      - exact ordering key shared with cursor
+    context: [architecture.api]
+  - id: R8
+    area: stale_portfolio_membership
+    risk: current source row remains in portfolio feed after BIN leaves all tracked properties
+    controls:
+      - is_current plus EXISTS live property_bins membership
+    context: [architecture.api]
+  - id: R9
+    area: docker_migration_race
+    risk: api/worker race migrations or start against incomplete schema
+    controls:
+      - postgres health gate
+      - one migrate service
+      - api/worker depend on successful migrate completion
+    context: [architecture.operations]

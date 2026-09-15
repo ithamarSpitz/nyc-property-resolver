@@ -1,0 +1,32 @@
+version: 1
+protected:
+  - docs/assignment.md
+  - ARCHITECTURE.md
+  - docs/architecture/**
+  - plans/sprints.yaml
+review_required:
+  - prisma/schema.prisma
+  - prisma/migrations/**
+  - package.json
+  - package-lock.json
+  - Dockerfile
+  - docker-compose.yml
+  - .env.example
+  - src/config/**
+  - src/db/**
+  - src/services/ecb/**
+  - src/services/property-resolver/**
+  - src/workers/**
+serial_hotspots:
+  - prisma/schema.prisma
+  - package.json
+  - package-lock.json
+  - Dockerfile
+  - docker-compose.yml
+  - src/config/env.ts
+  - shared domain/type modules created during implementation
+rules:
+  - Protected files are specification/planning inputs and are not changed by ordinary coding tasks.
+  - Review-required paths force an independent reviewer even if a task opts out of review.
+  - Two tasks that overlap a serial hotspot must not execute in parallel.
+  - Final task allowed_paths are assigned only when task briefs are created.

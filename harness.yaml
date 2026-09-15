@@ -1,0 +1,119 @@
+version: 5
+
+execution:
+  max_parallel_agents: 2
+  default_max_attempts: 2
+  default_timeout_minutes: 35
+  base_ref: null   # optional start-point guard; null = current HEAD when a sprint first starts
+  keep_successful_worktrees: false
+  stall_timeout_minutes: 12
+  watchdog_poll_seconds: 10
+  keep_awake_during_run: true
+
+worktree:
+  # Keep empty until S0 creates package-lock.json. Then switch to: [npm ci]
+  setup_commands: []
+  setup_timeout_minutes: 10
+
+cursor:
+  command: agent
+  output_format: text
+  trust_harness_worktrees: true
+  # Verified against this Cursor account via `agent models`. Standard/non-fast variants only.
+  models:
+    worker: composer-2.5
+    hard_worker: cursor-grok-4.6-high
+    reviewer: cursor-grok-4.6-high
+    escalation: claude-opus-5-thinking-high
+
+retry:
+  # Automatic coding escalation. Attempts 1-2 use Composer, then Grok, then Opus.
+  # If attempt 4 fails, the task becomes BLOCKED and enters focused recovery / plan repair.
+  sequence:
+    - worker
+    - worker
+    - hard_worker
+    - escalation
+
+verification:
+  global_task_commands:
+    - git diff --check
+  # Project commands are attached to concrete tasks/stages after task decomposition.
+  stage_commands: []
+
+paths:
+  protected:
+    - docs/assignment.md
+    - ARCHITECTURE.md
+    - docs/architecture/**
+    - plans/sprints.yaml
+  review_required:
+    - prisma/schema.prisma
+    - prisma/migrations/**
+    - package.json
+    - package-lock.json
+    - Dockerfile
+    - docker-compose.yml
+    - .env.example
+    - src/config/**
+    - src/db/**
+    - src/services/property-resolver/**
+    - src/services/ecb/**
+    - src/workers/**
+
+context:
+  aliases:
+    assignment: docs/assignment.md
+    architecture.invariants: docs/architecture/invariants.md
+    architecture.foundations: docs/architecture/foundations.md
+    architecture.resolver: docs/architecture/resolver.md
+    architecture.ingestion_strategy: docs/architecture/ingestion-strategy.md
+    architecture.ingestion_lifecycle: docs/architecture/ingestion-lifecycle.md
+    architecture.storage: docs/architecture/storage.md
+    architecture.data_access_validation: docs/architecture/data-access-validation.md
+    architecture.operations: docs/architecture/operations.md
+    architecture.api: docs/architecture/api.md
+    architecture.testing: docs/architecture/testing.md
+    architecture.implementation_map: docs/architecture/implementation-map.md
+
+# Docker isolation is wired but intentionally disabled until S0 creates docker-compose.yml.
+# Turn on after the foundation stage is integrated; individual tasks then opt in with environment: docker.
+environment:
+  docker_enabled: false
+  compose_command: docker compose
+  compose_files:
+    - docker-compose.yml
+  project_name_prefix: nyc-harness
+  services: []
+  validate_compose: true
+  up_before_agent: false
+  teardown_on_success: true
+  teardown_on_blocked: true
+  remove_volumes: true
+  command_timeout_minutes: 10
+  env: {}
+
+# Cursor does not currently expose an official CLI/API percentage for remaining
+# included usage. The harness therefore reacts to actual quota-exhaustion output.
+quota:
+  policy: wait              # wait | stop
+  reset_at: null            # optional ISO-8601 time copied from Cursor's usage dashboard
+  probe_interval_minutes: 60
+  reset_grace_minutes: 5
+  keep_awake: true          # Windows: temporarily prevents system sleep while waiting
+  teardown_environment_while_waiting: true
+
+plan_repair:
+  enabled: true
+  planner_model_class: escalation
+  timeout_minutes: 20
+
+doctor:
+  required_commands:
+    - node
+    - docker
+  required_env: []
+  min_free_disk_gb: 5
+  check_cursor_models: true
+  minimum_versions:
+    node: "22.0.0"

@@ -1,0 +1,7 @@
+---
+description: Property resolver and identifier rules
+globs: "src/services/property-resolver/**,src/clients/geosearch.client.ts,src/clients/pluto.client.ts,src/clients/condo-*.ts,src/clients/condominiums.client.ts,src/clients/building-footprints.client.ts,src/schemas/property.schema.ts"
+alwaysApply: false
+---
+
+Read `architecture.resolver` before changing resolver behavior. Preserve Queens hyphenated house numbers. Do not guess ambiguous condo units or source identifier conflicts. Effective BIN-set changes must go through the single transactional mutation boundary that owns `identifier_version` and coverage invalidation; aliases alone do not invalidate coverage.

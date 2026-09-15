@@ -1,0 +1,9 @@
+---
+description: PostgreSQL/Prisma correctness rules
+globs: "prisma/**,src/db/**"
+alwaysApply: false
+---
+
+Before changing persistence semantics, read `architecture.storage` and the relevant resolver/ingestion module.
+
+Database uniqueness, NOT NULL, transaction boundaries, run snapshots, identifier version guards and promotion/failure atomicity are correctness contracts. Do not weaken constraints to work around application errors. Schema changes require committed Prisma migrations. Do not let pooled Prisma queries own the long-lived advisory lock.

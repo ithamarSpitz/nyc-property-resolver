@@ -1,0 +1,68 @@
+name: Harness CI
+
+on:
+  push:
+    paths:
+      - 'harness/**'
+      - 'harness.py'
+      - 'harness.yaml'
+      - 'tasks/**'
+      - 'plans/**'
+      - 'docs/architecture/**'
+      - 'docs/project/**'
+      - 'ARCHITECTURE.md'
+      - 'AGENTS.md'
+      - 'docs/assignment.md'
+      - 'scripts/**'
+      - '.cursor/rules/**'
+      - 'tests/harness/**'
+      - 'schemas/**'
+      - 'requirements-harness.txt'
+      - 'requirements-harness-dev.txt'
+      - 'pyproject.toml'
+      - '.github/workflows/harness-ci.yml'
+  pull_request:
+    paths:
+      - 'harness/**'
+      - 'harness.py'
+      - 'harness.yaml'
+      - 'tasks/**'
+      - 'plans/**'
+      - 'docs/architecture/**'
+      - 'docs/project/**'
+      - 'ARCHITECTURE.md'
+      - 'AGENTS.md'
+      - 'docs/assignment.md'
+      - 'scripts/**'
+      - '.cursor/rules/**'
+      - 'tests/harness/**'
+      - 'schemas/**'
+      - 'requirements-harness.txt'
+      - 'requirements-harness-dev.txt'
+      - 'pyproject.toml'
+      - '.github/workflows/harness-ci.yml'
+
+jobs:
+  harness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install harness dependencies
+        run: python -m pip install -r requirements-harness.txt -r requirements-harness-dev.txt
+      - name: Compile/static syntax check
+        run: python -m compileall -q harness harness.py tests/harness
+      - name: Lint harness
+        run: ruff check harness harness.py tests/harness
+      - name: Type-check harness core
+        run: mypy harness harness.py
+      - name: Check generated architecture contexts
+        run: python scripts/generate-architecture-contexts.py --check
+      - name: Validate project sprint blueprint
+        run: python scripts/check-project-blueprint.py
+      - name: Validate roadmap and task contracts
+        run: python harness.py validate
+      - name: Run harness tests
+        run: python -m pytest -q tests/harness

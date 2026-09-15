@@ -1,0 +1,7 @@
+---
+description: ECB ingestion lifecycle and publication rules
+globs: "src/services/ecb/**,src/workers/**,src/clients/socrata.client.ts"
+alwaysApply: false
+---
+
+Read `architecture.ingestion_strategy`, `architecture.ingestion_lifecycle` and `architecture.storage` before changing ingestion semantics. All loops/retries/pages/batches stay bounded. Resume uses persisted snapshot/batch definitions only. Lock-session loss revokes execution authority. Persist raw before strict normalization; write candidates to run staging; only accepted runs may promote/reconcile/publish success.

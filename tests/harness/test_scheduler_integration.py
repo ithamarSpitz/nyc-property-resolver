@@ -1,0 +1,337 @@
+from __future__ import annotations
+
+import subprocess
+from pathlib import Path
+
+from harness.config import HarnessConfig
+from harness.git_worktree import WorktreeManager
+from harness.models import TaskStatus
+from harness.roadmap import Roadmap
+from harness.runner import AgentResult
+from harness.scheduler import Scheduler
+from harness.state import StateStore
+from harness.verifier import Verifier
+
+
+def run(cmd: list[str], cwd: Path) -> None:
+    subprocess.run(cmd, cwd=cwd, check=True, text=True, capture_output=True)
+
+
+class FakeRunner:
+    def implement(self, task, workspace, timeout_minutes, attempt, previous_failure, **kwargs):
+        out = workspace / "out"
+        out.mkdir(exist_ok=True)
+        (out / f"{task.id}.txt").write_text(task.id + "\n", encoding="utf-8")
+        return AgentResult(True, "fake success")
+
+    def review(self, task, workspace, base_ref, verification_summary, timeout_minutes, **kwargs):
+        return AgentResult(True, "VERDICT: PASS\n")
+
+
+def write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def test_parallel_stage_then_dependency_stage_merges(tmp_path: Path):
+    run(["git", "init", "-b", "main"], tmp_path)
+    run(["git", "config", "user.name", "Test"], tmp_path)
+    run(["git", "config", "user.email", "test@example.com"], tmp_path)
+
+    write(tmp_path / ".gitignore", ".harness/\n")
+    write(tmp_path / "AGENTS.md", "# test\n")
+    write(tmp_path / "harness.yaml", """
+execution:
+  max_parallel_agents: 2
+  default_max_attempts: 2
+  default_timeout_minutes: 1
+  keep_successful_worktrees: false
+cursor:
+  command: agent
+  output_format: text
+  models: {}
+verification:
+  global_task_commands: [git diff --check]
+  stage_commands: []
+paths:
+  protected: []
+  review_required: []
+""")
+    for task_id in ["A", "B", "C"]:
+        write(tmp_path / f"tasks/{task_id}.md", f"""---
+allowed_paths: [out/{task_id}.txt]
+verification:
+  - test -f out/{task_id}.txt
+review: false
+---
+# {task_id}
+""")
+    write(tmp_path / "tasks/roadmap.yaml", """
+project: test
+sprints:
+  s1:
+    tasks:
+      A: {file: tasks/A.md, stage: 1, depends_on: []}
+      B: {file: tasks/B.md, stage: 1, depends_on: []}
+      C: {file: tasks/C.md, stage: 2, depends_on: [A, B]}
+    stage_verification:
+      "1": []
+      "2": []
+""")
+    run(["git", "add", "."], tmp_path)
+    run(["git", "commit", "-m", "initial"], tmp_path)
+
+    config = HarnessConfig.load(tmp_path / "harness.yaml")
+    roadmap = Roadmap(tmp_path, tmp_path / "tasks/roadmap.yaml")
+    state = StateStore(tmp_path / ".harness/state.json")
+    worktrees = WorktreeManager(tmp_path, tmp_path / ".harness")
+    verifier = Verifier(config, tmp_path / ".harness/logs", worktrees)
+    scheduler = Scheduler(tmp_path, config, state, worktrees, FakeRunner(), verifier)
+
+    assert scheduler.run_sprint(roadmap.sprint("s1"))
+    assert state.get("A").status == TaskStatus.DONE
+    assert state.get("B").status == TaskStatus.DONE
+    assert state.get("C").status == TaskStatus.DONE
+    assert (tmp_path / "out/A.txt").exists()
+    assert (tmp_path / "out/B.txt").exists()
+    assert (tmp_path / "out/C.txt").exists()
+
+
+class SetupCheckingRunner(FakeRunner):
+    def implement(self, task, workspace, timeout_minutes, attempt, previous_failure, **kwargs):
+        assert (workspace / ".setup-ready").read_text(encoding="utf-8").strip() == "ready"
+        return super().implement(task, workspace, timeout_minutes, attempt, previous_failure)
+
+
+class ReviewCountingRunner(FakeRunner):
+    def __init__(self):
+        self.review_calls = 0
+
+    def implement(self, task, workspace, timeout_minutes, attempt, previous_failure, **kwargs):
+        (workspace / "ARCHITECTURE.md").write_text("changed by task\n", encoding="utf-8")
+        return AgentResult(True, "fake success")
+
+    def review(self, task, workspace, base_ref, verification_summary, timeout_minutes, **kwargs):
+        self.review_calls += 1
+        return AgentResult(True, "VERDICT: PASS\n")
+
+
+def _init_repo(tmp_path: Path) -> None:
+    run(["git", "init", "-b", "main"], tmp_path)
+    run(["git", "config", "user.name", "Test"], tmp_path)
+    run(["git", "config", "user.email", "test@example.com"], tmp_path)
+
+
+def test_worktree_setup_runs_before_agent(tmp_path: Path):
+    _init_repo(tmp_path)
+    write(tmp_path / ".gitignore", ".harness/\n.setup-ready\n")
+    write(tmp_path / "AGENTS.md", "# test\n")
+    write(tmp_path / "harness.yaml", """
+execution:
+  max_parallel_agents: 1
+  default_max_attempts: 1
+  default_timeout_minutes: 1
+worktree:
+  setup_commands:
+    - printf 'ready\\n' > .setup-ready
+  setup_timeout_minutes: 1
+cursor: {command: agent, output_format: text, models: {}}
+verification: {global_task_commands: [git diff --check], stage_commands: []}
+paths: {protected: [], review_required: []}
+""")
+    write(tmp_path / "tasks/A.md", """---
+allowed_paths: [out/A.txt]
+verification: [test -f out/A.txt]
+review: false
+---
+# A
+""")
+    write(tmp_path / "tasks/roadmap.yaml", """
+project: test
+sprints:
+  s1:
+    tasks:
+      A: {file: tasks/A.md, stage: 1, depends_on: []}
+""")
+    run(["git", "add", "."], tmp_path)
+    run(["git", "commit", "-m", "initial"], tmp_path)
+
+    config = HarnessConfig.load(tmp_path / "harness.yaml")
+    roadmap = Roadmap(tmp_path, tmp_path / "tasks/roadmap.yaml")
+    state = StateStore(tmp_path / ".harness/state.json")
+    worktrees = WorktreeManager(tmp_path, tmp_path / ".harness")
+    verifier = Verifier(config, tmp_path / ".harness/logs", worktrees)
+    scheduler = Scheduler(tmp_path, config, state, worktrees, SetupCheckingRunner(), verifier)
+
+    assert scheduler.run_sprint(roadmap.sprint("s1"))
+    assert state.get("A").status == TaskStatus.DONE
+    assert (tmp_path / ".harness/logs/A-worktree-setup.log").exists()
+
+
+def test_review_required_forces_review_even_when_task_disables_it(tmp_path: Path):
+    _init_repo(tmp_path)
+    write(tmp_path / ".gitignore", ".harness/\n")
+    write(tmp_path / "ARCHITECTURE.md", "original\n")
+    write(tmp_path / "harness.yaml", """
+execution:
+  max_parallel_agents: 1
+  default_max_attempts: 1
+  default_timeout_minutes: 1
+worktree: {}
+cursor: {command: agent, output_format: text, models: {}}
+verification: {global_task_commands: [git diff --check], stage_commands: []}
+paths:
+  protected: []
+  review_required: [ARCHITECTURE.md]
+""")
+    write(tmp_path / "tasks/A.md", """---
+allowed_paths: [ARCHITECTURE.md]
+review: false
+---
+# A
+""")
+    write(tmp_path / "tasks/roadmap.yaml", """
+project: test
+sprints:
+  s1:
+    tasks:
+      A: {file: tasks/A.md, stage: 1, depends_on: []}
+""")
+    run(["git", "add", "."], tmp_path)
+    run(["git", "commit", "-m", "initial"], tmp_path)
+
+    config = HarnessConfig.load(tmp_path / "harness.yaml")
+    roadmap = Roadmap(tmp_path, tmp_path / "tasks/roadmap.yaml")
+    state = StateStore(tmp_path / ".harness/state.json")
+    worktrees = WorktreeManager(tmp_path, tmp_path / ".harness")
+    verifier = Verifier(config, tmp_path / ".harness/logs", worktrees)
+    runner = ReviewCountingRunner()
+    scheduler = Scheduler(tmp_path, config, state, worktrees, runner, verifier)
+
+    assert scheduler.run_sprint(roadmap.sprint("s1"))
+    assert runner.review_calls == 1
+
+
+def test_failed_stage_verification_rolls_back_all_stage_merges(tmp_path: Path):
+    _init_repo(tmp_path)
+    write(tmp_path / ".gitignore", ".harness/\n")
+    write(tmp_path / "AGENTS.md", "# test\n")
+    write(tmp_path / "harness.yaml", """
+execution:
+  max_parallel_agents: 2
+  default_max_attempts: 1
+  default_timeout_minutes: 1
+  keep_successful_worktrees: false
+worktree: {}
+cursor: {command: agent, output_format: text, models: {}}
+verification: {global_task_commands: [git diff --check], stage_commands: []}
+paths: {protected: [], review_required: []}
+""")
+    for task_id in ["A", "B"]:
+        write(tmp_path / f"tasks/{task_id}.md", f"""---
+allowed_paths: [out/{task_id}.txt]
+verification: [test -f out/{task_id}.txt]
+review: false
+---
+# {task_id}
+""")
+    write(tmp_path / "tasks/roadmap.yaml", """
+project: test
+sprints:
+  s1:
+    tasks:
+      A: {file: tasks/A.md, stage: 1, depends_on: []}
+      B: {file: tasks/B.md, stage: 1, depends_on: []}
+    stage_verification:
+      "1": ["false"]
+""")
+    run(["git", "add", "."], tmp_path)
+    run(["git", "commit", "-m", "initial"], tmp_path)
+    initial_head = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=tmp_path, check=True, text=True, capture_output=True
+    ).stdout.strip()
+
+    config = HarnessConfig.load(tmp_path / "harness.yaml")
+    roadmap = Roadmap(tmp_path, tmp_path / "tasks/roadmap.yaml")
+    state = StateStore(tmp_path / ".harness/state.json")
+    worktrees = WorktreeManager(tmp_path, tmp_path / ".harness")
+    verifier = Verifier(config, tmp_path / ".harness/logs", worktrees)
+    scheduler = Scheduler(tmp_path, config, state, worktrees, FakeRunner(), verifier)
+
+    assert not scheduler.run_sprint(roadmap.sprint("s1"))
+    current_head = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=tmp_path, check=True, text=True, capture_output=True
+    ).stdout.strip()
+    assert current_head == initial_head
+    assert not (tmp_path / "out/A.txt").exists()
+    assert not (tmp_path / "out/B.txt").exists()
+    assert state.get("A").status == TaskStatus.VERIFIED
+    assert state.get("B").status == TaskStatus.VERIFIED
+    status = subprocess.run(
+        ["git", "status", "--porcelain"], cwd=tmp_path, check=True, text=True, capture_output=True
+    ).stdout.strip()
+    assert status == ""
+
+
+class FailingSecondMergeWorktreeManager(WorktreeManager):
+    def __init__(self, repo_root: Path, runtime_root: Path):
+        super().__init__(repo_root, runtime_root)
+        self.merge_count = 0
+
+    def merge_branch(self, branch: str, task_id: str) -> None:
+        self.merge_count += 1
+        if self.merge_count == 2:
+            raise RuntimeError("synthetic second-merge failure")
+        return super().merge_branch(branch, task_id)
+
+
+def test_partial_merge_failure_rolls_back_first_merge(tmp_path: Path):
+    _init_repo(tmp_path)
+    write(tmp_path / ".gitignore", ".harness/\n")
+    write(tmp_path / "AGENTS.md", "# test\n")
+    write(tmp_path / "harness.yaml", """
+execution:
+  max_parallel_agents: 2
+  default_max_attempts: 1
+  default_timeout_minutes: 1
+worktree: {}
+cursor: {command: agent, output_format: text, models: {}}
+verification: {global_task_commands: [git diff --check], stage_commands: []}
+paths: {protected: [], review_required: []}
+""")
+    for task_id in ["A", "B"]:
+        write(tmp_path / f"tasks/{task_id}.md", f"""---
+allowed_paths: [out/{task_id}.txt]
+verification: [test -f out/{task_id}.txt]
+review: false
+---
+# {task_id}
+""")
+    write(tmp_path / "tasks/roadmap.yaml", """
+project: test
+sprints:
+  s1:
+    tasks:
+      A: {file: tasks/A.md, stage: 1, depends_on: []}
+      B: {file: tasks/B.md, stage: 1, depends_on: []}
+""")
+    run(["git", "add", "."], tmp_path)
+    run(["git", "commit", "-m", "initial"], tmp_path)
+    initial_head = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=tmp_path, check=True, text=True, capture_output=True
+    ).stdout.strip()
+
+    config = HarnessConfig.load(tmp_path / "harness.yaml")
+    roadmap = Roadmap(tmp_path, tmp_path / "tasks/roadmap.yaml")
+    state = StateStore(tmp_path / ".harness/state.json")
+    worktrees = FailingSecondMergeWorktreeManager(tmp_path, tmp_path / ".harness")
+    verifier = Verifier(config, tmp_path / ".harness/logs", worktrees)
+    scheduler = Scheduler(tmp_path, config, state, worktrees, FakeRunner(), verifier)
+
+    assert not scheduler.run_sprint(roadmap.sprint("s1"))
+    assert worktrees.merge_count == 2
+    assert worktrees.head_commit() == initial_head
+    assert not (tmp_path / "out/A.txt").exists()
+    assert not (tmp_path / "out/B.txt").exists()
+    assert state.get("A").status == TaskStatus.VERIFIED
+    assert state.get("B").status == TaskStatus.VERIFIED

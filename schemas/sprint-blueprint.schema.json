@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sprint-blueprint.schema.json",
+  "title": "Non-runnable Project Sprint Blueprint",
+  "type": "object",
+  "required": ["version", "runnable", "source_of_truth", "sprints"],
+  "properties": {
+    "version": {"type": "integer", "minimum": 1},
+    "runnable": {"const": false},
+    "source_of_truth": {
+      "type": "object",
+      "required": ["assignment", "architecture"],
+      "properties": {
+        "assignment": {"type": "string", "minLength": 1},
+        "architecture": {"type": "string", "minLength": 1}
+      }
+    },
+    "sprints": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name", "goal", "stages"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "goal": {"type": "string", "minLength": 1},
+          "depends_on": {
+            "type": "array",
+            "items": {"type": "string"},
+            "uniqueItems": true
+          },
+          "context": {
+            "type": "array",
+            "items": {"type": "string"},
+            "uniqueItems": true
+          },
+          "stages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["id", "name"],
+              "properties": {
+                "id": {"type": "integer", "minimum": 1},
+                "name": {"type": "string", "minLength": 1},
+                "depends_on": {
+                  "type": "array",
+                  "items": {"type": "integer", "minimum": 1},
+                  "uniqueItems": true
+                },
+                "intent": {"type": "array", "items": {"type": "string"}},
+                "parallel_workstreams": {"type": "array", "items": {"type": "string"}}
+              },
+              "additionalProperties": true
+            }
+          },
+          "exit_gate": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

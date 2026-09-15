@@ -1,0 +1,30 @@
+project: example-project
+
+sprints:
+  demo:
+    name: Harness demo DAG
+    tasks:
+      D-T1:
+        file: tasks/demo/01-foundation.md
+        stage: 1
+        depends_on: []
+
+      D-T2:
+        file: tasks/demo/02-left.md
+        stage: 2
+        depends_on: [D-T1]
+
+      D-T3:
+        file: tasks/demo/03-right.md
+        stage: 2
+        depends_on: [D-T1]
+
+      D-T4:
+        file: tasks/demo/04-join.md
+        stage: 3
+        depends_on: [D-T2, D-T3]
+
+    stage_verification:
+      "1": []
+      "2": []
+      "3": []

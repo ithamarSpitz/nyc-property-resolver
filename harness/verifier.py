@@ -1,0 +1,114 @@
+from __future__ import annotations
+
+import fnmatch
+import subprocess
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from .config import HarnessConfig
+from .git_worktree import WorktreeManager
+from .logging_utils import write_log
+from .models import TaskSpec
+
+
+@dataclass(slots=True)
+class VerificationResult:
+    ok: bool
+    summary: str
+    failures: list[str] = field(default_factory=list)
+    changed_files: list[str] = field(default_factory=list)
+
+
+def _matches(path: str, pattern: str) -> bool:
+    normalized = pattern.rstrip("/")
+    if normalized.endswith("/**"):
+        prefix = normalized[:-3].rstrip("/")
+        return path == prefix or path.startswith(prefix + "/")
+    return fnmatch.fnmatch(path, normalized)
+
+
+class Verifier:
+    def __init__(self, config: HarnessConfig, log_dir: Path, worktrees: WorktreeManager):
+        self.config = config
+        self.log_dir = log_dir
+        self.worktrees = worktrees
+
+    def requires_review(self, changed_files: list[str]) -> bool:
+        return any(
+            _matches(path, pattern)
+            for path in changed_files
+            for pattern in self.config.paths.review_required
+        )
+
+    def verify_task(
+        self, task: TaskSpec, workspace: Path, base_ref: str, *, env: dict[str, str] | None = None
+    ) -> VerificationResult:
+        failures: list[str] = []
+        changed = self.worktrees.changed_files(workspace, base_ref)
+
+        if task.allowed_paths:
+            out_of_scope = [
+                path for path in changed
+                if not any(_matches(path, pattern) for pattern in task.allowed_paths)
+            ]
+            if out_of_scope:
+                failures.append("Changed files outside allowed_paths: " + ", ".join(out_of_scope))
+
+        if not task.allow_protected:
+            protected = [
+                path for path in changed
+                if any(_matches(path, pattern) for pattern in self.config.paths.protected)
+            ]
+            if protected:
+                failures.append("Protected files changed: " + ", ".join(protected))
+
+        command_outputs: list[str] = []
+        commands = [*self.config.verification.global_task_commands, *task.verification]
+        for command in commands:
+            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=env)
+            rendered = f"$ {command}\nexit={proc.returncode}\n{proc.stdout}{proc.stderr}".rstrip()
+            command_outputs.append(rendered)
+            if proc.returncode != 0:
+                failures.append(f"Verification command failed: {command}")
+
+        summary = "\n\n".join([
+            "Changed files:\n" + ("\n".join(changed) if changed else "(none)"),
+            *command_outputs,
+            "Failures:\n" + ("\n".join(failures) if failures else "(none)"),
+        ])
+        write_log(self.log_dir, f"{task.id}-verification.log", summary)
+        return VerificationResult(not failures, summary, failures, changed)
+
+
+    def verify_integrated_task(
+        self, task: TaskSpec, workspace: Path, *, env: dict[str, str] | None = None
+    ) -> VerificationResult:
+        """Re-run a DONE task's behavioral verification on the integrated checkout.
+
+        This deliberately skips diff/scope checks because the task is already merged;
+        the purpose is regression validation after an approved plan revision.
+        """
+        failures: list[str] = []
+        outputs: list[str] = []
+        for command in [*self.config.verification.global_task_commands, *task.verification]:
+            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=env)
+            outputs.append(f"$ {command}\nexit={proc.returncode}\n{proc.stdout}{proc.stderr}".rstrip())
+            if proc.returncode != 0:
+                failures.append(f"Revalidation command failed: {command}")
+        summary = "\n\n".join([*outputs, "Failures:\n" + ("\n".join(failures) if failures else "(none)")])
+        write_log(self.log_dir, f"{task.id}-revalidation.log", summary)
+        return VerificationResult(not failures, summary, failures)
+
+    def verify_stage(
+        self, workspace: Path, commands: list[str], stage_name: str, *, env: dict[str, str] | None = None
+    ) -> VerificationResult:
+        failures: list[str] = []
+        outputs: list[str] = []
+        for command in [*self.config.verification.stage_commands, *commands]:
+            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=env)
+            outputs.append(f"$ {command}\nexit={proc.returncode}\n{proc.stdout}{proc.stderr}".rstrip())
+            if proc.returncode != 0:
+                failures.append(f"Stage command failed: {command}")
+        summary = "\n\n".join([*outputs, "Failures:\n" + ("\n".join(failures) if failures else "(none)")])
+        write_log(self.log_dir, f"{stage_name}-verification.log", summary)
+        return VerificationResult(not failures, summary, failures)

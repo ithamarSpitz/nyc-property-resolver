@@ -1,0 +1,7 @@
+---
+description: ECB API and pagination rules
+globs: "src/routes/**,src/services/**/*query*,src/services/**/*pagination*"
+alwaysApply: false
+---
+
+Read `architecture.api` before changing query behavior. ECB query endpoints serve local PostgreSQL state and never call Socrata. `openOnly` means ACTIVE; `unpaidOnly` means balance_due > 0. Property ECB ordering/cursor must implement the specified NULL-aware keyset semantics. Portfolio results also require current `property_bins` membership.

@@ -1,0 +1,18 @@
+version: 1
+billing:
+  on_demand_enabled: false
+remaining_percentage:
+  supported_cli_contract: false
+runtime:
+  quota_state: WAITING_FOR_QUOTA
+  consume_retry_budget: false
+  preserve_worktree: true
+  preserve_state: true
+  preserve_logs: true
+  teardown_task_environment_while_waiting: true
+  review_resume_without_reimplementation: true
+waiting:
+  default_policy: wait
+  reset_at_source: manual_dashboard_value_or_runtime_override
+  unknown_reset_behavior: probe_interval
+  keep_awake_on_windows: true

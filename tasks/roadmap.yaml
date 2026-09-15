@@ -1,0 +1,370 @@
+project: nyc-property-resolver-ecb
+sprints:
+  S0-foundation:
+    name: Repository, Runtime, Database and Test Foundation
+    tasks:
+      S0-T1:
+        file: tasks/sprint-00-foundation/01-toolchain-test-foundation.md
+        stage: 1
+        depends_on: []
+      S0-T2:
+        file: tasks/sprint-00-foundation/02-config-logging-foundation.md
+        stage: 2
+        depends_on:
+        - S0-T1
+      S0-T3:
+        file: tasks/sprint-00-foundation/03-prisma-postgres-foundation.md
+        stage: 2
+        depends_on:
+        - S0-T1
+      S0-T4:
+        file: tasks/sprint-00-foundation/04-docker-compose-foundation.md
+        stage: 2
+        depends_on:
+        - S0-T1
+      S0-T5:
+        file: tasks/sprint-00-foundation/05-foundation-integration-gate.md
+        stage: 3
+        depends_on:
+        - S0-T2
+        - S0-T3
+        - S0-T4
+    stage_verification:
+      '1':
+      - npm ci
+      - npm run typecheck
+      - npm test -- --runInBand
+      '2':
+      - npm run typecheck
+      - npm test -- --runInBand
+      - npx prisma validate
+      - docker compose config --quiet
+      '3':
+      - npm run verify:foundation
+  S1-property-resolution:
+    name: Property Identity, Resolution and Registration
+    tasks:
+      S1-T1:
+        file: tasks/sprint-01-property-resolution/01-property-identity-persistence.md
+        stage: 1
+        depends_on: []
+      S1-T2:
+        file: tasks/sprint-01-property-resolution/02-address-normalization.md
+        stage: 2
+        depends_on:
+        - S1-T1
+      S1-T3:
+        file: tasks/sprint-01-property-resolution/03-geosearch-client.md
+        stage: 2
+        depends_on:
+        - S1-T1
+      S1-T4:
+        file: tasks/sprint-01-property-resolution/04-pluto-client.md
+        stage: 2
+        depends_on:
+        - S1-T1
+      S1-T5:
+        file: tasks/sprint-01-property-resolution/05-building-footprints-client.md
+        stage: 2
+        depends_on:
+        - S1-T1
+      S1-T6:
+        file: tasks/sprint-01-property-resolution/06-condo-mapping-clients.md
+        stage: 2
+        depends_on:
+        - S1-T1
+      S1-T7:
+        file: tasks/sprint-01-property-resolution/07-resolver-orchestration.md
+        stage: 3
+        depends_on:
+        - S1-T2
+        - S1-T3
+        - S1-T4
+        - S1-T5
+        - S1-T6
+      S1-T8:
+        file: tasks/sprint-01-property-resolution/08-single-property-http-api.md
+        stage: 4
+        depends_on:
+        - S1-T7
+      S1-T9:
+        file: tasks/sprint-01-property-resolution/09-bulk-bbl-registration.md
+        stage: 4
+        depends_on:
+        - S1-T7
+      S1-T10:
+        file: tasks/sprint-01-property-resolution/10-property-resolution-integration-gate.md
+        stage: 5
+        depends_on:
+        - S1-T8
+        - S1-T9
+    stage_verification:
+      '1':
+      - npm run typecheck
+      - npx prisma validate
+      - npm test -- --runInBand tests/unit/property-resolution/property-identifiers.test.ts
+      '2':
+      - npm run typecheck
+      - npm test -- --runInBand tests/unit/property-resolution/address-normalizer.test.ts tests/unit/clients/geosearch.client.test.ts tests/unit/clients/pluto.client.test.ts tests/unit/clients/building-footprints.client.test.ts tests/unit/clients/condo-units.client.test.ts tests/unit/clients/condominiums.client.test.ts
+      '3':
+      - npm run typecheck
+      - npm test -- --runInBand tests/unit/property-resolution/footprint-validation.test.ts
+      '4':
+      - npm run typecheck
+      - npm test -- --runInBand tests/api/properties.single.test.ts tests/api/properties.bulk.test.ts tests/unit/property-resolution/bulk-property-registration.service.test.ts
+      '5':
+      - npm run verify:property-resolution
+  S2-ingestion-lifecycle:
+    name: ECB Source Contract, Durable Run Lifecycle and Resumability
+    tasks:
+      S2-T1:
+        file: tasks/sprint-02-ingestion-lifecycle/01-ingestion-persistence-source-contract.md
+        stage: 1
+        depends_on: []
+      S2-T2:
+        file: tasks/sprint-02-ingestion-lifecycle/02-socrata-client.md
+        stage: 2
+        depends_on:
+        - S2-T1
+      S2-T3:
+        file: tasks/sprint-02-ingestion-lifecycle/03-socrata-request-executor.md
+        stage: 2
+        depends_on:
+        - S2-T1
+      S2-T4:
+        file: tasks/sprint-02-ingestion-lifecycle/04-raw-normalization-staging.md
+        stage: 2
+        depends_on:
+        - S2-T1
+      S2-T5:
+        file: tasks/sprint-02-ingestion-lifecycle/05-advisory-lock-authority.md
+        stage: 2
+        depends_on:
+        - S2-T1
+      S2-T6:
+        file: tasks/sprint-02-ingestion-lifecycle/06-run-initialization.md
+        stage: 3
+        depends_on:
+        - S2-T2
+        - S2-T3
+        - S2-T4
+        - S2-T5
+      S2-T7:
+        file: tasks/sprint-02-ingestion-lifecycle/07-persisted-batch-processor.md
+        stage: 3
+        depends_on:
+        - S2-T2
+        - S2-T3
+        - S2-T4
+        - S2-T5
+      S2-T8:
+        file: tasks/sprint-02-ingestion-lifecycle/08-ingestion-executor-resume.md
+        stage: 4
+        depends_on:
+        - S2-T6
+        - S2-T7
+      S2-T9:
+        file: tasks/sprint-02-ingestion-lifecycle/09-ingestion-lifecycle-integration-gate.md
+        stage: 5
+        depends_on:
+        - S2-T8
+    stage_verification:
+      '1':
+      - npm run typecheck
+      - npx prisma validate
+      - npm test -- --runInBand tests/unit/ingestion/source-contract.test.ts
+      '2':
+      - npm run typecheck
+      - npm test -- --runInBand tests/unit/clients/socrata.client.test.ts tests/unit/clients/socrata-request-executor.test.ts tests/unit/ingestion/ecb-normalization.test.ts tests/unit/ingestion/ingestion-lock-authority.test.ts
+      '3':
+      - npm run typecheck
+      '4':
+      - npm run typecheck
+      '5':
+      - npm run verify:ingestion-lifecycle
+  S3-ingestion-publication:
+    name: Promotion, Reconciliation, Coverage and Failure Publication
+    tasks:
+      S3-T1:
+        file: tasks/sprint-03-ingestion-publication/01-live-state-promotion-reconciliation.md
+        stage: 1
+        depends_on: []
+      S3-T2:
+        file: tasks/sprint-03-ingestion-publication/02-success-coverage-version-guards.md
+        stage: 2
+        depends_on:
+        - S3-T1
+      S3-T3:
+        file: tasks/sprint-03-ingestion-publication/03-accepted-run-publication.md
+        stage: 3
+        depends_on:
+        - S3-T2
+      S3-T4:
+        file: tasks/sprint-03-ingestion-publication/04-terminal-failure-publication.md
+        stage: 4
+        depends_on:
+        - S3-T3
+      S3-T5:
+        file: tasks/sprint-03-ingestion-publication/05-ingestion-publication-semantic-gate.md
+        stage: 5
+        depends_on:
+        - S3-T4
+    stage_verification:
+      '1':
+      - npm run typecheck
+      - npx prisma validate
+      - docker compose build
+      - docker compose up -d postgres
+      - docker compose run --rm migrate
+      - docker compose run --rm --no-deps worker npm test -- --runInBand tests/integration/ingestion/live-state-promotion.test.ts
+      '2':
+      - npm run typecheck
+      - docker compose build
+      - docker compose up -d postgres
+      - docker compose run --rm migrate
+      - docker compose run --rm --no-deps worker npm test -- --runInBand tests/integration/ingestion/successful-coverage.test.ts
+      '3':
+      - npm run typecheck
+      - docker compose build
+      - docker compose up -d postgres
+      - docker compose run --rm migrate
+      - docker compose run --rm --no-deps worker npm test -- --runInBand tests/integration/ingestion/accepted-publication.test.ts
+      '4':
+      - npm run typecheck
+      - docker compose build
+      - docker compose up -d postgres
+      - docker compose run --rm migrate
+      - docker compose run --rm --no-deps worker npm test -- --runInBand tests/integration/ingestion/terminal-failure-publication.test.ts
+      '5':
+      - npm run verify:ingestion-publication
+  S4-api-operations:
+    name: Query API, Pagination, Scheduling and Production-Shaped Runtime
+    tasks:
+      S4-T1:
+        file: tasks/sprint-04-api-operations/01-property-ecb-query-pagination.md
+        stage: 1
+        depends_on: []
+      S4-T2:
+        file: tasks/sprint-04-api-operations/02-portfolio-ecb-query.md
+        stage: 1
+        depends_on: []
+      S4-T3:
+        file: tasks/sprint-04-api-operations/03-scheduler-manual-cli.md
+        stage: 1
+        depends_on: []
+      S4-T4:
+        file: tasks/sprint-04-api-operations/04-http-security-error-middleware.md
+        stage: 1
+        depends_on: []
+      S4-T5:
+        file: tasks/sprint-04-api-operations/05-property-ecb-http-endpoint.md
+        stage: 2
+        depends_on:
+        - S4-T1
+        - S4-T4
+      S4-T6:
+        file: tasks/sprint-04-api-operations/06-portfolio-ecb-http-endpoint.md
+        stage: 2
+        depends_on:
+        - S4-T2
+        - S4-T4
+      S4-T7:
+        file: tasks/sprint-04-api-operations/07-runtime-assembly-docker-gate.md
+        stage: 3
+        depends_on:
+        - S4-T3
+        - S4-T5
+        - S4-T6
+      S4-T8:
+        file: tasks/sprint-04-api-operations/08-api-operations-integration-gate.md
+        stage: 4
+        depends_on:
+        - S4-T7
+    stage_verification:
+      '1':
+      - npm run typecheck
+      - docker compose build
+      - docker compose up -d postgres
+      - docker compose run --rm migrate
+      - docker compose run --rm --no-deps worker npm test -- --runInBand tests/integration/api/property-violations-query.test.ts tests/integration/api/portfolio-violations-query.test.ts tests/unit/operations/scheduler.test.ts tests/unit/operations/ingest-ecb-cli.test.ts tests/unit/http/security-error-middleware.test.ts
+      '2':
+      - npm run typecheck
+      - docker compose build
+      - docker compose up -d postgres
+      - docker compose run --rm migrate
+      - docker compose run --rm --no-deps worker npm test -- --runInBand tests/api/properties.ecb-violations.test.ts tests/api/violations.portfolio.test.ts
+      '3':
+      - npm run typecheck
+      - docker compose config --quiet
+      - docker compose build
+      - docker compose up -d
+      - docker compose run --rm --no-deps worker npm test -- --runInBand tests/integration/operations/runtime-assembly.test.ts
+      '4':
+      - npm run verify:api-operations
+  S5-acceptance-submission:
+    name: Real-Data Acceptance, Scale, Evidence and Submission
+    tasks:
+      S5-T1:
+        file: tasks/sprint-05-acceptance-submission/01-acceptance-fixtures-tooling.md
+        stage: 1
+        depends_on: []
+      S5-T2:
+        file: tasks/sprint-05-acceptance-submission/02-small-real-data-evidence.md
+        stage: 2
+        depends_on:
+        - S5-T1
+      S5-T3:
+        file: tasks/sprint-05-acceptance-submission/03-scale-10000-evidence.md
+        stage: 3
+        depends_on:
+        - S5-T2
+      S5-T4:
+        file: tasks/sprint-05-acceptance-submission/04-submission-documentation.md
+        stage: 4
+        depends_on:
+        - S5-T3
+      S5-T5:
+        file: tasks/sprint-05-acceptance-submission/05-final-submission-gate.md
+        stage: 5
+        depends_on:
+        - S5-T4
+    stage_verification:
+      '1':
+      - npm run typecheck
+      - docker compose config --quiet
+      - npm run acceptance:small:check
+      '2':
+      - npm run acceptance:small:validate-evidence
+      '3':
+      - npm run acceptance:scale:validate-evidence
+      '4':
+      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      '5':
+      - npm run verify:submission
+  demo:
+    name: Harness demo DAG
+    tasks:
+      D-T1:
+        file: tasks/demo/01-foundation.md
+        stage: 1
+        depends_on: []
+      D-T2:
+        file: tasks/demo/02-left.md
+        stage: 2
+        depends_on:
+        - D-T1
+      D-T3:
+        file: tasks/demo/03-right.md
+        stage: 2
+        depends_on:
+        - D-T1
+      D-T4:
+        file: tasks/demo/04-join.md
+        stage: 3
+        depends_on:
+        - D-T2
+        - D-T3
+    stage_verification:
+      '1': []
+      '2': []
+      '3': []

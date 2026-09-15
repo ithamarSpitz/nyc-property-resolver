@@ -1,0 +1,65 @@
+version: 1
+status: active_before_task_generation
+principles:
+  - One task owns one coherent behavioral outcome, not an arbitrary file count.
+  - A task should usually be independently implementable/reviewable within one fresh agent context.
+  - Tasks may run in parallel only when dependencies permit it AND their concrete allowed_paths do not overlap serial hotspots.
+  - Keep architecture context minimal: normally 1-3 domain aliases plus architecture.invariants when cross-cutting.
+  - A task that changes behavior must define observable acceptance criteria and mechanical verification.
+  - Real-data/scale acceptance is never embedded in ordinary implementation tasks.
+
+required_task_fields:
+  - id
+  - goal
+  - stage
+  - depends_on
+  - context
+  - allowed_paths
+  - scope
+  - out_of_scope
+  - acceptance_criteria
+  - verification
+  - model_class
+
+sizing:
+  preferred:
+    - one service/client/persistence boundary or one tightly coupled behavior slice
+    - focused tests included with the behavior they protect
+  split_when:
+    - implementation needs unrelated architecture modules
+    - expected diff crosses multiple serial hotspots without one transactional reason
+    - task can produce useful verified output before all requested behavior is complete
+    - failure diagnosis would be ambiguous because too many independent invariants changed at once
+  combine_when:
+    - splitting would require temporary architecture violations
+    - correctness requires one atomic schema/service/test change that cannot be independently integrated
+
+parallelism:
+  require:
+    - dependencies are DONE
+    - no allowed_path overlap that can cause merge ambiguity
+    - no shared serial hotspot
+  default_max_agents: 3
+
+review:
+  default: true
+  force_for:
+    - database schema/migrations
+    - Docker/runtime config
+    - config/env boundary
+    - property identifier mutation/versioning
+    - ingestion lifecycle/promotion/coverage
+    - API pagination semantics
+
+retry:
+  automatic_sequence:
+    - worker       # composer-2.5
+    - worker       # composer-2.5
+    - hard_worker  # cursor-grok-4.6-high
+    - escalation   # claude-opus-5-thinking-high
+  default_total_attempts: 4
+  after_block:
+    - inspect failure report
+    - use plan repair when repeated model escalation indicates a missing task or architecture gap
+    - any manual model override is one-shot
+    - resume the sprint; do not rerun DONE/VERIFIED work

@@ -1,0 +1,54 @@
+version: 1
+source: ARCHITECTURE.md
+runtime:
+  node: ">=22.0.0"
+  database: PostgreSQL
+  containers: Docker Compose
+  package_install: npm_ci_after_lockfile_exists
+
+application_environment:
+  required:
+    DATABASE_URL:
+      secret: true
+      owner: compose_or_operator
+  optional:
+    SOCRATA_APP_TOKEN:
+      secret: true
+      description: Optional app token; keep out of repository.
+  configured_with_defaults:
+    INGEST_INTERVAL_MS: 604800000
+    ECB_BATCH_SIZE: 1000
+    SOCRATA_PAGE_SIZE: 50000
+    SOCRATA_MAX_PAGES_PER_BATCH: 100
+    SOCRATA_CONCURRENCY: 10
+    SOCRATA_REQUEST_TIMEOUT_MS: 15000
+    SOCRATA_MAX_RETRIES: 3
+    MAX_BATCH_ATTEMPTS_PER_RUN: 3
+    API_BODY_LIMIT: 512kb
+  configured_without_architecture_default:
+    API_RATE_LIMIT: null
+
+rules:
+  - Application code reads environment through one validated config module, not scattered process.env access.
+  - Secrets are never committed.
+  - .env.example documents the public environment contract; .env is ignored.
+  - Compose supplies the internal DATABASE_URL for container runtime.
+  - Defaults must have one canonical owner in application config; docs/Compose should not silently diverge.
+  - SOCRATA_APP_TOKEN is optional unless implementation evidence proves a token is required for the acceptance workload.
+
+compose_runtime:
+  dependency_chain:
+    - postgres: service_healthy
+    - migrate: service_completed_successfully
+    - api: after_migrate
+    - worker: after_migrate
+  migrate_command: npx prisma migrate deploy
+  one_command_start: docker compose up --build
+  manual_ingestion: docker compose run --rm worker npm run ingest:ecb
+  scale_seed: docker compose run --rm worker npm run seed:scale
+
+harness_isolation:
+  compose_project_name: per_task_or_stage
+  host_ports_for_task_environments: avoid_when_possible
+  cleanup_success: down_with_volumes
+  cleanup_blocked: containers_down_code_and_logs_retained
