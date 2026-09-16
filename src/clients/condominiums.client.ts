@@ -6,9 +6,13 @@ import { canonicalizeBbl, type CanonicalBbl } from '../schemas/property-identifi
 import {
   DEFAULT_CONDO_LOOKUP_LIMIT,
   DEFAULT_NYC_OPEN_DATA_BASE_URL,
+  SOCRATA_MAX_PAGE_LIMIT,
 } from './condo-units.client';
 
 export const CONDOMINIUMS_DATASET_ID = 'p8u6-a6it';
+export const CONDOMINIUMS_BULK_LOOKUP_CHUNK_SIZE = 500;
+export const CONDOMINIUMS_BULK_LOOKUP_RESULT_LIMIT_PER_KEY = DEFAULT_CONDO_LOOKUP_LIMIT;
+export const CONDOMINIUMS_BULK_MAX_LOOKUP_PAGES = 20;
 
 export type CondominiumBillingRecord = {
   condoBaseBbl: CanonicalBbl;
@@ -90,6 +94,20 @@ function classifyLookupResult(
   return { matchCount: 'multiple', matches };
 }
 
+function chunkValues<T>(values: readonly T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < values.length; index += chunkSize) {
+    chunks.push(values.slice(index, index + chunkSize));
+  }
+
+  return chunks;
+}
+
+function bulkQueryPageLimit(keyCount: number, resultLimitPerKey: number): number {
+  return Math.min(SOCRATA_MAX_PAGE_LIMIT, Math.max(keyCount * resultLimitPerKey, keyCount));
+}
+
 function sortCondominiumRecords(
   records: CondominiumBillingRecord[],
 ): CondominiumBillingRecord[] {
@@ -126,16 +144,84 @@ export class CondominiumsClient {
     const condoBaseBbl = canonicalizeBbl(condoBaseBblInput);
     const whereClause = `condo_base_bbl='${escapeSoqlString(condoBaseBbl)}'`;
 
+    const rows = await this.fetchCondominiumRows(whereClause);
+    const matches = sortCondominiumRecords(rows.map(parseCondominiumRow));
+
+    return classifyLookupResult(matches);
+  }
+
+  async lookupByCondoBaseBbls(
+    condoBaseBblInputs: readonly string[],
+  ): Promise<Map<CanonicalBbl, CondominiumBillingLookupResult>> {
+    const canonicalBbls = [...new Set(condoBaseBblInputs.map((bbl) => canonicalizeBbl(bbl)))].sort();
+    const grouped = new Map<CanonicalBbl, CondominiumBillingRecord[]>();
+
+    for (const bbl of canonicalBbls) {
+      grouped.set(bbl, []);
+    }
+
+    for (const chunk of chunkValues(canonicalBbls, CONDOMINIUMS_BULK_LOOKUP_CHUNK_SIZE)) {
+      const quotedBbls = chunk.map((bbl) => `'${escapeSoqlString(bbl)}'`).join(',');
+      const whereClause = `condo_base_bbl in (${quotedBbls})`;
+      const rows = await this.fetchCondominiumRowsBulk(whereClause, chunk.length);
+      for (const match of sortCondominiumRecords(rows.map(parseCondominiumRow))) {
+        grouped.get(match.condoBaseBbl)?.push(match);
+      }
+    }
+
+    const results = new Map<CanonicalBbl, CondominiumBillingLookupResult>();
+    for (const bbl of canonicalBbls) {
+      const matches = sortCondominiumRecords(grouped.get(bbl) ?? []);
+      results.set(bbl, classifyLookupResult(matches));
+    }
+
+    return results;
+  }
+
+  private async fetchCondominiumRows(whereClause: string): Promise<RawCondominiumRow[]> {
     const url = new URL(`${this.baseUrl}/${CONDOMINIUMS_DATASET_ID}.json`);
     url.searchParams.set('$select', 'condo_base_bbl,condo_billing_bbl');
     url.searchParams.set('$where', whereClause);
     url.searchParams.set('$order', 'condo_billing_bbl ASC');
     url.searchParams.set('$limit', String(this.lookupLimit));
 
-    const rows = await this.fetchRows(url);
-    const matches = sortCondominiumRecords(rows.map(parseCondominiumRow));
+    return this.fetchRows(url);
+  }
 
-    return classifyLookupResult(matches);
+  private async fetchCondominiumRowsBulk(
+    whereClause: string,
+    keyCount: number,
+  ): Promise<RawCondominiumRow[]> {
+    const pageLimit = bulkQueryPageLimit(
+      keyCount,
+      CONDOMINIUMS_BULK_LOOKUP_RESULT_LIMIT_PER_KEY,
+    );
+    const rows: RawCondominiumRow[] = [];
+
+    for (let pageIndex = 0; pageIndex < CONDOMINIUMS_BULK_MAX_LOOKUP_PAGES; pageIndex += 1) {
+      const offset = pageIndex * pageLimit;
+      const url = new URL(`${this.baseUrl}/${CONDOMINIUMS_DATASET_ID}.json`);
+      url.searchParams.set('$select', 'condo_base_bbl,condo_billing_bbl');
+      url.searchParams.set('$where', whereClause);
+      url.searchParams.set('$order', 'condo_billing_bbl ASC');
+      url.searchParams.set('$limit', String(pageLimit));
+      if (offset > 0) {
+        url.searchParams.set('$offset', String(offset));
+      }
+
+      const pageRows = await this.fetchRows(url);
+      rows.push(...pageRows);
+
+      if (pageRows.length < pageLimit) {
+        return rows;
+      }
+    }
+
+    throw new AppError({
+      code: 'CONDOMINIUMS_LOOKUP_PAGE_LIMIT',
+      message: `Condominiums bulk lookup exceeded the maximum of ${CONDOMINIUMS_BULK_MAX_LOOKUP_PAGES} pages`,
+      statusCode: 502,
+    });
   }
 
   private async fetchRows(url: URL): Promise<RawCondominiumRow[]> {

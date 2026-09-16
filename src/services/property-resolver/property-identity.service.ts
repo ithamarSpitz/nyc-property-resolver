@@ -7,10 +7,12 @@ import {
   Property,
   PropertyBin,
   PropertyDatasetCoverage,
+  PropertyResolutionInputType,
 } from '@prisma/client';
 
 import { AppError } from '../../errors';
 import {
+  CanonicalBbl,
   CanonicalBin,
   assertValidBbl,
   filterValidBins,
@@ -182,6 +184,39 @@ export class PropertyIdentityService {
 
   async findPropertyById(propertyId: string): Promise<PropertyWithRelations | null> {
     return loadPropertyWithRelations(this.prisma, propertyId);
+  }
+
+  async findCachedBblRegistrations(
+    bbls: readonly string[],
+  ): Promise<Map<CanonicalBbl, PropertyWithRelations>> {
+    if (bbls.length === 0) {
+      return new Map();
+    }
+
+    const canonicalBbls = [...new Set(bbls.map((bbl) => assertValidBbl(bbl)))];
+    const cachedInputs = await this.prisma.propertyResolutionInput.findMany({
+      where: {
+        inputType: PropertyResolutionInputType.BBL,
+        normalizedInput: {
+          in: canonicalBbls,
+        },
+      },
+      include: {
+        property: {
+          include: {
+            bins: true,
+            datasetCoverage: true,
+          },
+        },
+      },
+    });
+
+    const results = new Map<CanonicalBbl, PropertyWithRelations>();
+    for (const row of cachedInputs) {
+      results.set(assertValidBbl(row.normalizedInput), toPropertyWithRelations(row.property));
+    }
+
+    return results;
   }
 
   async findPropertyByBbl(bbl: string): Promise<PropertyWithRelations | null> {

@@ -6,6 +6,10 @@ import { canonicalizeBbl, type CanonicalBbl } from '../schemas/property-identifi
 export const CONDO_UNITS_DATASET_ID = 'eguu-7ie3';
 export const DEFAULT_NYC_OPEN_DATA_BASE_URL = 'https://data.cityofnewyork.us/resource';
 export const DEFAULT_CONDO_LOOKUP_LIMIT = 25;
+export const CONDO_UNITS_BULK_LOOKUP_CHUNK_SIZE = 500;
+export const CONDO_UNITS_BULK_LOOKUP_RESULT_LIMIT_PER_KEY = 2;
+export const CONDO_UNITS_BULK_MAX_LOOKUP_PAGES = 20;
+export const SOCRATA_MAX_PAGE_LIMIT = 50_000;
 
 export type CondoUnitRecord = {
   unitBbl: CanonicalBbl;
@@ -108,6 +112,20 @@ function classifyLookupResult(matches: CondoUnitRecord[]): CondoUnitLookupResult
   return { matchCount: 'multiple', matches };
 }
 
+function chunkValues<T>(values: readonly T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < values.length; index += chunkSize) {
+    chunks.push(values.slice(index, index + chunkSize));
+  }
+
+  return chunks;
+}
+
+function bulkQueryPageLimit(keyCount: number, resultLimitPerKey: number): number {
+  return Math.min(SOCRATA_MAX_PAGE_LIMIT, Math.max(keyCount * resultLimitPerKey, keyCount));
+}
+
 function sortCondoUnitRecords(records: CondoUnitRecord[]): CondoUnitRecord[] {
   return [...records].sort((left, right) => {
     const unitCompare = left.unitBbl.localeCompare(right.unitBbl);
@@ -145,6 +163,32 @@ export class CondoUnitsClient {
     return this.queryCondoUnits(whereClause, 'lookupByUnitBbl');
   }
 
+  async lookupByUnitBbls(unitBblInputs: readonly string[]): Promise<Map<CanonicalBbl, CondoUnitLookupResult>> {
+    const canonicalBbls = [...new Set(unitBblInputs.map((bbl) => canonicalizeBbl(bbl)))].sort();
+    const grouped = new Map<CanonicalBbl, CondoUnitRecord[]>();
+
+    for (const bbl of canonicalBbls) {
+      grouped.set(bbl, []);
+    }
+
+    for (const chunk of chunkValues(canonicalBbls, CONDO_UNITS_BULK_LOOKUP_CHUNK_SIZE)) {
+      const quotedBbls = chunk.map((bbl) => `'${escapeSoqlString(bbl)}'`).join(',');
+      const whereClause = `unit_bbl in (${quotedBbls})`;
+      const rows = await this.fetchCondoUnitRowsBulk(whereClause, chunk.length, 'lookupByUnitBbls');
+      for (const match of rows.map(parseCondoUnitRow)) {
+        grouped.get(match.unitBbl)?.push(match);
+      }
+    }
+
+    const results = new Map<CanonicalBbl, CondoUnitLookupResult>();
+    for (const bbl of canonicalBbls) {
+      const matches = sortCondoUnitRecords(grouped.get(bbl) ?? []);
+      results.set(bbl, classifyLookupResult(matches));
+    }
+
+    return results;
+  }
+
   async lookupByCondoBaseAndUnitDesignation(
     condoBaseBblInput: string,
     unitDesignationInput: string,
@@ -171,16 +215,54 @@ export class CondoUnitsClient {
     whereClause: string,
     operation: string,
   ): Promise<CondoUnitLookupResult> {
+    const rows = await this.fetchCondoUnitRows(whereClause, operation);
+    const matches = sortCondoUnitRecords(rows.map(parseCondoUnitRow));
+
+    return classifyLookupResult(matches);
+  }
+
+  private async fetchCondoUnitRows(whereClause: string, operation: string): Promise<RawCondoUnitRow[]> {
     const url = new URL(`${this.baseUrl}/${CONDO_UNITS_DATASET_ID}.json`);
     url.searchParams.set('$select', 'unit_bbl,condo_base_bbl,unit_designation');
     url.searchParams.set('$where', whereClause);
     url.searchParams.set('$order', 'unit_bbl ASC');
     url.searchParams.set('$limit', String(this.lookupLimit));
 
-    const rows = await this.fetchRows(url, operation);
-    const matches = sortCondoUnitRecords(rows.map(parseCondoUnitRow));
+    return this.fetchRows(url, operation);
+  }
 
-    return classifyLookupResult(matches);
+  private async fetchCondoUnitRowsBulk(
+    whereClause: string,
+    keyCount: number,
+    operation: string,
+  ): Promise<RawCondoUnitRow[]> {
+    const pageLimit = bulkQueryPageLimit(keyCount, CONDO_UNITS_BULK_LOOKUP_RESULT_LIMIT_PER_KEY);
+    const rows: RawCondoUnitRow[] = [];
+
+    for (let pageIndex = 0; pageIndex < CONDO_UNITS_BULK_MAX_LOOKUP_PAGES; pageIndex += 1) {
+      const offset = pageIndex * pageLimit;
+      const url = new URL(`${this.baseUrl}/${CONDO_UNITS_DATASET_ID}.json`);
+      url.searchParams.set('$select', 'unit_bbl,condo_base_bbl,unit_designation');
+      url.searchParams.set('$where', whereClause);
+      url.searchParams.set('$order', 'unit_bbl ASC');
+      url.searchParams.set('$limit', String(pageLimit));
+      if (offset > 0) {
+        url.searchParams.set('$offset', String(offset));
+      }
+
+      const pageRows = await this.fetchRows(url, operation);
+      rows.push(...pageRows);
+
+      if (pageRows.length < pageLimit) {
+        return rows;
+      }
+    }
+
+    throw new AppError({
+      code: 'CONDO_UNITS_LOOKUP_PAGE_LIMIT',
+      message: `Condominium Units bulk lookup exceeded the maximum of ${CONDO_UNITS_BULK_MAX_LOOKUP_PAGES} pages`,
+      statusCode: 502,
+    });
   }
 
   private async fetchRows(url: URL, operation: string): Promise<RawCondoUnitRow[]> {
