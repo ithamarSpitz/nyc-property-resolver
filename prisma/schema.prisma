@@ -142,6 +142,7 @@ model IngestionRun {
   batches             IngestionBatch[]
   rawRows             EcbViolationRaw[]
   stagingRows         EcbViolationStaging[]
+  liveRows            EcbViolation[]
 
   @@index([dataset, status])
   @@map("ingestion_runs")
@@ -215,4 +216,25 @@ model EcbViolationStaging {
   @@unique([runId, sourceId])
   @@index([runId, bin])
   @@map("ecb_violation_staging")
+}
+
+model EcbViolation {
+  id                 String    @id @default(uuid()) @db.Uuid
+  sourceId           String    @unique @map("source_id")
+  socrataRowId       String    @map("socrata_row_id")
+  bin                String    @db.VarChar(7)
+  violationNumber    String?   @map("violation_number")
+  issueDate          DateTime? @map("issue_date") @db.Date
+  ecbViolationStatus String?   @map("ecb_violation_status")
+  balanceDue         Decimal?  @map("balance_due") @db.Decimal(15, 2)
+  sourceRowUpdatedAt DateTime  @map("source_row_updated_at") @db.Timestamptz(6)
+  lastSuccessRunId   String    @map("last_success_run_id") @db.Uuid
+  isCurrent          Boolean   @default(true) @map("is_current")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lastSuccessRun IngestionRun @relation(fields: [lastSuccessRunId], references: [id], onDelete: Restrict)
+
+  @@index([bin])
+  @@map("ecb_violations")
 }
