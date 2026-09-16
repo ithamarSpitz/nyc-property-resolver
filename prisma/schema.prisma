@@ -6,3 +6,89 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum PropertyResolutionInputType {
+  ADDRESS
+  BBL
+}
+
+enum Dataset {
+  DOB_ECB_VIOLATIONS
+}
+
+enum CoverageStatus {
+  CHECKED
+  NOT_CHECKED
+  FAILED
+}
+
+enum CoverageStatusReason {
+  NEVER_INGESTED
+  NO_VALID_BIN
+  IDENTIFIERS_CHANGED
+  IDENTIFIERS_CHANGED_AFTER_SNAPSHOT
+}
+
+model Property {
+  id                String   @id @default(uuid()) @db.Uuid
+  identifierVersion Int      @default(1) @map("identifier_version")
+  bbl               String   @unique @db.VarChar(10)
+  condoBaseBbl      String?  @map("condo_base_bbl") @db.VarChar(10)
+  condoBillingBbl   String?  @map("condo_billing_bbl") @db.VarChar(10)
+  normalizedAddress String?  @map("normalized_address")
+  borough           Int
+  block             Int
+  lot               Int
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  resolvedAt        DateTime @map("resolved_at") @db.Timestamptz(6)
+
+  resolutionInputs PropertyResolutionInput[]
+  bins             PropertyBin[]
+  datasetCoverage  PropertyDatasetCoverage[]
+
+  @@map("properties")
+}
+
+model PropertyResolutionInput {
+  id                 String                      @id @default(uuid()) @db.Uuid
+  inputType          PropertyResolutionInputType @map("input_type")
+  normalizedInput    String                      @map("normalized_input")
+  propertyId         String                      @map("property_id") @db.Uuid
+  resolvedAt         DateTime                    @map("resolved_at") @db.Timestamptz(6)
+  resolverConfidence Float?                      @map("resolver_confidence")
+  resolverMetadata   Json?                       @map("resolver_metadata")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([inputType, normalizedInput])
+  @@map("property_resolution_inputs")
+}
+
+model PropertyBin {
+  propertyId String @map("property_id") @db.Uuid
+  bin        String @db.VarChar(7)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, bin])
+  @@index([bin])
+  @@map("property_bins")
+}
+
+model PropertyDatasetCoverage {
+  propertyId        String                @map("property_id") @db.Uuid
+  dataset           Dataset
+  status            CoverageStatus
+  statusReason      CoverageStatusReason? @map("status_reason")
+  lastAttemptRunId  String?               @map("last_attempt_run_id") @db.Uuid
+  lastSuccessRunId  String?               @map("last_success_run_id") @db.Uuid
+  lastAttemptAt     DateTime?             @map("last_attempt_at") @db.Timestamptz(6)
+  lastSuccessAt     DateTime?             @map("last_success_at") @db.Timestamptz(6)
+  sourceWatermarkAt DateTime?             @map("source_watermark_at") @db.Timestamptz(6)
+  lastError         String?               @map("last_error")
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, dataset])
+  @@map("property_dataset_coverage")
+}
