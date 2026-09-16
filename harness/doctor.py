@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import re
-import shlex
 import shutil
 import subprocess
 import sys
@@ -11,6 +10,7 @@ from pathlib import Path
 
 from .config import HarnessConfig
 from .git_worktree import WorktreeManager
+from .process_utils import locate_executable, prepare_external_argv, split_command
 
 
 @dataclass(slots=True)
@@ -36,12 +36,20 @@ class Doctor:
 
     @staticmethod
     def _command_version(command: str) -> tuple[bool, str]:
-        path = shutil.which(command)
+        parts = split_command(command)
+        if not parts:
+            return False, "missing"
+        path = locate_executable(parts[0])
         if not path:
             return False, "missing"
-        for args in ([command, "--version"], [command, "version"]):
+        for suffix in (["--version"], ["version"]):
             try:
-                proc = subprocess.run(args, text=True, capture_output=True, timeout=15)
+                proc = subprocess.run(
+                    prepare_external_argv([*parts, *suffix]),
+                    text=True,
+                    capture_output=True,
+                    timeout=15,
+                )
             except (OSError, subprocess.TimeoutExpired):
                 continue
             text = (proc.stdout or proc.stderr).strip()
@@ -55,7 +63,8 @@ class Doctor:
         git_ok, git_detail = self._command_version("git")
         checks.append(DoctorCheck("git", git_ok, git_detail))
 
-        cursor_path = shutil.which(self.config.cursor.command)
+        cursor_parts = split_command(self.config.cursor.command)
+        cursor_path = locate_executable(cursor_parts[0]) if cursor_parts else None
         checks.append(DoctorCheck("cursor-agent", cursor_path is not None, cursor_path or "missing"))
         try:
             self.worktrees.ensure_repo()
@@ -110,7 +119,7 @@ class Doctor:
             checks.append(DoctorCheck(f"env:{name}", bool(value), "set" if value else "missing"))
 
         if self.config.environment.docker_enabled:
-            compose_parts = shlex.split(self.config.environment.compose_command)
+            compose_parts = split_command(self.config.environment.compose_command)
             if not compose_parts:
                 checks.append(DoctorCheck("docker-compose", False, "empty environment.compose_command"))
             else:
@@ -120,7 +129,7 @@ class Doctor:
                 else:
                     try:
                         proc = subprocess.run(
-                            [*compose_parts, "version"],
+                            prepare_external_argv([*compose_parts, "version"]),
                             cwd=self.root,
                             text=True,
                             capture_output=True,
@@ -149,7 +158,7 @@ class Doctor:
         if cursor_path and self.config.doctor.check_cursor_models:
             try:
                 proc = subprocess.run(
-                    [self.config.cursor.command, "models"],
+                    prepare_external_argv([*cursor_parts, "models"]),
                     cwd=self.root,
                     text=True,
                     capture_output=True,

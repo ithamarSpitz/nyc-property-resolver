@@ -1,6 +1,15 @@
-# Agent Harness Starter v0.11.0
+# Agent Harness Starter v0.11.1
 
 A small, task-oriented orchestrator for running Cursor coding agents against a Git repository. It deliberately keeps project knowledge in Markdown/YAML and Git instead of building a separate memory/RAG system.
+
+
+## Windows portability fixes in v0.11.1
+
+- Cursor/other external `.cmd` and `.bat` shims are launched through `cmd.exe` on Windows.
+- Explicit Python-script commands are launched through the active Python interpreter.
+- Docker Compose command execution uses the same cross-platform launcher.
+- Harness regression fixtures no longer rely on Unix-only shebang/chmod, `test -f`, `printf`, or `false`.
+- Windows paths embedded in YAML test fixtures are escaped safely.
 
 ## What is implemented
 

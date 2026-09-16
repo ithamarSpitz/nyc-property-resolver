@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 from pathlib import Path
 
 from harness.cli import main
+from tests.portable import file_exists_command, make_python_script, yaml_quote
 
 
 def run(cmd: list[str], cwd: Path) -> str:
@@ -22,9 +22,9 @@ def test_cli_run_end_to_end_through_fake_cursor_process(tmp_path: Path):
     run(["git", "config", "user.name", "Test"], tmp_path)
     run(["git", "config", "user.email", "test@example.com"], tmp_path)
 
-    fake_agent = tmp_path / "fake-agent"
-    write(fake_agent, """#!/usr/bin/env python3
-import pathlib
+    fake_agent = make_python_script(
+        tmp_path / "fake-agent.py",
+        """import pathlib
 import sys
 
 args = sys.argv[1:]
@@ -37,10 +37,11 @@ if '--mode=ask' in args:
 else:
     (workspace / 'out.txt').write_text('implemented\\n', encoding='utf-8')
     print('implementation complete')
-""")
-    os.chmod(fake_agent, 0o755)
+""",
+    )
 
-    write(tmp_path / ".gitignore", ".harness/\nfake-agent\n")
+    verify_out = file_exists_command("out.txt")
+    write(tmp_path / ".gitignore", ".harness/\nfake-agent.py\n")
     write(tmp_path / "AGENTS.md", "# test\n")
     write(tmp_path / "harness.yaml", f"""
 execution:
@@ -53,7 +54,7 @@ worktree:
   setup_commands: []
   setup_timeout_minutes: 1
 cursor:
-  command: {fake_agent}
+  command: {yaml_quote(fake_agent)}
   output_format: text
   models: {{worker: null, reviewer: null}}
 verification:
@@ -63,21 +64,21 @@ paths:
   protected: []
   review_required: []
 """)
-    write(tmp_path / "tasks/A.md", """---
+    write(tmp_path / "tasks/A.md", f"""---
 allowed_paths: [out.txt]
-verification: [test -f out.txt]
+verification: [{yaml_quote(verify_out)}]
 review: true
 ---
 # A
 """)
-    write(tmp_path / "tasks/roadmap.yaml", """
+    write(tmp_path / "tasks/roadmap.yaml", f"""
 project: test
 sprints:
   s1:
     tasks:
-      A: {file: tasks/A.md, stage: 1, depends_on: []}
+      A: {{file: tasks/A.md, stage: 1, depends_on: []}}
     stage_verification:
-      "1": ["test -f out.txt"]
+      "1": [{yaml_quote(verify_out)}]
 """)
     run(["git", "add", "."], tmp_path)
     run(["git", "commit", "-m", "initial"], tmp_path)
@@ -105,7 +106,7 @@ sprints:
     manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
     assert manifest["status"] == "COMPLETED"
     usage_lines = (tmp_path / ".harness/usage.jsonl").read_text(encoding="utf-8").splitlines()
-    assert len(usage_lines) == 2  # implement + independent reviewer
+    assert len(usage_lines) == 2
 
 
 def test_cli_focused_expensive_retry_then_resume(tmp_path: Path):
@@ -114,9 +115,9 @@ def test_cli_focused_expensive_retry_then_resume(tmp_path: Path):
     run(["git", "config", "user.email", "test@example.com"], tmp_path)
 
     calls = tmp_path / "calls.log"
-    fake_agent = tmp_path / "fake-agent"
-    write(fake_agent, f'''#!/usr/bin/env python3
-import pathlib
+    fake_agent = make_python_script(
+        tmp_path / "fake-agent.py",
+        f'''import pathlib
 import sys
 
 args = sys.argv[1:]
@@ -135,10 +136,11 @@ elif model == 'expensive':
 else:
     print('cheap model failed')
     raise SystemExit(7)
-''')
-    os.chmod(fake_agent, 0o755)
+''',
+    )
 
-    write(tmp_path / ".gitignore", ".harness/\nfake-agent\ncalls.log\n")
+    verify_out = file_exists_command("out.txt")
+    write(tmp_path / ".gitignore", ".harness/\nfake-agent.py\ncalls.log\n")
     write(tmp_path / "AGENTS.md", "# test\n")
     write(tmp_path / "harness.yaml", f"""
 execution:
@@ -147,7 +149,7 @@ execution:
   default_timeout_minutes: 1
   base_ref: main
 cursor:
-  command: {fake_agent}
+  command: {yaml_quote(fake_agent)}
   output_format: text
   models:
     worker: cheap
@@ -158,21 +160,21 @@ verification:
   stage_commands: []
 paths: {{protected: [], review_required: []}}
 """)
-    write(tmp_path / "tasks/A.md", """---
+    write(tmp_path / "tasks/A.md", f"""---
 allowed_paths: [out.txt]
-verification: [test -f out.txt]
+verification: [{yaml_quote(verify_out)}]
 review: false
 ---
 # A
 """)
-    write(tmp_path / "tasks/roadmap.yaml", """
+    write(tmp_path / "tasks/roadmap.yaml", f"""
 project: test
 sprints:
   s1:
     tasks:
-      A: {file: tasks/A.md, stage: 1, depends_on: []}
+      A: {{file: tasks/A.md, stage: 1, depends_on: []}}
     stage_verification:
-      "1": ["test -f out.txt"]
+      "1": [{yaml_quote(verify_out)}]
 """)
     run(["git", "add", "."], tmp_path)
     run(["git", "commit", "-m", "initial"], tmp_path)

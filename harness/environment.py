@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import re
-import shlex
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,6 +9,7 @@ from pathlib import Path
 from .config import HarnessConfig
 from .logging_utils import write_log
 from .models import TaskSpec
+from .process_utils import prepare_external_argv, split_command
 
 
 def _slug(value: str) -> str:
@@ -68,7 +68,7 @@ class EnvironmentManager:
         return env
 
     def _compose_base(self) -> list[str]:
-        command = shlex.split(self.config.environment.compose_command)
+        command = split_command(self.config.environment.compose_command)
         for compose_file in self.config.environment.compose_files:
             command += ["-f", compose_file]
         return command
@@ -85,7 +85,7 @@ class EnvironmentManager:
         command = [*self._compose_base(), *args]
         try:
             proc = subprocess.run(
-                command,
+                prepare_external_argv(command),
                 cwd=workspace,
                 text=True,
                 capture_output=True,

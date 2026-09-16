@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import subprocess
 from pathlib import Path
 
@@ -14,6 +13,7 @@ from harness.runner import AgentResult
 from harness.scheduler import Scheduler
 from harness.state import StateStore
 from harness.verifier import Verifier
+from tests.portable import file_exists_command, make_python_script, yaml_quote
 
 
 def run(cmd: list[str], cwd: Path) -> None:
@@ -72,14 +72,15 @@ verification:
 paths: {protected: [], review_required: []}
 """)
     for tid in ["A", "B"]:
+        verify = file_exists_command(f"out/{tid}.txt")
         write(root / f"tasks/{tid}.md", f"""---
 allowed_paths: [out/{tid}.txt]
-verification: [test -f out/{tid}.txt]
+verification: [{yaml_quote(verify)}]
 review: false
 ---
 # {tid}
 """)
-    stage = f'\n    stage_verification:\n      "1": ["{stage_command}"]\n' if stage_command else ""
+    stage = (f'\n    stage_verification:\n      "1": [{yaml_quote(stage_command)}]\n' if stage_command else "")
     write(root / "tasks/roadmap.yaml", f"""
 project: test
 sprints:
@@ -137,7 +138,7 @@ def test_failed_stage_barrier_is_rerunnable_without_rerunning_agents(tmp_path: P
     init_repo(tmp_path)
     marker = tmp_path.parent / f"{tmp_path.name}-stage-ok"
     config, roadmap, state, worktrees, verifier = build_two_task_repo(
-        tmp_path, stage_command=f"test -f {marker}"
+        tmp_path, stage_command=file_exists_command(marker)
     )
     runner = SelectiveRunner()
     failures = FailureStore(tmp_path / ".harness/failures")
@@ -163,17 +164,16 @@ def test_failed_stage_barrier_is_rerunnable_without_rerunning_agents(tmp_path: P
 
 def test_docker_environment_uses_isolated_compose_names_and_lifecycle(tmp_path: Path):
     log = tmp_path / "docker.log"
-    fake = tmp_path / "fake-docker"
-    fake.write_text(
-        "#!/bin/sh\nprintf '%s|%s\\n' \"$COMPOSE_PROJECT_NAME\" \"$*\" >> \"$FAKE_DOCKER_LOG\"\nexit 0\n",
-        encoding="utf-8",
-    )
-    fake.chmod(0o755)
+    fake = make_python_script(tmp_path / "fake-docker.py", """import os
+import sys
+with open(os.environ['FAKE_DOCKER_LOG'], 'a', encoding='utf-8') as fh:
+    fh.write(os.environ.get('COMPOSE_PROJECT_NAME', '') + '|' + ' '.join(sys.argv[1:]) + '\\n')
+""")
     write(tmp_path / "harness.yaml", f"""
 cursor: {{models: {{worker: null}}}}
 environment:
   docker_enabled: true
-  compose_command: {fake}
+  compose_command: {yaml_quote(fake)}
   compose_files: [docker-compose.yml]
   project_name_prefix: demo
   validate_compose: true
@@ -182,7 +182,7 @@ environment:
   teardown_on_blocked: true
   remove_volumes: true
   env:
-    FAKE_DOCKER_LOG: {log}
+    FAKE_DOCKER_LOG: {yaml_quote(log)}
 """)
     config = HarnessConfig.load(tmp_path / "harness.yaml")
     manager = EnvironmentManager(tmp_path, config, tmp_path / ".harness/logs")

@@ -12,6 +12,7 @@ from harness.runner import AgentResult
 from harness.scheduler import Scheduler
 from harness.state import StateStore
 from harness.verifier import Verifier
+from tests.portable import file_exists_command, yaml_quote
 
 
 def run(cmd: list[str], cwd: Path) -> str:
@@ -51,24 +52,25 @@ paths: {protected: [], review_required: []}
 quota: {policy: stop, probe_interval_minutes: 60}
 plan_repair: {enabled: true, planner_model_class: escalation, timeout_minutes: 1}
 """)
-    write(root / "tasks/A.md", """---
+    verify_out = file_exists_command("out.txt")
+    write(root / "tasks/A.md", f"""---
 id: A
 stage: 1
 model_class: worker
 review: false
 allowed_paths: [out.txt]
-verification: [test -f out.txt]
+verification: [{yaml_quote(verify_out)}]
 ---
 # A
 """)
-    write(root / "tasks/roadmap.yaml", """
+    write(root / "tasks/roadmap.yaml", f"""
 project: test
 sprints:
   s1:
     tasks:
-      A: {file: tasks/A.md, stage: 1, depends_on: []}
+      A: {{file: tasks/A.md, stage: 1, depends_on: []}}
     stage_verification:
-      "1": ["test -f out.txt"]
+      "1": [{yaml_quote(verify_out)}]
 """)
     run(["git", "add", "."], root)
     run(["git", "commit", "-m", "initial"], root)

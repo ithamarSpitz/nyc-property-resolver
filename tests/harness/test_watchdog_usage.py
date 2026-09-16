@@ -6,6 +6,7 @@ from pathlib import Path
 from harness.config import HarnessConfig
 from harness.runner import CursorAgentRunner
 from harness.usage import UsageRecorder
+from tests.portable import make_python_script, yaml_quote
 
 
 def write(path: Path, text: str) -> None:
@@ -15,19 +16,16 @@ def write(path: Path, text: str) -> None:
 
 def test_watchdog_stalls_silent_agent_and_records_usage(tmp_path: Path):
     os.system(f"git -C {tmp_path} init -q")
-    fake = tmp_path / "fake-agent"
-    write(fake, """#!/usr/bin/env python3
-import time
+    fake = make_python_script(tmp_path / "fake-agent.py", """import time
 time.sleep(5)
 """)
-    os.chmod(fake, 0o755)
     write(tmp_path / "harness.yaml", f"""
 execution:
-  stall_timeout_minutes: 0.001
+  stall_timeout_minutes: 0.01
   watchdog_poll_seconds: 0.02
 worktree: {{}}
 cursor:
-  command: {fake}
+  command: {yaml_quote(fake)}
   models: {{worker: cheap}}
 verification: {{}}
 paths: {{}}
@@ -58,24 +56,24 @@ doctor: {{}}
 
 def test_watchdog_allows_silent_agent_with_repository_activity(tmp_path: Path):
     os.system(f"git -C {tmp_path} init -q")
-    fake = tmp_path / "fake-agent-active"
-    write(fake, """#!/bin/sh
-workspace="$4"
-i=0
-while [ "$i" -lt 6 ]; do
-  printf '%s' "$i" > "$workspace/progress.txt"
-  i=$((i + 1))
-  sleep 0.03
-done
+    fake = make_python_script(tmp_path / "fake-agent-active.py", """import pathlib
+import sys
+import time
+
+args = sys.argv[1:]
+workspace = pathlib.Path(args[args.index('--workspace') + 1])
+for i in range(20):
+    with (workspace / 'progress.txt').open('a', encoding='utf-8') as fh:
+        fh.write(str(i))
+    time.sleep(0.1)
 """)
-    os.chmod(fake, 0o755)
     write(tmp_path / "harness.yaml", f"""
 execution:
-  stall_timeout_minutes: 0.001
+  stall_timeout_minutes: 0.01
   watchdog_poll_seconds: 0.01
 worktree: {{}}
 cursor:
-  command: {fake}
+  command: {yaml_quote(fake)}
   models: {{worker: cheap}}
 verification: {{}}
 paths: {{}}
@@ -95,4 +93,4 @@ doctor: {{}}
     )
     assert result.ok
     assert not result.stalled
-    assert (tmp_path / "progress.txt").read_text(encoding="utf-8") == "5"
+    assert (tmp_path / "progress.txt").read_text(encoding="utf-8") == "012345678910111213141516171819"

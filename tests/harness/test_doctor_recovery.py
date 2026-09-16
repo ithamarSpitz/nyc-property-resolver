@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import os
 import subprocess
 from pathlib import Path
 
 from harness.cli import build_runtime, cmd_cleanup, cmd_reset_task, cmd_unblock
 from harness.doctor import Doctor
 from harness.models import TaskStatus
+from tests.portable import make_python_script, yaml_quote
 
 
 def run(cmd: list[str], cwd: Path) -> str:
@@ -22,22 +22,19 @@ def init_project(tmp_path: Path) -> Path:
     run(["git", "init", "-b", "main"], tmp_path)
     run(["git", "config", "user.name", "Test"], tmp_path)
     run(["git", "config", "user.email", "test@example.com"], tmp_path)
-    fake = tmp_path / "fake-agent"
-    write(fake, """#!/usr/bin/env python3
-import sys
+    fake = make_python_script(tmp_path / "fake-agent.py", """import sys
 if 'models' in sys.argv:
     print('cheap-model\\nreview-model')
 elif '--version' in sys.argv:
     print('fake 1.0')
 """)
-    os.chmod(fake, 0o755)
-    write(tmp_path / ".gitignore", ".harness/\nfake-agent\n")
+    write(tmp_path / ".gitignore", ".harness/\nfake-agent.py\n")
     write(tmp_path / "AGENTS.md", "# agents\n")
     write(tmp_path / "harness.yaml", f"""
 execution: {{}}
 worktree: {{}}
 cursor:
-  command: {fake}
+  command: {yaml_quote(fake)}
   models: {{worker: cheap-model, reviewer: review-model}}
 verification: {{}}
 paths: {{}}

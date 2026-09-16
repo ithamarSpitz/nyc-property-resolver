@@ -10,6 +10,7 @@ from harness.cli import cmd_run
 from harness.config import HarnessConfig
 from harness.git_worktree import WorktreeManager
 from harness.runner import CursorAgentRunner
+from tests.portable import make_python_script, yaml_quote
 
 
 def run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -32,17 +33,14 @@ def test_cursor_trust_only_for_verified_harness_worktree(tmp_path: Path):
     run(["git", "add", "."], repo)
     run(["git", "commit", "-m", "initial"], repo)
 
-    fake = tmp_path / "fake-agent"
-    write(
-        fake,
-        """#!/usr/bin/env python3
-import json, os, sys
+    fake = make_python_script(
+        tmp_path / "fake-agent.py",
+        """import json, os, sys
 with open(os.environ['ARG_LOG'], 'w', encoding='utf-8') as fh:
     json.dump(sys.argv[1:], fh)
 print('OK')
 """,
     )
-    os.chmod(fake, 0o755)
 
     config_path = repo / "harness.yaml"
     write(
@@ -53,7 +51,7 @@ execution:
   watchdog_poll_seconds: 0.01
 worktree: {{}}
 cursor:
-  command: {fake}
+  command: {yaml_quote(fake)}
   output_format: text
   trust_harness_worktrees: true
   models: {{worker: cheap}}

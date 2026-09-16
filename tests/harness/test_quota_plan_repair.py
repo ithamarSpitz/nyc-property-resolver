@@ -15,6 +15,7 @@ from harness.runner import AgentResult
 from harness.scheduler import Scheduler
 from harness.state import StateStore
 from harness.verifier import Verifier
+from tests.portable import file_exists_command, yaml_quote
 
 
 def run(cmd: list[str], cwd: Path) -> str:
@@ -54,21 +55,22 @@ plan_repair:
   planner_model_class: escalation
   timeout_minutes: 1
 """)
+    verify_out = file_exists_command("out.txt")
     write(root / "tasks/A.md", f"""---
 allowed_paths: [out.txt]
-verification: [test -f out.txt]
+verification: [{yaml_quote(verify_out)}]
 review: {str(review).lower()}
 ---
 # A
 """)
-    write(root / "tasks/roadmap.yaml", """
+    write(root / "tasks/roadmap.yaml", f"""
 project: test
 sprints:
   s1:
     tasks:
-      A: {file: tasks/A.md, stage: 1, depends_on: []}
+      A: {{file: tasks/A.md, stage: 1, depends_on: []}}
     stage_verification:
-      "1": ["test -f out.txt"]
+      "1": [{yaml_quote(verify_out)}]
 """)
     run(["git", "add", "."], root)
     run(["git", "commit", "-m", "initial"], root)
@@ -186,23 +188,25 @@ def test_plan_change_adds_task_revision_and_resets_only_affected_blocker(tmp_pat
     assert request.kind == "TASK_ADDITION"
     assert manager.open_request_id() == request.id
 
-    write(tmp_path / "tasks/B.md", """---
+    verify_helper = file_exists_command("helper.txt")
+    write(tmp_path / "tasks/B.md", f"""---
 allowed_paths: [helper.txt]
-verification: [test -f helper.txt]
+verification: [{yaml_quote(verify_helper)}]
 review: false
 ---
 # B
 """)
-    write(tmp_path / "tasks/roadmap.yaml", """
+    verify_out = file_exists_command("out.txt")
+    write(tmp_path / "tasks/roadmap.yaml", f"""
 project: test
 sprints:
   s1:
     tasks:
-      B: {file: tasks/B.md, stage: 1, depends_on: []}
-      A: {file: tasks/A.md, stage: 2, depends_on: [B]}
+      B: {{file: tasks/B.md, stage: 1, depends_on: []}}
+      A: {{file: tasks/A.md, stage: 2, depends_on: [B]}}
     stage_verification:
       "1": []
-      "2": ["test -f out.txt"]
+      "2": [{yaml_quote(verify_out)}]
 """)
     run(["git", "add", "."], tmp_path)
     run(["git", "commit", "-m", "plan repair"], tmp_path)
@@ -262,9 +266,10 @@ def test_plan_apply_archives_old_affected_worktree_and_rebases_future_retry(tmp_
     )
     state.set_meta("plan.open_change_request", rid)
 
-    write(tmp_path / "tasks/B.md", """---
+    verify_helper = file_exists_command("helper.txt")
+    write(tmp_path / "tasks/B.md", f"""---
 allowed_paths: [helper.txt]
-verification: [test -f helper.txt]
+verification: [{yaml_quote(verify_helper)}]
 review: false
 ---
 # B

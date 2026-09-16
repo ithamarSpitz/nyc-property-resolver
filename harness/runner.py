@@ -11,6 +11,7 @@ from .context import ContextResolver
 from .logging_utils import write_log
 from .models import TaskSpec
 from .prompts import implement_prompt, review_prompt
+from .process_utils import prepare_external_argv
 from .usage import UsageRecorder
 
 
@@ -183,9 +184,10 @@ class CursorAgentRunner:
         error: str | None = None
         return_code: int | None = None
 
+        launch_command = prepare_external_argv(command)
         try:
             proc = subprocess.Popen(
-                command,
+                launch_command,
                 cwd=workspace,
                 text=True,
                 stdout=subprocess.PIPE,

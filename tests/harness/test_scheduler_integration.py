@@ -11,6 +11,7 @@ from harness.runner import AgentResult
 from harness.scheduler import Scheduler
 from harness.state import StateStore
 from harness.verifier import Verifier
+from tests.portable import fail_command, file_exists_command, write_text_command, yaml_quote
 
 
 def run(cmd: list[str], cwd: Path) -> None:
@@ -58,10 +59,10 @@ paths:
   review_required: []
 """)
     for task_id in ["A", "B", "C"]:
+        verify = file_exists_command(f"out/{task_id}.txt")
         write(tmp_path / f"tasks/{task_id}.md", f"""---
 allowed_paths: [out/{task_id}.txt]
-verification:
-  - test -f out/{task_id}.txt
+verification: [{yaml_quote(verify)}]
 review: false
 ---
 # {task_id}
@@ -126,22 +127,23 @@ def test_worktree_setup_runs_before_agent(tmp_path: Path):
     _init_repo(tmp_path)
     write(tmp_path / ".gitignore", ".harness/\n.setup-ready\n")
     write(tmp_path / "AGENTS.md", "# test\n")
-    write(tmp_path / "harness.yaml", """
+    setup_command = write_text_command(".setup-ready", "ready\n")
+    verify_a = file_exists_command("out/A.txt")
+    write(tmp_path / "harness.yaml", f"""
 execution:
   max_parallel_agents: 1
   default_max_attempts: 1
   default_timeout_minutes: 1
 worktree:
-  setup_commands:
-    - printf 'ready\\n' > .setup-ready
+  setup_commands: [{yaml_quote(setup_command)}]
   setup_timeout_minutes: 1
-cursor: {command: agent, output_format: text, models: {}}
-verification: {global_task_commands: [git diff --check], stage_commands: []}
-paths: {protected: [], review_required: []}
+cursor: {{command: agent, output_format: text, models: {{}}}}
+verification: {{global_task_commands: [git diff --check], stage_commands: []}}
+paths: {{protected: [], review_required: []}}
 """)
-    write(tmp_path / "tasks/A.md", """---
+    write(tmp_path / "tasks/A.md", f"""---
 allowed_paths: [out/A.txt]
-verification: [test -f out/A.txt]
+verification: [{yaml_quote(verify_a)}]
 review: false
 ---
 # A
@@ -166,7 +168,6 @@ sprints:
     assert scheduler.run_sprint(roadmap.sprint("s1"))
     assert state.get("A").status == TaskStatus.DONE
     assert (tmp_path / ".harness/logs/A-worktree-setup.log").exists()
-
 
 def test_review_required_forces_review_even_when_task_disables_it(tmp_path: Path):
     _init_repo(tmp_path)
@@ -228,22 +229,24 @@ verification: {global_task_commands: [git diff --check], stage_commands: []}
 paths: {protected: [], review_required: []}
 """)
     for task_id in ["A", "B"]:
+        verify = file_exists_command(f"out/{task_id}.txt")
         write(tmp_path / f"tasks/{task_id}.md", f"""---
 allowed_paths: [out/{task_id}.txt]
-verification: [test -f out/{task_id}.txt]
+verification: [{yaml_quote(verify)}]
 review: false
 ---
 # {task_id}
 """)
-    write(tmp_path / "tasks/roadmap.yaml", """
+    failing_stage = fail_command()
+    write(tmp_path / "tasks/roadmap.yaml", f"""
 project: test
 sprints:
   s1:
     tasks:
-      A: {file: tasks/A.md, stage: 1, depends_on: []}
-      B: {file: tasks/B.md, stage: 1, depends_on: []}
+      A: {{file: tasks/A.md, stage: 1, depends_on: []}}
+      B: {{file: tasks/B.md, stage: 1, depends_on: []}}
     stage_verification:
-      "1": ["false"]
+      "1": [{yaml_quote(failing_stage)}]
 """)
     run(["git", "add", "."], tmp_path)
     run(["git", "commit", "-m", "initial"], tmp_path)
@@ -300,9 +303,10 @@ verification: {global_task_commands: [git diff --check], stage_commands: []}
 paths: {protected: [], review_required: []}
 """)
     for task_id in ["A", "B"]:
+        verify = file_exists_command(f"out/{task_id}.txt")
         write(tmp_path / f"tasks/{task_id}.md", f"""---
 allowed_paths: [out/{task_id}.txt]
-verification: [test -f out/{task_id}.txt]
+verification: [{yaml_quote(verify)}]
 review: false
 ---
 # {task_id}
