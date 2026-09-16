@@ -10,6 +10,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "jest",
+    "verify:foundation": "node scripts/verify-foundation.mjs",
     "start:api": "node dist/server.js",
     "start:worker": "node dist/workers/ingestion.worker.js"
   },
