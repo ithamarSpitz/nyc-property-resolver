@@ -1,8 +1,13 @@
 import { createApp } from './app';
+import { getConfig } from './config';
+import { getLogger } from './logging/logger';
 
-const port = Number(process.env.PORT ?? 3000);
+getConfig();
+const logger = getLogger();
 const app = createApp();
 
-app.listen(port, () => {
-  console.log(`API listening on port ${port}`);
+const server = app.listen(() => {
+  const address = server.address();
+  const port = typeof address === 'object' && address !== null ? address.port : undefined;
+  logger.info({ port }, 'API listening');
 });
