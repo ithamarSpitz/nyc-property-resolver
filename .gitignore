@@ -17,3 +17,14 @@ __pycache__/
 .venv/
 .mypy_cache/
 .ruff_cache/
+
+# Node.js
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Application environment
+.env
+.env.local
+.env.*.local
