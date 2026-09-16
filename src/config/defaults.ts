@@ -1,5 +1,6 @@
 /** Canonical architecture-owned defaults for operational configuration. */
 export const CONFIG_DEFAULTS = {
+  PORT: 3000,
   INGEST_INTERVAL_MS: 604_800_000,
   ECB_BATCH_SIZE: 1_000,
   SOCRATA_PAGE_SIZE: 50_000,

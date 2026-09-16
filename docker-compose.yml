@@ -41,7 +41,7 @@ services:
       PORT: 3000
     command: ["npm", "run", "start:api"]
     ports:
-      - "3000:3000"
+      - "${API_HOST_PORT:-3000}:3000"
     depends_on:
       migrate:
         condition: service_completed_successfully
