@@ -1,0 +1,9 @@
+export const EMPIRE_STATE_BBL = '1008350041';
+export const EMPIRE_STATE_BIN = '1012345';
+export const ZERO_BIN_BBL = '1000750001';
+export const QUEENS_BBL = '4023450001';
+export const QUEENS_ADDRESS = '37-15 82nd Street';
+export const CONDO_BASE_BBL = '1010060001';
+export const CONDO_BILLING_BBL = '1010067501';
+export const CONDO_UNIT_BBL = '1012345678';
+export const CONDO_UNIT_ADDRESS = '419 E 84 St Apt 12C';
