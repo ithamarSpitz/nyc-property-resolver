@@ -1,0 +1,12 @@
+/** Canonical architecture-owned defaults for operational configuration. */
+export const CONFIG_DEFAULTS = {
+  INGEST_INTERVAL_MS: 604_800_000,
+  ECB_BATCH_SIZE: 1_000,
+  SOCRATA_PAGE_SIZE: 50_000,
+  SOCRATA_MAX_PAGES_PER_BATCH: 100,
+  SOCRATA_CONCURRENCY: 10,
+  SOCRATA_REQUEST_TIMEOUT_MS: 15_000,
+  SOCRATA_MAX_RETRIES: 3,
+  MAX_BATCH_ATTEMPTS_PER_RUN: 3,
+  API_BODY_LIMIT: '512kb',
+} as const;
