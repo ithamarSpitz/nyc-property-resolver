@@ -22,13 +22,19 @@ sprints:
         stage: 2
         depends_on:
         - S0-T1
-      S0-T5:
-        file: tasks/sprint-00-foundation/05-foundation-integration-gate.md
+      S0-T6:
+        file: tasks/sprint-00-foundation/06-api-port-contract.md
         stage: 3
         depends_on:
+        - S0-T1
         - S0-T2
         - S0-T3
         - S0-T4
+      S0-T5:
+        file: tasks/sprint-00-foundation/05-foundation-integration-gate.md
+        stage: 4
+        depends_on:
+        - S0-T6
     stage_verification:
       '1':
       - npm ci
@@ -40,6 +46,10 @@ sprints:
       - npx prisma validate
       - docker compose config --quiet
       '3':
+      - npm run typecheck
+      - npm test -- --runInBand tests/unit/foundation/config.test.ts
+      - docker compose config --quiet
+      '4':
       - npm run verify:foundation
   S1-property-resolution:
     name: Property Identity, Resolution and Registration
