@@ -11,8 +11,7 @@ execution:
   keep_awake_during_run: true
 
 worktree:
-  # Keep empty until S0 creates package-lock.json. Then switch to: [npm ci]
-  setup_commands: []
+  setup_commands: [npm ci]
   setup_timeout_minutes: 10
 
 cursor:
@@ -79,10 +78,8 @@ context:
     architecture.testing: docs/architecture/testing.md
     architecture.implementation_map: docs/architecture/implementation-map.md
 
-# Docker isolation is wired but intentionally disabled until S0 creates docker-compose.yml.
-# Turn on after the foundation stage is integrated; individual tasks then opt in with environment: docker.
 environment:
-  docker_enabled: false
+  docker_enabled: true
   compose_command: docker compose
   compose_files:
     - docker-compose.yml
