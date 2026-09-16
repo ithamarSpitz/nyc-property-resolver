@@ -7,6 +7,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from .capacity import CapacityManager
 from .config import HarnessConfig
 from .context import ContextResolver
 from .doctor import Doctor
@@ -45,6 +46,7 @@ class Runtime:
     manifests: RunManifestManager
     validator: ProjectValidator
     quota: QuotaManager
+    capacity: CapacityManager
     plan_changes: PlanChangeManager
 
 
@@ -71,6 +73,7 @@ def build_runtime(root: Path, roadmap_path: Path, config_path: Path) -> Runtime:
     manifests = RunManifestManager(root, runtime_root, state)
     validator = ProjectValidator(root, roadmap, config)
     quota = QuotaManager(config, state)
+    capacity = CapacityManager(config, state)
     plan_changes = PlanChangeManager(root, runtime_root, state, failures)
     return Runtime(
         root=root,
@@ -90,6 +93,7 @@ def build_runtime(root: Path, roadmap_path: Path, config_path: Path) -> Runtime:
         manifests=manifests,
         validator=validator,
         quota=quota,
+        capacity=capacity,
         plan_changes=plan_changes,
     )
 
@@ -329,6 +333,21 @@ def _cmd_run_live(runtime: Runtime, sprint_id: str, sprint) -> int:
                     runtime.manifests.set_status(sprint_id, "RUNNING")
                     continue
                 return 4
+
+            if record is not None and record.get("kind") == "CAPACITY_WAIT":
+                runtime.manifests.set_status(sprint_id, "WAITING_FOR_CAPACITY")
+                print(runtime.failures.render(record), file=sys.stderr)
+                if runtime.config.capacity.policy == "wait":
+                    seconds = runtime.capacity.next_wait_seconds()
+                    print(
+                        f"Capacity policy=wait: preserving state and retrying in about "
+                        f"{seconds / 60:.1f} minutes. Ctrl+C is safe; `resume` will continue later.",
+                        file=sys.stderr,
+                    )
+                    runtime.capacity.wait_once(sprint_id=sprint_id)
+                    runtime.manifests.set_status(sprint_id, "RUNNING")
+                    continue
+                return 5
 
             runtime.manifests.finish(sprint_id, success=False)
             if record is not None:
@@ -610,11 +629,12 @@ def cmd_usage(runtime: Runtime) -> int:
     if not summary:
         print("No agent usage records yet.")
         return 0
-    print("model                              calls  failures  stalls  timeouts  quota  minutes")
+    print("model                              calls  failures  stalls  timeouts  quota  capacity  minutes")
     for model, row in sorted(summary.items()):
         print(
             f"{model[:34]:34} {int(row['calls']):5d} {int(row['failures']):9d} "
-            f"{int(row['stalls']):7d} {int(row['timeouts']):9d} {int(row.get('quota_pauses', 0)):6d} {float(row['seconds']) / 60:8.2f}"
+            f"{int(row['stalls']):7d} {int(row['timeouts']):9d} {int(row.get('quota_pauses', 0)):6d} "
+            f"{int(row.get('capacity_pauses', 0)):9d} {float(row['seconds']) / 60:8.2f}"
         )
     return 0
 
@@ -625,6 +645,13 @@ def cmd_quota(runtime: Runtime, action: str, value: str | None = None) -> int:
         print(f"policy: {status.policy}")
         print(f"reset_at: {status.reset_at or '(unknown)'} ({status.source})")
         print("waiting_tasks: " + (", ".join(status.waiting_tasks) if status.waiting_tasks else "(none)"))
+        capacity = runtime.capacity.status()
+        print(f"capacity_policy: {capacity.policy}")
+        print(f"capacity_retry_minutes: {capacity.retry_interval_minutes:g}")
+        print(
+            "capacity_waiting_tasks: "
+            + (", ".join(capacity.waiting_tasks) if capacity.waiting_tasks else "(none)")
+        )
         return 0
     if action == "set-reset":
         if not value:

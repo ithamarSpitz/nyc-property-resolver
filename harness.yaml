@@ -40,6 +40,9 @@ verification:
     - git diff --check
   # Project commands are attached to concrete tasks/stages after task decomposition.
   stage_commands: []
+  # Static-parse fallback only. Caller/task env wins when a real DB URL exists.
+  env:
+    DATABASE_URL: postgresql://validation:validation@127.0.0.1:1/validation?schema=public
 
 paths:
   protected:
@@ -101,6 +104,14 @@ quota:
   probe_interval_minutes: 60
   reset_grace_minutes: 5
   keep_awake: true          # Windows: temporarily prevents system sleep while waiting
+  teardown_environment_while_waiting: true
+
+# Provider saturation (for example Grok returning [resource_exhausted]) is not
+# account quota. Preserve the task and retry after a short interval instead.
+capacity:
+  policy: wait              # wait | stop
+  retry_interval_minutes: 5
+  keep_awake: true
   teardown_environment_while_waiting: true
 
 plan_repair:

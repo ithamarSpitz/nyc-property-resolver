@@ -52,6 +52,9 @@ class RetryConfig:
 class VerificationConfig:
     global_task_commands: list[str] = field(default_factory=lambda: ["git diff --check"])
     stage_commands: list[str] = field(default_factory=list)
+    # Fallback environment used only by verification subprocesses. Values from
+    # the caller/task environment win, so runtime credentials are never replaced.
+    env: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -100,9 +103,25 @@ class QuotaConfig:
         "out of included usage",
         "monthly usage limit",
         "quota exceeded",
-        "resource_exhausted",
         "spending limit reached",
         "no usage remaining",
+    ])
+
+
+@dataclass(slots=True)
+class CapacityConfig:
+    policy: str = "wait"  # wait | stop
+    retry_interval_minutes: float = 5.0
+    keep_awake: bool = True
+    teardown_environment_while_waiting: bool = True
+    exhaustion_patterns: list[str] = field(default_factory=lambda: [
+        "retriableerror: [resource_exhausted]",
+        "[resource_exhausted]",
+        "insufficient capacity",
+        "provider capacity",
+        "server overloaded",
+        "temporarily overloaded",
+        "high load",
     ])
 
 
@@ -135,6 +154,7 @@ class HarnessConfig:
     context: ContextConfig
     environment: EnvironmentConfig
     quota: QuotaConfig
+    capacity: CapacityConfig
     plan_repair: PlanRepairConfig
     doctor: DoctorConfig
 
@@ -156,6 +176,7 @@ class HarnessConfig:
             context=ContextConfig(**raw.get("context", {})),
             environment=EnvironmentConfig(**raw.get("environment", {})),
             quota=QuotaConfig(**raw.get("quota", {})),
+            capacity=CapacityConfig(**raw.get("capacity", {})),
             plan_repair=PlanRepairConfig(**raw.get("plan_repair", {})),
             doctor=DoctorConfig(**raw.get("doctor", {})),
         )

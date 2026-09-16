@@ -94,3 +94,40 @@ doctor: {{}}
     assert result.ok
     assert not result.stalled
     assert (tmp_path / "progress.txt").read_text(encoding="utf-8") == "012345678910111213141516171819"
+
+
+def test_resource_exhausted_is_capacity_not_quota(tmp_path: Path):
+    write(tmp_path / "harness.yaml", """
+execution: {}
+worktree: {}
+cursor: {models: {worker: cheap}}
+verification: {}
+paths: {}
+context: {}
+doctor: {}
+""")
+    config = HarnessConfig.load(tmp_path / "harness.yaml")
+    runner = CursorAgentRunner(config, tmp_path / ".harness/logs")
+
+    output = "Connection lost...\nRetriableError: [resource_exhausted] Error\n"
+    assert runner._looks_like_capacity_exhaustion(output)
+    assert not runner._looks_like_quota_exhaustion(output)
+
+
+def test_explicit_quota_phrase_wins_even_if_resource_exhausted_is_present(tmp_path: Path):
+    write(tmp_path / "harness.yaml", """
+execution: {}
+worktree: {}
+cursor: {models: {worker: cheap}}
+verification: {}
+paths: {}
+context: {}
+doctor: {}
+""")
+    config = HarnessConfig.load(tmp_path / "harness.yaml")
+    runner = CursorAgentRunner(config, tmp_path / ".harness/logs")
+
+    output = "quota exceeded: [resource_exhausted]"
+    assert runner._looks_like_quota_exhaustion(output)
+    # Invocation classification checks quota first, so this stronger quota signal wins.
+    assert runner._looks_like_capacity_exhaustion(output)

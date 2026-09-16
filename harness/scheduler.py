@@ -22,6 +22,7 @@ class TaskOutcome:
     ok: bool
     error: str | None = None
     quota_paused: bool = False
+    capacity_paused: bool = False
 
 
 class Scheduler:
@@ -187,6 +188,24 @@ class Scheduler:
             )
         )
 
+
+    def _record_capacity_pause(self, sprint: SprintSpec, stage: int, outcomes: list[TaskOutcome]) -> None:
+        task_ids = sorted(outcome.task_id for outcome in outcomes)
+        self.state.set_meta(f"{sprint.id}.run_status", "WAITING_FOR_CAPACITY")
+        self.failures.record(
+            FailureRecord(
+                sprint=sprint.id,
+                kind="CAPACITY_WAIT",
+                stage=stage,
+                task_ids=task_ids,
+                message=(
+                    "Cursor provider capacity is temporarily unavailable. Task state/worktrees were preserved and "
+                    "capacity pauses did not consume retry budget."
+                ),
+                suggested_command=f"python harness.py resume {sprint.id}",
+            )
+        )
+
     def _setup_worktree(self, task: TaskSpec, worktree: Path, env: dict[str, str]) -> tuple[bool, str | None]:
         commands = self.config.worktree.setup_commands
         if not commands:
@@ -244,6 +263,21 @@ class Scheduler:
             self.environment.teardown_task(task, worktree, blocked=True)
         return TaskOutcome(task.id, False, runtime.last_error, quota_paused=True)
 
+
+    def _pause_for_capacity(
+        self, task: TaskSpec, worktree: Path, *, phase: str, decrement_attempt: bool
+    ) -> TaskOutcome:
+        runtime = self.state.get(task.id)
+        if decrement_attempt and runtime.attempt > 0:
+            runtime.attempt -= 1
+        runtime.status = TaskStatus.WAITING_FOR_CAPACITY
+        runtime.waiting_phase = phase
+        runtime.last_error = f"Cursor provider capacity temporarily exhausted during {phase}"
+        self.state.save()
+        if self.config.capacity.teardown_environment_while_waiting:
+            self.environment.teardown_task(task, worktree, blocked=True)
+        return TaskOutcome(task.id, False, runtime.last_error, capacity_paused=True)
+
     def _verify_review_commit(
         self,
         task: TaskSpec,
@@ -272,6 +306,8 @@ class Scheduler:
             )
             if review.quota_exhausted:
                 return self._pause_for_quota(task, worktree, phase="review", decrement_attempt=False)
+            if review.capacity_exhausted:
+                return self._pause_for_capacity(task, worktree, phase="review", decrement_attempt=False)
             verdict_pass = review.ok and any(
                 line.strip() == "VERDICT: PASS" for line in review.output.splitlines()
             )
@@ -340,10 +376,10 @@ class Scheduler:
         assert worktree is not None
         task_env = self.environment.task_env(task, worktree)
 
-        # If quota was exhausted only at review time, keep the already-written
+        # If quota/capacity was exhausted only at review time, keep the already-written
         # implementation and resume from verification/review without another
         # coding-model call.
-        if runtime.status == TaskStatus.WAITING_FOR_QUOTA and runtime.waiting_phase == "review":
+        if runtime.status in {TaskStatus.WAITING_FOR_QUOTA, TaskStatus.WAITING_FOR_CAPACITY} and runtime.waiting_phase == "review":
             resumed = self._verify_review_commit(task, runtime, worktree, base_ref, timeout, task_env)
             if resumed is not None:
                 return resumed
@@ -371,6 +407,8 @@ class Scheduler:
             )
             if result.quota_exhausted:
                 return self._pause_for_quota(task, worktree, phase="implement", decrement_attempt=True)
+            if result.capacity_exhausted:
+                return self._pause_for_capacity(task, worktree, phase="implement", decrement_attempt=True)
             if not result.ok:
                 previous_failure = result.error or "Agent execution failed"
                 runtime.status = TaskStatus.RETRY
@@ -496,16 +534,25 @@ class Scheduler:
                 futures = {pool.submit(self._run_task, task, current_commit): task for task in unfinished}
                 outcomes = [future.result() for future in concurrent.futures.as_completed(futures)]
 
-            failed = [outcome for outcome in outcomes if not outcome.ok and not outcome.quota_paused]
-            paused = [outcome for outcome in outcomes if outcome.quota_paused]
+            failed = [
+                outcome
+                for outcome in outcomes
+                if not outcome.ok and not outcome.quota_paused and not outcome.capacity_paused
+            ]
+            quota_paused = [outcome for outcome in outcomes if outcome.quota_paused]
+            capacity_paused = [outcome for outcome in outcomes if outcome.capacity_paused]
             if failed:
                 # Preserve successfully VERIFIED siblings. Resume will not rerun them.
                 self._record_task_failures(sprint, stage, failed)
                 print("Blocked tasks: " + ", ".join(f.task_id for f in failed))
                 return False
-            if paused:
-                self._record_quota_pause(sprint, stage, paused)
-                print("Waiting for Cursor quota: " + ", ".join(p.task_id for p in paused))
+            if quota_paused:
+                self._record_quota_pause(sprint, stage, quota_paused)
+                print("Waiting for Cursor quota: " + ", ".join(p.task_id for p in quota_paused))
+                return False
+            if capacity_paused:
+                self._record_capacity_pause(sprint, stage, capacity_paused)
+                print("Waiting for Cursor provider capacity: " + ", ".join(p.task_id for p in capacity_paused))
                 return False
 
             if not self._integrate_stage(sprint, stage, unfinished, current_commit):

@@ -31,3 +31,17 @@ python harness.py quota status
 python harness.py quota set-reset <ISO-8601>
 python harness.py quota clear-reset
 ```
+
+## Provider capacity is separate from quota
+
+`resource_exhausted` by itself is treated as transient provider capacity rather than evidence that the account's included usage is exhausted. The state transition is:
+
+```text
+provider reports transient capacity exhaustion
+  -> WAITING_FOR_CAPACITY
+  -> persist worktree/state/logs
+  -> do not consume retry budget
+  -> retry after capacity.retry_interval_minutes
+```
+
+Explicit quota phrases (for example `quota exceeded` or `monthly usage limit`) take precedence over the generic capacity signal. If capacity is exhausted during review, resume repeats verification/review and does not rerun an already successful implementation.

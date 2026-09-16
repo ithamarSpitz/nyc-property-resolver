@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import fnmatch
+import os
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -33,6 +34,25 @@ class Verifier:
         self.log_dir = log_dir
         self.worktrees = worktrees
 
+
+    def _verification_env(self, env: dict[str, str] | None) -> dict[str, str]:
+        # When the scheduler passes an explicit task/stage environment it is
+        # already complete (EnvironmentManager starts from os.environ). Treat
+        # that mapping as authoritative instead of consulting ambient process
+        # state a second time; this keeps verification deterministic and makes
+        # tests/embedded callers able to supply an isolated environment.
+        merged = (
+            {str(k): str(v) for k, v in env.items()}
+            if env is not None
+            else os.environ.copy()
+        )
+        # Verification fallbacks fill only missing values. A real task/runtime
+        # environment always wins, so static validation helpers cannot replace
+        # actual Docker/database credentials.
+        for key, value in self.config.verification.env.items():
+            merged.setdefault(str(key), str(value))
+        return merged
+
     def requires_review(self, changed_files: list[str]) -> bool:
         return any(
             _matches(path, pattern)
@@ -64,8 +84,9 @@ class Verifier:
 
         command_outputs: list[str] = []
         commands = [*self.config.verification.global_task_commands, *task.verification]
+        command_env = self._verification_env(env)
         for command in commands:
-            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=env)
+            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=command_env)
             rendered = f"$ {command}\nexit={proc.returncode}\n{proc.stdout}{proc.stderr}".rstrip()
             command_outputs.append(rendered)
             if proc.returncode != 0:
@@ -90,8 +111,9 @@ class Verifier:
         """
         failures: list[str] = []
         outputs: list[str] = []
+        command_env = self._verification_env(env)
         for command in [*self.config.verification.global_task_commands, *task.verification]:
-            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=env)
+            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=command_env)
             outputs.append(f"$ {command}\nexit={proc.returncode}\n{proc.stdout}{proc.stderr}".rstrip())
             if proc.returncode != 0:
                 failures.append(f"Revalidation command failed: {command}")
@@ -104,8 +126,9 @@ class Verifier:
     ) -> VerificationResult:
         failures: list[str] = []
         outputs: list[str] = []
+        command_env = self._verification_env(env)
         for command in [*self.config.verification.stage_commands, *commands]:
-            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=env)
+            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=command_env)
             outputs.append(f"$ {command}\nexit={proc.returncode}\n{proc.stdout}{proc.stderr}".rstrip())
             if proc.returncode != 0:
                 failures.append(f"Stage command failed: {command}")

@@ -17,6 +17,7 @@ class TaskStatus(str, Enum):
     DONE = "DONE"           # integrated and stage barrier passed
     BLOCKED = "BLOCKED"
     WAITING_FOR_QUOTA = "WAITING_FOR_QUOTA"
+    WAITING_FOR_CAPACITY = "WAITING_FOR_CAPACITY"
 
 
 @dataclass(slots=True)

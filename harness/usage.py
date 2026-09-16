@@ -40,7 +40,7 @@ class UsageRecorder:
 
     def summary(self) -> dict[str, dict[str, float | int]]:
         groups: dict[str, dict[str, float | int]] = defaultdict(
-            lambda: {"calls": 0, "seconds": 0.0, "failures": 0, "stalls": 0, "timeouts": 0, "quota_pauses": 0}
+            lambda: {"calls": 0, "seconds": 0.0, "failures": 0, "stalls": 0, "timeouts": 0, "quota_pauses": 0, "capacity_pauses": 0}
         )
         for event in self.events():
             key = str(event.get("model") or event.get("model_class") or "default")
@@ -55,4 +55,6 @@ class UsageRecorder:
                 row["timeouts"] = int(row["timeouts"]) + 1
             if event.get("quota_exhausted", False):
                 row["quota_pauses"] = int(row["quota_pauses"]) + 1
+            if event.get("capacity_exhausted", False):
+                row["capacity_pauses"] = int(row["capacity_pauses"]) + 1
         return dict(groups)

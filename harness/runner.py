@@ -25,6 +25,7 @@ class AgentResult:
     duration_seconds: float = 0.0
     model: str | None = None
     quota_exhausted: bool = False
+    capacity_exhausted: bool = False
 
 
 class CursorAgentRunner:
@@ -286,9 +287,20 @@ class CursorAgentRunner:
         write_log(self.log_dir, log_name, output)
 
         quota_exhausted = self._looks_like_quota_exhaustion(output)
-        ok = not timed_out and not stalled and return_code == 0 and not quota_exhausted
+        capacity_exhausted = (
+            not quota_exhausted and self._looks_like_capacity_exhaustion(output)
+        )
+        ok = (
+            not timed_out
+            and not stalled
+            and return_code == 0
+            and not quota_exhausted
+            and not capacity_exhausted
+        )
         if quota_exhausted:
             error = "Cursor usage quota exhausted"
+        elif capacity_exhausted:
+            error = "Cursor provider capacity temporarily exhausted"
         elif not ok and error is None:
             error = f"Agent exit code {return_code}"
         result = AgentResult(
@@ -300,6 +312,7 @@ class CursorAgentRunner:
             duration_seconds=duration,
             model=model,
             quota_exhausted=quota_exhausted,
+            capacity_exhausted=capacity_exhausted,
         )
         self._record_usage(task_id, phase, effective_model_class, model, attempt, result)
         return result
@@ -307,6 +320,14 @@ class CursorAgentRunner:
     def _looks_like_quota_exhaustion(self, output: str) -> bool:
         lowered = output.casefold()
         return any(pattern.casefold() in lowered for pattern in self.config.quota.exhaustion_patterns if pattern)
+
+    def _looks_like_capacity_exhaustion(self, output: str) -> bool:
+        lowered = output.casefold()
+        return any(
+            pattern.casefold() in lowered
+            for pattern in self.config.capacity.exhaustion_patterns
+            if pattern
+        )
 
     def _record_usage(
         self,
@@ -331,6 +352,7 @@ class CursorAgentRunner:
                 "timed_out": result.timed_out,
                 "stalled": result.stalled,
                 "quota_exhausted": result.quota_exhausted,
+                "capacity_exhausted": result.capacity_exhausted,
                 "output_bytes": len(result.output.encode("utf-8", errors="replace")),
             }
         )

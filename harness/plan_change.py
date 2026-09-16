@@ -180,6 +180,8 @@ class PlanChangeManager:
         )
         if result.quota_exhausted:
             raise RuntimeError("Cursor usage quota exhausted while analyzing plan repair")
+        if result.capacity_exhausted:
+            raise RuntimeError("Cursor provider capacity temporarily exhausted while analyzing plan repair")
         if not result.ok:
             raise RuntimeError(result.error or "Plan-repair analyst failed")
         kind = self._classify(result.output)

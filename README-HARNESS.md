@@ -1,4 +1,17 @@
-# Agent Harness Starter v0.11.4
+# Agent Harness Starter v0.11.6
+
+## v0.11.6 deterministic verification environment
+
+- Explicit task/stage verification environments are now authoritative and no longer re-merge ambient `os.environ`.
+- `verification.env` remains fallback-only; real task/runtime values win.
+- Regression coverage reproduces ambient `DATABASE_URL` leakage on Windows.
+
+## v0.11.5 provider-capacity and verification-env fix
+
+- Cursor `resource_exhausted` / provider-overload responses are classified as temporary provider capacity, not included-usage quota exhaustion. Capacity waits preserve task/worktree state, do not consume implementation retry budget, and default to a short five-minute retry cadence.
+- Capacity exhaustion during review resumes from verification/review and does not rerun a successful implementation.
+- `harness.py quota status` now also reports provider-capacity waiting tasks, and `harness.py usage` separates quota pauses from capacity pauses.
+- Verification subprocesses receive a validation-only fallback `DATABASE_URL` when none is supplied by the real task/runtime environment. Real environment values always win, so Docker/runtime database configuration is not overwritten.
 
 ## v0.11.4 Windows Cursor prompt transport fix
 
@@ -580,6 +593,24 @@ python harness.py quota clear-reset
 ```
 
 With `policy: wait`, the same harness process sleeps until the configured reset (+ grace). If no reset time is known it retries on the configured conservative probe interval. On Windows, the harness temporarily requests that the system stay awake only while it is quota-waiting. `Ctrl+C` is safe; a later `resume` continues from persisted state. No on-demand billing/fallback is used.
+
+### Temporary provider capacity
+
+A provider-side `resource_exhausted`/overload response is deliberately **not** treated as account quota. It transitions the affected task to `WAITING_FOR_CAPACITY`, preserves the same worktree and retry budget, and retries on the shorter `capacity.retry_interval_minutes` cadence. If capacity is exhausted during review, resume repeats verification/review without another implementation call. Explicit quota phrases such as `quota exceeded` still take precedence and use `WAITING_FOR_QUOTA`.
+
+```yaml
+capacity:
+  policy: wait
+  retry_interval_minutes: 5
+  keep_awake: true
+  teardown_environment_while_waiting: true
+```
+
+`python harness.py quota status` reports both quota and capacity wait state.
+
+### Verification-only environment fallbacks
+
+`verification.env` supplies values only when the caller/task environment does not already define them. The starter uses a non-routable validation-only PostgreSQL URL so commands such as `prisma validate` can parse the datasource outside Docker without requiring operators to export `DATABASE_URL` in every shell. Docker/task runtime values always win and are never replaced by this fallback.
 
 ## v0.6.2 automatic model escalation
 
