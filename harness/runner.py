@@ -11,7 +11,7 @@ from .context import ContextResolver
 from .logging_utils import write_log
 from .models import TaskSpec
 from .prompts import implement_prompt, review_prompt
-from .process_utils import prepare_external_argv
+from .process_utils import cursor_prompt_via_stdin, prepare_external_argv
 from .usage import UsageRecorder
 
 
@@ -157,10 +157,18 @@ class CursorAgentRunner:
         env: dict[str, str] | None = None,
         model_class_override: str | None = None,
     ) -> AgentResult:
+        pipe_prompt = cursor_prompt_via_stdin(self.config.cursor.command)
         command = [
             self.config.cursor.command,
             "-p",
-            prompt,
+        ]
+        # On Windows the official Cursor CLI is a batch shim. Sending a large
+        # multi-line prompt through that argv path is lossy; keep control flags
+        # in argv and stream the prompt via stdin instead. Other platforms keep
+        # the documented positional prompt form.
+        if not pipe_prompt:
+            command.append(prompt)
+        command += [
             "--workspace",
             str(workspace),
             "--output-format",
@@ -196,11 +204,19 @@ class CursorAgentRunner:
                 launch_command,
                 cwd=workspace,
                 text=True,
+                stdin=(subprocess.PIPE if pipe_prompt else None),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 bufsize=1,
                 env=env,
             )
+            if pipe_prompt:
+                assert proc.stdin is not None
+                try:
+                    proc.stdin.write(prompt)
+                    proc.stdin.flush()
+                finally:
+                    proc.stdin.close()
         except OSError as exc:
             output = str(exc)
             write_log(self.log_dir, log_name, output)

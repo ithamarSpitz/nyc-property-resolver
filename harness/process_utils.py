@@ -37,6 +37,23 @@ def locate_executable(command: str) -> str | None:
     return shutil.which(command)
 
 
+
+
+def cursor_prompt_via_stdin(command: str, *, windows: bool | None = None) -> bool:
+    """Use stdin for Cursor prompts when the Windows launcher is a batch shim.
+
+    The official Windows Cursor CLI currently resolves to ``agent.cmd``. Batch
+    launchers route arguments through ``cmd.exe``/PowerShell before Node, which
+    can corrupt long or quoted prompts and can also cause trailing flags such as
+    ``--trust`` to disappear. Keep only short control flags in argv and stream the
+    prompt over stdin for ``.cmd``/``.bat`` launchers.
+    """
+    is_windows = os.name == "nt" if windows is None else windows
+    if not is_windows:
+        return False
+    resolved = locate_executable(command) or command
+    return Path(resolved).suffix.lower() in {".cmd", ".bat"}
+
 def prepare_external_argv(argv: Sequence[str], *, windows: bool | None = None) -> list[str]:
     """Return argv that Python can execute directly on this platform.
 

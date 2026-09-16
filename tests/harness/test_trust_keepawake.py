@@ -232,3 +232,77 @@ def test_keep_awake_nested_context_releases_only_outermost(monkeypatch):
         # Inner context must not clear the outer run-level requirement.
         assert calls == [required]
     assert calls == [required, continuous]
+
+
+def test_windows_batch_prompt_transport_keeps_prompt_off_argv_and_on_stdin(tmp_path: Path, monkeypatch):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    run(["git", "init", "-b", "main"], repo)
+    run(["git", "config", "user.name", "Test"], repo)
+    run(["git", "config", "user.email", "test@example.com"], repo)
+    write(repo / ".gitignore", ".harness/\n")
+    write(repo / "seed.txt", "seed\n")
+    run(["git", "add", "."], repo)
+    run(["git", "commit", "-m", "initial"], repo)
+
+    fake = make_python_script(
+        tmp_path / "fake-agent.py",
+        """import json, os, sys
+with open(os.environ['ARG_LOG'], 'w', encoding='utf-8') as fh:
+    json.dump({'argv': sys.argv[1:], 'stdin': sys.stdin.read()}, fh)
+print('OK')
+""",
+    )
+    config_path = repo / "harness.yaml"
+    write(
+        config_path,
+        f"""
+execution:
+  stall_timeout_minutes: 0
+  watchdog_poll_seconds: 0.01
+worktree: {{}}
+cursor:
+  command: {yaml_quote(fake)}
+  output_format: text
+  trust_harness_worktrees: true
+  models: {{worker: cheap}}
+verification: {{}}
+paths: {{}}
+context: {{}}
+doctor: {{}}
+""",
+    )
+    config = HarnessConfig.load(config_path)
+    manager = WorktreeManager(repo, repo / ".harness")
+    branch, worktree = manager.create("T1", "HEAD")
+    runner = CursorAgentRunner(
+        config,
+        repo / ".harness/logs",
+        repo_root=repo,
+        worktree_root=manager.worktree_root,
+    )
+
+    import harness.runner as runner_module
+    monkeypatch.setattr(runner_module, "cursor_prompt_via_stdin", lambda command: True)
+
+    env = os.environ.copy()
+    arg_log = tmp_path / "args.json"
+    env["ARG_LOG"] = str(arg_log)
+    prompt = 'multi-line prompt with "quotes" & shell chars\nsecond line ! %PATH%'
+    result = runner._invoke(
+        task_id="T1",
+        phase="implement",
+        prompt=prompt,
+        workspace=worktree,
+        model_class="worker",
+        timeout_minutes=1,
+        log_name="stdin.log",
+        env=env,
+    )
+    assert result.ok
+    payload = json.loads(arg_log.read_text(encoding="utf-8"))
+    assert prompt not in payload["argv"]
+    assert payload["stdin"] == prompt
+    assert "--trust" in payload["argv"]
+    assert "--force" in payload["argv"]
+    manager.remove(worktree, branch)

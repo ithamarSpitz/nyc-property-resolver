@@ -1,4 +1,15 @@
-# Agent Harness Starter v0.11.2
+# Agent Harness Starter v0.11.4
+
+## v0.11.4 Windows Cursor prompt transport fix
+
+- On Windows, when Cursor resolves to the official `agent.cmd`/`.bat` launcher, the Harness keeps the long prompt out of argv and streams it over stdin. This prevents the Windows batch/PowerShell launcher chain from corrupting prompts or swallowing trailing `--trust` / `--force` flags.
+- `scripts/probe-cursor-headless.py` performs a minimal real Cursor smoke probe in a temporary Harness-owned worktree before retrying a blocked implementation task.
+- Regression coverage verifies stdin transport preserves multi-line prompts containing quotes and shell metacharacters while retaining `--trust` and `--force` in argv.
+
+## v0.11.3 diagnostics-state cleanliness fix
+
+- `.harness/diagnostics/` is ignored so forensic log archives do not make the integration checkout dirty or fail `doctor --full`.
+
 
 ## v0.11.2 Windows headless execution fix
 

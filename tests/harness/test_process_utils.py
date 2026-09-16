@@ -23,3 +23,12 @@ def test_python_script_uses_current_interpreter_cross_platform(tmp_path):
 
 def test_simple_configured_command_splits_portably():
     assert split_command("docker compose") == ["docker", "compose"]
+
+
+def test_windows_batch_cursor_uses_stdin_prompt_transport():
+    from harness.process_utils import cursor_prompt_via_stdin
+
+    assert cursor_prompt_via_stdin(r"C:\\Tools\\agent.cmd", windows=True)
+    assert cursor_prompt_via_stdin(r"C:\\Tools\\cursor-agent.BAT", windows=True)
+    assert not cursor_prompt_via_stdin(r"C:\\Tools\\agent.exe", windows=True)
+    assert not cursor_prompt_via_stdin("agent", windows=False)

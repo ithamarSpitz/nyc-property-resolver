@@ -7,6 +7,7 @@
 .harness/runs/
 .harness/failures/
 .harness/change_requests/
+.harness/diagnostics/
 .harness/plan_revisions/
 
 # Python
@@ -16,4 +17,3 @@ __pycache__/
 .venv/
 .mypy_cache/
 .ruff_cache/
-.harness/diagnostics/
