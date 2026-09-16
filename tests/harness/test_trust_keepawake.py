@@ -87,6 +87,7 @@ doctor: {{}}
     assert result.ok
     task_args = json.loads(task_log.read_text(encoding="utf-8"))
     assert "--trust" in task_args
+    assert "--force" in task_args
 
     root_log = tmp_path / "root-args.json"
     env["ARG_LOG"] = str(root_log)
@@ -103,6 +104,25 @@ doctor: {{}}
     assert result.ok
     root_args = json.loads(root_log.read_text(encoding="utf-8"))
     assert "--trust" not in root_args
+    assert "--force" not in root_args
+
+    review_log = tmp_path / "review-args.json"
+    env["ARG_LOG"] = str(review_log)
+    result = runner._invoke(
+        task_id="T1",
+        phase="review",
+        prompt="x",
+        workspace=worktree,
+        model_class="worker",
+        timeout_minutes=1,
+        log_name="review.log",
+        mode="ask",
+        env=env,
+    )
+    assert result.ok
+    review_args = json.loads(review_log.read_text(encoding="utf-8"))
+    assert "--trust" in review_args
+    assert "--force" not in review_args
 
     manager.remove(worktree, branch)
 

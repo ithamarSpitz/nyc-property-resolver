@@ -172,8 +172,14 @@ class CursorAgentRunner:
             command += ["--model", model]
         if mode:
             command += [f"--mode={mode}"]
-        if self._is_verified_harness_worktree(workspace):
+        verified_harness_worktree = self._is_verified_harness_worktree(workspace)
+        if verified_harness_worktree:
             command += ["--trust"]
+        # Cursor print/headless mode requires --force for unattended writes and
+        # shell commands. Restrict it to implementation calls inside a verified
+        # harness-owned worktree; read-only review/planning calls never receive it.
+        if phase == "implement" and verified_harness_worktree:
+            command += ["--force"]
 
         started = time.monotonic()
         output_lines: list[str] = []

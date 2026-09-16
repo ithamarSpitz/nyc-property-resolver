@@ -5,6 +5,7 @@ from pathlib import Path
 
 from harness.cli import build_runtime, cmd_cleanup, cmd_reset_task, cmd_unblock
 from harness.doctor import Doctor
+from harness.failure import FailureRecord
 from harness.models import TaskStatus
 from tests.portable import make_python_script, yaml_quote
 
@@ -99,7 +100,17 @@ def test_doctor_full_checks_auth_models_env_and_recovery_commands(tmp_path: Path
     rt.branch = branch
     rt.worktree = str(worktree)
     runtime.state.save()
+    runtime.failures.record(
+        FailureRecord(
+            sprint="s1",
+            kind="TASK_BLOCKED",
+            message="A blocked",
+            stage=1,
+            task_ids=["A"],
+        )
+    )
     assert cmd_reset_task(runtime, "A") == 0
     assert runtime.state.get("A").status == TaskStatus.PENDING
+    assert runtime.failures.get("s1") is None
     assert not worktree.exists()
 

@@ -1,4 +1,11 @@
-# Agent Harness Starter v0.11.1
+# Agent Harness Starter v0.11.2
+
+## v0.11.2 Windows headless execution fix
+
+- Implementation calls now add Cursor `--force` only inside verified harness-owned worktrees so non-interactive agents can edit files and run commands without approval prompts.
+- Review and plan-repair calls remain read-only/unforced.
+- `reset-task` now also clears that task from the active sprint failure record.
+
 
 A small, task-oriented orchestrator for running Cursor coding agents against a Git repository. It deliberately keeps project knowledge in Markdown/YAML and Git instead of building a separate memory/RAG system.
 

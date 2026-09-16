@@ -382,7 +382,7 @@ def cmd_unblock(state: StateStore, task_id: str) -> int:
 
 
 def cmd_reset_task(runtime: Runtime, task_id: str) -> int:
-    runtime.roadmap.task(task_id)  # validate id
+    task = runtime.roadmap.task(task_id)  # validate id
     task_runtime = runtime.state.get(task_id)
     if task_runtime.status == TaskStatus.DONE:
         print(
@@ -396,6 +396,7 @@ def cmd_reset_task(runtime: Runtime, task_id: str) -> int:
     elif task_runtime.branch:
         runtime.worktrees.delete_branch(task_runtime.branch)
     runtime.state.reset_task(task_id)
+    runtime.failures.resolve_task(task.sprint, task_id)
     print(f"{task_id} reset to PENDING; task-owned worktree/branch cleaned when present")
     return 0
 
