@@ -29,6 +29,26 @@ enum CoverageStatusReason {
   IDENTIFIERS_CHANGED_AFTER_SNAPSHOT
 }
 
+enum IngestionRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  SOURCE_CHANGED
+}
+
+enum IngestionTriggerType {
+  SCHEDULED
+  MANUAL
+}
+
+enum IngestionBatchStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
 model Property {
   id                String   @id @default(uuid()) @db.Uuid
   identifierVersion Int      @default(1) @map("identifier_version")
@@ -42,9 +62,10 @@ model Property {
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   resolvedAt        DateTime @map("resolved_at") @db.Timestamptz(6)
 
-  resolutionInputs PropertyResolutionInput[]
-  bins             PropertyBin[]
-  datasetCoverage  PropertyDatasetCoverage[]
+  resolutionInputs   PropertyResolutionInput[]
+  bins               PropertyBin[]
+  datasetCoverage    PropertyDatasetCoverage[]
+  ingestionSnapshots IngestionRunPropertyBin[]
 
   @@map("properties")
 }
@@ -91,4 +112,107 @@ model PropertyDatasetCoverage {
 
   @@id([propertyId, dataset])
   @@map("property_dataset_coverage")
+}
+
+model IngestionRun {
+  id                       String               @id @default(uuid()) @db.Uuid
+  dataset                  Dataset
+  status                   IngestionRunStatus   @default(QUEUED)
+  triggerType              IngestionTriggerType @map("trigger_type")
+  initializationComplete   Boolean              @default(false) @map("initialization_complete")
+  expectedPropertyBinCount Int?                 @map("expected_property_bin_count")
+  expectedBinCount         Int?                 @map("expected_bin_count")
+  expectedBatchCount       Int?                 @map("expected_batch_count")
+  failureStage             String?              @map("failure_stage")
+  lastError                String?              @map("last_error")
+  startedAt                DateTime?            @map("started_at") @db.Timestamptz(6)
+  finishedAt               DateTime?            @map("finished_at") @db.Timestamptz(6)
+  sourceWatermarkAtStart   DateTime?            @map("source_watermark_at_start") @db.Timestamptz(6)
+  sourceWatermarkAtEnd     DateTime?            @map("source_watermark_at_end") @db.Timestamptz(6)
+  binsScanned              Int                  @default(0) @map("bins_scanned")
+  dataPageCalls            Int                  @default(0) @map("data_page_calls")
+  metadataCalls            Int                  @default(0) @map("metadata_calls")
+  retryCalls               Int                  @default(0) @map("retry_calls")
+  totalSocrataCalls        Int                  @default(0) @map("total_socrata_calls")
+  rowsFetched              Int                  @default(0) @map("rows_fetched")
+  rowsWritten              Int                  @default(0) @map("rows_written")
+  failures                 Int                  @default(0)
+
+  propertyBinSnapshot IngestionRunPropertyBin[]
+  batches             IngestionBatch[]
+  rawRows             EcbViolationRaw[]
+  stagingRows         EcbViolationStaging[]
+
+  @@index([dataset, status])
+  @@map("ingestion_runs")
+}
+
+model IngestionRunPropertyBin {
+  runId                     String @map("run_id") @db.Uuid
+  propertyId                String @map("property_id") @db.Uuid
+  propertyIdentifierVersion Int    @map("property_identifier_version")
+  bin                       String @db.VarChar(7)
+
+  run      IngestionRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  property Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([runId, propertyId, bin])
+  @@index([runId, bin])
+  @@index([runId, propertyId])
+  @@map("ingestion_run_property_bins")
+}
+
+model IngestionBatch {
+  id              String               @id @default(uuid()) @db.Uuid
+  runId           String               @map("run_id") @db.Uuid
+  batchNumber     Int                  @map("batch_number")
+  status          IngestionBatchStatus @default(PENDING)
+  batchDefinition Json                 @map("batch_definition")
+  pagesFetched    Int                  @default(0) @map("pages_fetched")
+  attemptCount    Int                  @default(0) @map("attempt_count")
+  rowsFetched     Int                  @default(0) @map("rows_fetched")
+  lastError       String?              @map("last_error")
+  completedAt     DateTime?            @map("completed_at") @db.Timestamptz(6)
+
+  run IngestionRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, batchNumber])
+  @@map("ingestion_batches")
+}
+
+model EcbViolationRaw {
+  id                 String   @id @default(uuid()) @db.Uuid
+  sourceId           String   @map("source_id")
+  socrataRowId       String   @map("socrata_row_id")
+  sourceRowUpdatedAt DateTime @map("source_row_updated_at") @db.Timestamptz(6)
+  fetchedAt          DateTime @default(now()) @map("fetched_at") @db.Timestamptz(6)
+  firstSeenRunId     String   @map("first_seen_run_id") @db.Uuid
+  payload            Json
+
+  firstSeenRun IngestionRun @relation(fields: [firstSeenRunId], references: [id], onDelete: Restrict)
+
+  @@unique([sourceId, sourceRowUpdatedAt])
+  @@index([sourceId])
+  @@map("ecb_violation_raw")
+}
+
+model EcbViolationStaging {
+  id                 String    @id @default(uuid()) @db.Uuid
+  runId              String    @map("run_id") @db.Uuid
+  sourceId           String    @map("source_id")
+  socrataRowId       String    @map("socrata_row_id")
+  bin                String    @db.VarChar(7)
+  violationNumber    String?   @map("violation_number")
+  issueDate          DateTime? @map("issue_date") @db.Date
+  ecbViolationStatus String?   @map("ecb_violation_status")
+  balanceDue         Decimal?  @map("balance_due") @db.Decimal(15, 2)
+  sourceRowUpdatedAt DateTime  @map("source_row_updated_at") @db.Timestamptz(6)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  run IngestionRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, sourceId])
+  @@index([runId, bin])
+  @@map("ecb_violation_staging")
 }
