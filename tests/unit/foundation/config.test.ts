@@ -45,6 +45,7 @@ describe('application config', () => {
     expect(config.socrataMaxRetries).toBe(CONFIG_DEFAULTS.SOCRATA_MAX_RETRIES);
     expect(config.maxBatchAttemptsPerRun).toBe(CONFIG_DEFAULTS.MAX_BATCH_ATTEMPTS_PER_RUN);
     expect(config.apiBodyLimit).toBe(CONFIG_DEFAULTS.API_BODY_LIMIT);
+    expect(config.port).toBe(CONFIG_DEFAULTS.PORT);
   });
 
   it('coerces numeric environment values', () => {
@@ -80,5 +81,25 @@ describe('application config', () => {
         ECB_BATCH_SIZE: '0',
       }),
     ).toThrow(ConfigError);
+  });
+
+  it('coerces PORT from the environment', () => {
+    const config = loadConfig({
+      ...baseEnv(),
+      PORT: '8080',
+    });
+
+    expect(config.port).toBe(8080);
+  });
+
+  it('rejects invalid PORT values', () => {
+    for (const port of ['0', '-1', '65536', 'not-a-port']) {
+      expect(() =>
+        loadConfig({
+          ...baseEnv(),
+          PORT: port,
+        }),
+      ).toThrow(ConfigError);
+    }
   });
 });

@@ -37,8 +37,19 @@ function envPositiveInt(defaultValue: number) {
   }, z.number().int().positive());
 }
 
+function envTcpPort(defaultValue: number) {
+  return z.preprocess((value) => {
+    if (value === undefined || value === '') {
+      return defaultValue;
+    }
+
+    return Number(value);
+  }, z.number().int().min(1).max(65535));
+}
+
 const rawEnvSchema = z.object({
   DATABASE_URL: z.string().trim().min(1, 'DATABASE_URL is required'),
+  PORT: envTcpPort(CONFIG_DEFAULTS.PORT),
   SOCRATA_APP_TOKEN: optionalSecret,
   INGEST_INTERVAL_MS: envPositiveInt(CONFIG_DEFAULTS.INGEST_INTERVAL_MS),
   ECB_BATCH_SIZE: envPositiveInt(CONFIG_DEFAULTS.ECB_BATCH_SIZE),
@@ -60,6 +71,7 @@ const rawEnvSchema = z.object({
 
 const appConfigSchema = rawEnvSchema.transform((env) => ({
   databaseUrl: env.DATABASE_URL,
+  port: env.PORT,
   socrataAppToken: env.SOCRATA_APP_TOKEN,
   ingestIntervalMs: env.INGEST_INTERVAL_MS,
   ecbBatchSize: env.ECB_BATCH_SIZE,
