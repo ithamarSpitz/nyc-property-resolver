@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "verify:foundation": "node scripts/verify-foundation.mjs",
+    "verify:property-resolution": "node scripts/verify-property-resolution.mjs",
     "start:api": "node dist/server.js",
     "start:worker": "node dist/workers/ingestion.worker.js"
   },
