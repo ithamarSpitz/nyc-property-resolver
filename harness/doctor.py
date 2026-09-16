@@ -10,7 +10,7 @@ from pathlib import Path
 
 from .config import HarnessConfig
 from .git_worktree import WorktreeManager
-from .process_utils import locate_executable, prepare_external_argv, split_command
+from .process_utils import locate_codex_executable, locate_executable, prepare_external_argv, resolve_codex_argv, split_command
 
 
 @dataclass(slots=True)
@@ -75,6 +75,29 @@ class Doctor:
         if cursor_path:
             ok, detail = self._command_version(self.config.cursor.command)
             checks.append(DoctorCheck("cursor-version", ok, detail))
+
+        codex_parts = split_command(self.config.codex.command) if self.config.codex.enabled else []
+        codex_path = locate_codex_executable(codex_parts[0]) if codex_parts else None
+        if self.config.codex.enabled:
+            checks.append(DoctorCheck("codex-cli", codex_path is not None, codex_path or "missing; Cursor fallback remains available", required=False))
+            if codex_path:
+                try:
+                    version_proc = subprocess.run(
+                        prepare_external_argv(resolve_codex_argv(self.config.codex.command, "--version")), cwd=self.root,
+                        text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=15,
+                    )
+                    version_text = ((version_proc.stdout or "") + ("\n" + version_proc.stderr if version_proc.stderr else "")).strip()
+                    checks.append(DoctorCheck("codex-version", version_proc.returncode == 0, version_text[:300] or codex_path, required=False))
+                    proc = subprocess.run(
+                        prepare_external_argv(resolve_codex_argv(self.config.codex.command, "login", "status")), cwd=self.root,
+                        text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=20,
+                    )
+                    output = ((proc.stdout or "") + ("\n" + proc.stderr if proc.stderr else "")).strip()
+                    required = self.config.codex.auth_required_substring
+                    logged = proc.returncode == 0 and (not required or required.casefold() in output.casefold())
+                    checks.append(DoctorCheck("codex-chatgpt-auth", logged, output[:300] or "not authenticated; Cursor fallback remains available", required=False))
+                except (OSError, subprocess.TimeoutExpired) as exc:
+                    checks.append(DoctorCheck("codex-chatgpt-auth", False, str(exc), required=False))
 
         if not full:
             return checks

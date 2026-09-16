@@ -1,46 +1,29 @@
-version: 2
-policy:
-  automatic_implementation_sequence:
-    - attempt: 1
-      model_class: worker
-      model: composer-2.5
-    - attempt: 2
-      model_class: worker
-      model: composer-2.5
-    - attempt: 3
-      model_class: hard_worker
-      model: cursor-grok-4.6-high
-    - attempt: 4
-      model_class: escalation
-      model: claude-opus-5-thinking-high
-  after_attempt_4_failure: BLOCKED_PLAN_REPAIR
-  focused_model_override_is_one_shot: true
-
-  worker:
-    purpose: default implementation/retry model
-    model: composer-2.5
-  hard_worker:
-    purpose: automatic difficult-task escalation after two Composer failures
-    model: cursor-grok-4.6-high
-  reviewer:
-    purpose: fresh-context independent review against task + architecture + diff + test output
-    model: cursor-grok-4.6-high
-    writes_code: false
-  escalation:
-    purpose: final automatic implementation attempt and explicit focused recovery / plan-repair model
-    model: claude-opus-5-thinking-high
-
-review_routing:
-  default: reviewer
-  simple_tasks_may_set_review_model_class: worker
-  critical_paths_force_review: true
-
+version: 3
+provider_priority:
+  - codex
+  - cursor
+codex:
+  auth: ChatGPT subscription login
+  reasoning_effort: high
+  implementation_sequence:
+    - {attempt: 1, model: gpt-5.6-luna}
+    - {attempt: 2, model: gpt-5.6-luna}
+    - {attempt: 3, model: gpt-5.6-terra}
+    - {attempt: 4, model: gpt-5.6-sol}
+  review_model: gpt-5.6-sol
+  planner_model: gpt-5.6-sol
+  after_sol_substantive_failure: BLOCKED_PLAN_REPAIR
+cursor_fallback:
+  trigger: explicit Codex quota exhaustion, auth unavailable, or model unavailable
+  implementation_sequence:
+    - {attempt: 1, model_class: worker, model: composer-2.5}
+    - {attempt: 2, model_class: worker, model: composer-2.5}
+    - {attempt: 3, model_class: hard_worker, model: cursor-grok-4.6-high}
+    - {attempt: 4, model_class: escalation, model: claude-opus-5-thinking-high}
 rules:
-  - Do not use Fast model variants in unattended harness execution.
-  - Attempts 1 and 2 are fresh Composer contexts over the same task worktree plus previous failure evidence.
-  - Attempt 3 is a fresh Grok context with the accumulated worktree and failure evidence.
-  - Attempt 4 is a fresh Opus Thinking High context with the accumulated worktree and failure evidence.
-  - Failure after attempt 4 becomes BLOCKED; do not automatically invoke a fifth coding model.
-  - A manual --model-class override is one-shot, so a focused Opus rerun cannot silently spend four Opus calls.
-  - Stage-barrier failures retry the barrier first; they do not automatically re-run coding agents.
-  - Usage accounting records model class/model/duration/failure but does not invent token counts Cursor does not expose.
+  - Provider switches do not consume an implementation attempt.
+  - A Codex quota switch applies to the current run; a future new run probes Codex again.
+  - Capacity, network, timeout and CLI-transient failures preserve the same provider/model and retry budget.
+  - Only substantive implementation/verification/review failures advance the active provider ladder.
+  - Cursor is not used as a quality escalation after a substantive Codex Sol failure.
+  - Manual --model-class overrides remain one-shot Cursor recovery for backwards compatibility.

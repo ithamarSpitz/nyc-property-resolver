@@ -3,9 +3,9 @@ from __future__ import annotations
 import subprocess
 import threading
 import time
-from dataclasses import dataclass
 from pathlib import Path
 
+from .agent_runner import AgentResult
 from .config import HarnessConfig
 from .context import ContextResolver
 from .logging_utils import write_log
@@ -14,18 +14,6 @@ from .prompts import implement_prompt, review_prompt
 from .process_utils import cursor_prompt_via_stdin, prepare_external_argv
 from .usage import UsageRecorder
 
-
-@dataclass(slots=True)
-class AgentResult:
-    ok: bool
-    output: str
-    error: str | None = None
-    timed_out: bool = False
-    stalled: bool = False
-    duration_seconds: float = 0.0
-    model: str | None = None
-    quota_exhausted: bool = False
-    capacity_exhausted: bool = False
 
 
 class CursorAgentRunner:
@@ -342,6 +330,7 @@ class CursorAgentRunner:
             return
         self.usage.record(
             {
+                "provider": "cursor",
                 "task_id": task_id,
                 "phase": phase,
                 "attempt": attempt,

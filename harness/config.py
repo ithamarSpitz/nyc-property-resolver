@@ -42,6 +42,62 @@ class CursorConfig:
 
 
 @dataclass(slots=True)
+class CodexConfig:
+    enabled: bool = False
+    command: str = "codex"
+    reasoning_effort: str = "high"
+    sandbox: str = "workspace-write"
+    # Native Windows Codex workspace-write currently has ACL/read-back regressions.
+    # When set, implementation calls on Windows use this explicit sandbox instead.
+    # Reviews/plan-repair remain read-only.
+    windows_implementation_sandbox: str | None = None
+    approval_policy: str = "never"
+    network_access: bool = True
+    implementation_sequence: list[str] = field(default_factory=lambda: [
+        "gpt-5.6-luna", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"
+    ])
+    review_model: str = "gpt-5.6-sol"
+    planner_model: str = "gpt-5.6-sol"
+    auth_required_substring: str = "Logged in using ChatGPT"
+    short_quota_patterns: list[str] = field(default_factory=lambda: [
+        "5h limit exhausted", "5-hour limit exhausted", "5 hour limit exhausted",
+        "5h usage limit", "5-hour usage limit", "5 hour usage limit",
+    ])
+    weekly_quota_patterns: list[str] = field(default_factory=lambda: [
+        "weekly limit exhausted", "weekly usage limit exhausted", "weekly usage limit",
+    ])
+    quota_patterns: list[str] = field(default_factory=lambda: [
+        "you've hit your usage limit", "you have hit your usage limit",
+        "usage limit reached", "no codex usage remaining",
+    ])
+    capacity_patterns: list[str] = field(default_factory=lambda: [
+        "[resource_exhausted]", "resource_exhausted", "insufficient capacity",
+        "provider capacity", "server overloaded", "temporarily overloaded", "high load",
+    ])
+    transient_patterns: list[str] = field(default_factory=lambda: [
+        "connection lost", "connection reset", "network error", "transport error",
+        "websocket", "service unavailable", "internal server error", "timed out",
+        "timeout", "temporary failure", "502 bad gateway", "503 service unavailable",
+        "504 gateway timeout",
+    ])
+    auth_patterns: list[str] = field(default_factory=lambda: [
+        "not logged in", "please run codex login", "authentication required",
+        "unauthorized", "invalid authentication", "invalid token", "401",
+    ])
+    model_unavailable_patterns: list[str] = field(default_factory=lambda: [
+        "model is not available", "model unavailable", "unsupported model",
+        "unknown model", "model not found", "does not have access to model",
+        "model is not supported", "model isn't supported",
+        "not supported when using codex with a chatgpt account",
+    ])
+
+
+@dataclass(slots=True)
+class ProvidersConfig:
+    priority: list[str] = field(default_factory=lambda: ["codex", "cursor"])
+
+
+@dataclass(slots=True)
 class RetryConfig:
     # Automatic implementation-attempt routing. When empty, the task's
     # model_class is reused for the configured attempt budget.
@@ -148,6 +204,8 @@ class HarnessConfig:
     execution: ExecutionConfig
     worktree: WorktreeConfig
     cursor: CursorConfig
+    codex: CodexConfig
+    providers: ProvidersConfig
     retry: RetryConfig
     verification: VerificationConfig
     paths: PathsConfig
@@ -170,6 +228,8 @@ class HarnessConfig:
             execution=ExecutionConfig(**execution_raw),
             worktree=WorktreeConfig(**raw.get("worktree", {})),
             cursor=CursorConfig(**raw.get("cursor", {})),
+            codex=CodexConfig(**raw.get("codex", {})),
+            providers=ProvidersConfig(**raw.get("providers", {})),
             retry=RetryConfig(**raw.get("retry", {})),
             verification=VerificationConfig(**raw.get("verification", {})),
             paths=PathsConfig(**raw.get("paths", {})),

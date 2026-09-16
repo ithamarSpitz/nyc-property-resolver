@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import Callable, Sequence
 
 
 def split_command(command: str) -> list[str]:
@@ -37,6 +37,49 @@ def locate_executable(command: str) -> str | None:
     return shutil.which(command)
 
 
+
+def locate_codex_executable(
+    command: str,
+    *,
+    windows: bool | None = None,
+    localappdata: str | None = None,
+    which: Callable[[str], str | None] | None = None,
+) -> str | None:
+    """Resolve the Codex CLI, including the standard OpenAI Windows install path.
+
+    A PowerShell process may have a stale PATH when Codex was installed after the
+    shell started. In that case the PATH resolver fails even though the desktop
+    installer placed ``codex.exe`` under LocalAppData. ``which`` is injectable
+    so tests can model a stale PATH without being contaminated by a real Codex
+    installation on the machine running the test suite.
+    """
+    candidate = Path(command)
+    if candidate.is_file():
+        return str(candidate.resolve())
+    resolver = shutil.which if which is None else which
+    resolved = resolver(command)
+    if resolved:
+        return resolved
+    is_windows = os.name == "nt" if windows is None else windows
+    if not is_windows:
+        return None
+    name = Path(command).name.casefold()
+    if name not in {"codex", "codex.exe"}:
+        return None
+    base = localappdata if localappdata is not None else os.environ.get("LOCALAPPDATA", "")
+    if not base:
+        return None
+    candidate = Path(base) / "Programs" / "OpenAI" / "Codex" / "bin" / "codex.exe"
+    return str(candidate.resolve()) if candidate.is_file() else None
+
+
+def resolve_codex_argv(command: str, *args: str) -> list[str]:
+    """Resolve a configured Codex command and append invocation arguments."""
+    parts = split_command(command)
+    if not parts:
+        return []
+    executable = locate_codex_executable(parts[0]) or parts[0]
+    return [executable, *parts[1:], *args]
 
 
 def cursor_prompt_via_stdin(command: str, *, windows: bool | None = None) -> bool:

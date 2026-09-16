@@ -19,6 +19,8 @@ from .models import TaskStatus
 from .plan_change import PlanChangeManager
 from .quota import KeepAwake, QuotaManager
 from .roadmap import Roadmap, RoadmapError
+from .codex_runner import CodexAgentRunner
+from .provider_runner import ProviderAgentRunner
 from .runner import CursorAgentRunner
 from .scheduler import Scheduler
 from .state import StateStore
@@ -40,7 +42,7 @@ class Runtime:
     environment: EnvironmentManager
     failures: FailureStore
     usage: UsageRecorder
-    runner: CursorAgentRunner
+    runner: ProviderAgentRunner
     verifier: Verifier
     scheduler: Scheduler
     manifests: RunManifestManager
@@ -60,7 +62,7 @@ def build_runtime(root: Path, roadmap_path: Path, config_path: Path) -> Runtime:
     usage = UsageRecorder(runtime_root / "usage.jsonl")
     environment = EnvironmentManager(root, config, runtime_root / "logs")
     failures = FailureStore(runtime_root / "failures")
-    runner = CursorAgentRunner(
+    cursor_runner = CursorAgentRunner(
         config,
         runtime_root / "logs",
         context,
@@ -68,6 +70,8 @@ def build_runtime(root: Path, roadmap_path: Path, config_path: Path) -> Runtime:
         repo_root=root,
         worktree_root=worktrees.worktree_root,
     )
+    codex_runner = CodexAgentRunner(config, runtime_root / "logs", context, usage)
+    runner = ProviderAgentRunner(config, state, codex_runner, cursor_runner, usage)
     verifier = Verifier(config, runtime_root / "logs", worktrees)
     scheduler = Scheduler(root, config, state, worktrees, runner, verifier, environment, failures)
     manifests = RunManifestManager(root, runtime_root, state)
@@ -474,6 +478,7 @@ def cmd_run_task(
         task_runtime.last_error = task_runtime.last_error or "Focused rerun requested"
         task_runtime.review_feedback = None
         task_runtime.commit = None
+        task_runtime.provider_attempts = {}
         runtime.state.save()
 
     base_commit = task_runtime.base_ref or subprocess.run(
@@ -625,16 +630,18 @@ def cmd_manifest(runtime: Runtime, sprint_id: str) -> int:
 
 
 def cmd_usage(runtime: Runtime) -> int:
-    summary = runtime.usage.summary()
+    summary = runtime.usage.summary_by_provider()
     if not summary:
         print("No agent usage records yet.")
         return 0
-    print("model                              calls  failures  stalls  timeouts  quota  capacity  minutes")
-    for model, row in sorted(summary.items()):
+    print("provider model                         calls failures timeout quota capacity transient switches minutes")
+    for key, row in sorted(summary.items()):
+        provider, _, model = key.partition(":")
         print(
-            f"{model[:34]:34} {int(row['calls']):5d} {int(row['failures']):9d} "
-            f"{int(row['stalls']):7d} {int(row['timeouts']):9d} {int(row.get('quota_pauses', 0)):6d} "
-            f"{int(row.get('capacity_pauses', 0)):9d} {float(row['seconds']) / 60:8.2f}"
+            f"{provider[:8]:8} {model[:28]:28} {int(row['calls']):5d} {int(row['failures']):8d} "
+            f"{int(row['timeouts']):7d} {int(row.get('quota_pauses', 0)):5d} "
+            f"{int(row.get('capacity_pauses', 0)):8d} {int(row.get('transient_failures', 0)):9d} "
+            f"{int(row.get('provider_switches', 0)):8d} {float(row['seconds']) / 60:7.2f}"
         )
     return 0
 

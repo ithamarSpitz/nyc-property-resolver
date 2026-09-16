@@ -11,7 +11,7 @@ from .failure import FailureRecord, FailureStore
 from .logging_utils import utc_now
 from .models import TaskStatus
 from .roadmap import Roadmap
-from .runner import CursorAgentRunner
+from .provider_runner import ProviderAgentRunner
 from .state import StateStore
 
 
@@ -156,7 +156,7 @@ class PlanChangeManager:
         self,
         *,
         roadmap: Roadmap,
-        runner: CursorAgentRunner,
+        runner: ProviderAgentRunner,
         sprint_id: str,
         task_id: str,
         workspace: Path,
@@ -179,9 +179,9 @@ class PlanChangeManager:
             env=env,
         )
         if result.quota_exhausted:
-            raise RuntimeError("Cursor usage quota exhausted while analyzing plan repair")
+            raise RuntimeError("Agent provider usage quota exhausted while analyzing plan repair")
         if result.capacity_exhausted:
-            raise RuntimeError("Cursor provider capacity temporarily exhausted while analyzing plan repair")
+            raise RuntimeError("Agent provider capacity temporarily exhausted while analyzing plan repair")
         if not result.ok:
             raise RuntimeError(result.error or "Plan-repair analyst failed")
         kind = self._classify(result.output)

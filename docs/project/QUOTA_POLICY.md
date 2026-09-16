@@ -1,28 +1,76 @@
-# Cursor Included-Usage Policy
+# Agent Provider Quota and Capacity Policy
 
-The harness does not use on-demand billing.
+The harness does not enable paid on-demand billing. Provider switching is based on explicit execution evidence rather than a scraped UI percentage.
 
-Cursor does not provide the harness with a supported exact "percent remaining" CLI contract, so the harness reacts to actual configured quota-exhaustion output instead of pretending to enforce a 10% threshold.
+## Provider priority
 
-## State transition
+For a new run, implementation/review/planning prefer Codex when the Codex CLI is installed and authenticated with ChatGPT. Cursor remains the additive fallback.
 
 ```text
-agent reports included-usage exhaustion
-  -> WAITING_FOR_QUOTA
-  -> persist worktree/state/logs
-  -> do not consume retry budget
-  -> optionally tear down task Docker environment
-  -> wait or exit according to quota.policy
-  -> resume same task/stage when quota is available
+Codex implementation ladder
+  Luna High
+  Luna High
+  Terra High
+  Sol High
 ```
 
-If quota is exhausted during review, the already-written implementation is preserved and resume starts from verification/review, not from a fresh coding-agent call.
+A substantive failure advances this ladder. A substantive Sol failure blocks for human inspection / plan repair; Cursor is not used as a quality escalation after Sol.
 
-## Waiting
+Cursor's existing ladder remains unchanged and is entered automatically only when Codex becomes unavailable for the run (for example explicit Codex usage exhaustion, authentication loss, model unavailability, or adapter failure):
 
-`quota.policy=wait` keeps the harness process alive. If `reset_at` is known, it sleeps until reset plus a small grace period. Otherwise it retries at `probe_interval_minutes`. Windows keep-awake is temporary and active only while waiting.
+```text
+Cursor implementation ladder
+  Composer 2.5
+  Composer 2.5
+  Grok 4.6 High
+  Opus Thinking High
+```
 
-`quota.policy=stop` persists exactly the same state but exits; `python harness.py resume <sprint>` continues later.
+A provider switch happens inside the current scheduler attempt and does not consume a separate implementation attempt.
+
+## Codex usage exhaustion
+
+The harness does not parse the interactive `/status` display. There is no dependency on a brittle remaining-usage screen parser.
+
+An actual Codex invocation that returns an explicit usage-limit error is classified as quota exhaustion. When the message identifies the window, usage records distinguish the 5-hour and weekly windows; otherwise the scope is recorded as `unspecified` rather than guessed.
+
+```text
+Codex reports explicit usage exhaustion
+  -> preserve task worktree/state/logs
+  -> mark Codex disabled for the current run
+  -> record provider switch
+  -> invoke Cursor in the same scheduler attempt
+```
+
+A future new run clears the run-local Codex-disabled marker and probes Codex again.
+
+## Provider capacity and transient failures
+
+Capacity/transient infrastructure failures are not substantive model failures and do not advance the model ladder or switch provider immediately. Examples include provider saturation, network/transport failure, CLI timeout, or a stalled invocation.
+
+```text
+capacity / network / timeout / transient CLI failure
+  -> WAITING_FOR_CAPACITY
+  -> preserve task worktree/state/logs
+  -> do not consume provider/model retry budget
+  -> retry the same provider/model after capacity.retry_interval_minutes
+```
+
+If the failure occurs during review, resume returns to verification/review and does not rerun an already successful implementation.
+
+## Cursor quota
+
+Cursor's existing explicit included-usage handling remains available if the run has already fallen back to Cursor:
+
+```text
+Cursor reports included-usage exhaustion
+  -> WAITING_FOR_QUOTA
+  -> preserve worktree/state/logs
+  -> do not consume retry budget
+  -> wait or exit according to quota.policy
+```
+
+`quota.policy=wait` keeps the harness process alive. If `reset_at` is known it waits until the reset plus grace; otherwise it uses `quota.probe_interval_minutes`. `quota.policy=stop` persists the same state and exits for a later `resume`.
 
 Useful commands:
 
@@ -30,18 +78,7 @@ Useful commands:
 python harness.py quota status
 python harness.py quota set-reset <ISO-8601>
 python harness.py quota clear-reset
+python harness.py usage
 ```
 
-## Provider capacity is separate from quota
-
-`resource_exhausted` by itself is treated as transient provider capacity rather than evidence that the account's included usage is exhausted. The state transition is:
-
-```text
-provider reports transient capacity exhaustion
-  -> WAITING_FOR_CAPACITY
-  -> persist worktree/state/logs
-  -> do not consume retry budget
-  -> retry after capacity.retry_interval_minutes
-```
-
-Explicit quota phrases (for example `quota exceeded` or `monthly usage limit`) take precedence over the generic capacity signal. If capacity is exhausted during review, resume repeats verification/review and does not rerun an already successful implementation.
+`usage` reports Codex and Cursor separately, including model calls, failures, quota/capacity/transient events, and provider switches. Codex token counts are recorded when present in the CLI JSON event stream; Cursor token counts are not invented when the CLI does not expose them.

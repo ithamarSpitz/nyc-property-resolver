@@ -25,6 +25,27 @@ cursor:
     reviewer: cursor-grok-4.6-high
     escalation: claude-opus-5-thinking-high
 
+providers:
+  priority:
+    - codex
+    - cursor
+
+codex:
+  enabled: true
+  command: codex
+  reasoning_effort: high
+  sandbox: workspace-write
+  windows_implementation_sandbox: danger-full-access
+  approval_policy: never
+  network_access: true
+  implementation_sequence:
+    - gpt-5.6-luna
+    - gpt-5.6-luna
+    - gpt-5.6-terra
+    - gpt-5.6-sol
+  review_model: gpt-5.6-sol
+  planner_model: gpt-5.6-sol
+
 retry:
   # Automatic coding escalation. Attempts 1-2 use Composer, then Grok, then Opus.
   # If attempt 4 fails, the task becomes BLOCKED and enters focused recovery / plan repair.

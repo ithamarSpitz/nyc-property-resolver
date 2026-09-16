@@ -12,6 +12,7 @@ from typing import Any
 from . import __version__
 from .config import HarnessConfig
 from .models import SprintSpec
+from .process_utils import prepare_external_argv, resolve_codex_argv
 from .state import StateStore
 
 
@@ -88,6 +89,9 @@ class RunManifestManager:
                 existing.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
                 return existing
 
+        # New run: try Codex again. Resume of an active run preserves a prior
+        # Codex->Cursor switch caused by quota/auth/model unavailability.
+        self.state.set_meta(f"{sprint.id}.provider.codex.disabled_run", None)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         run_id = f"{sprint.id}-{stamp}-{uuid.uuid4().hex[:8]}"
         run_dir = self.runs_root / run_id
@@ -104,6 +108,7 @@ class RunManifestManager:
         assignment = self.root / "docs" / "assignment.md"
         agents = self.root / "AGENTS.md"
         cursor_version = _safe_command([config.cursor.command, "--version"], self.root)
+        codex_version = _safe_command(prepare_external_argv(resolve_codex_argv(config.codex.command, "--version")), self.root) if config.codex.enabled else None
 
         payload: dict[str, Any] = {
             "run_id": run_id,
@@ -116,7 +121,8 @@ class RunManifestManager:
             "python": platform.python_version(),
             "platform": platform.platform(),
             "cursor_version": cursor_version,
-            "models": config.cursor.models,
+            "codex_version": codex_version,
+            "models": {"codex": config.codex.implementation_sequence, "cursor": config.cursor.models},
             "plan_revision": int(self.state.get_meta("plan.revision", 1) or 1),
             "hashes": {
                 "roadmap": _sha256_file(roadmap_path),

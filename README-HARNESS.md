@@ -704,3 +704,12 @@ Stage 5: S5-T5 adversarial clean-repository Docker/reference-property final gate
 
 Expensive external work is not repeated by ordinary Harness verification. S5-T2 and S5-T3 execute their live NYC/BIS/scale work once and commit raw logs plus machine-readable summaries; their mechanical verification paths validate those artifacts. If BIS is unavailable, a scale run fails, or a live fixture exposes a product defect, the task blocks with preserved diagnostics instead of fabricating a pass. The final gate does not rerun the 10k benchmark, but it does start from isolated clean Docker state and replays the Empire State resolve -> manual ingestion -> local ECB query evaluator flow.
 
+
+
+## v0.12.4 Codex-first provider routing
+
+Codex CLI is now the primary provider when ChatGPT authentication is available. Automatic implementation routing is Luna High, Luna High, Terra High, Sol High. Explicit Codex quota/auth/model-unavailability switches the current run to the existing Cursor Composer/Composer/Grok/Opus ladder without consuming a provider-switch attempt. Capacity/network/timeout/CLI-transient failures stay on the same provider/model and use the existing capacity wait path. Reviews and plan-repair analysis also prefer Codex Sol with Cursor fallback. `harness.py usage` separates providers.
+
+### Windows Codex sandbox note (v0.12.4)
+
+On native Windows, Codex implementation calls can opt into `codex.windows_implementation_sandbox`. The NYC project sets this to `danger-full-access` because current native-Windows `workspace-write` runs can leave generated files unreadable to the parent Harness process via ACL/sandbox regressions. This override applies only to implementation calls inside Harness-owned task worktrees. Review and plan-repair calls remain `read-only`, and the Harness still enforces allowed/protected paths, verification, review, and atomic rollback. Non-Windows implementation calls continue to use `codex.sandbox` (`workspace-write`).

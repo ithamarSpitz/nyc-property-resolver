@@ -11,7 +11,7 @@ from .failure import FailureRecord, FailureStore
 from .git_worktree import GitError, WorktreeManager
 from .logging_utils import utc_now, write_log
 from .models import SprintSpec, TaskSpec, TaskStatus
-from .runner import CursorAgentRunner
+from .provider_runner import ProviderAgentRunner
 from .state import StateStore
 from .verifier import Verifier
 
@@ -32,7 +32,7 @@ class Scheduler:
         config: HarnessConfig,
         state: StateStore,
         worktrees: WorktreeManager,
-        runner: CursorAgentRunner,
+        runner: ProviderAgentRunner,
         verifier: Verifier,
         environment: EnvironmentManager | None = None,
         failures: FailureStore | None = None,
@@ -90,6 +90,8 @@ class Scheduler:
             attempts = 1
         elif task.max_attempts is not None:
             attempts = task.max_attempts
+        elif getattr(self.runner, "manages_model_routing", False):
+            attempts = self.runner.max_implementation_attempts(task)
         elif self.config.retry.sequence:
             attempts = len(self.config.retry.sequence)
         else:
@@ -199,7 +201,7 @@ class Scheduler:
                 stage=stage,
                 task_ids=task_ids,
                 message=(
-                    "Cursor provider capacity is temporarily unavailable. Task state/worktrees were preserved and "
+                    "Agent provider capacity/transient infrastructure is temporarily unavailable. Task state/worktrees were preserved and "
                     "capacity pauses did not consume retry budget."
                 ),
                 suggested_command=f"python harness.py resume {sprint.id}",
@@ -272,7 +274,7 @@ class Scheduler:
             runtime.attempt -= 1
         runtime.status = TaskStatus.WAITING_FOR_CAPACITY
         runtime.waiting_phase = phase
-        runtime.last_error = f"Cursor provider capacity temporarily exhausted during {phase}"
+        runtime.last_error = f"Agent provider capacity/transient failure during {phase}"
         self.state.save()
         if self.config.capacity.teardown_environment_while_waiting:
             self.environment.teardown_task(task, worktree, blocked=True)
@@ -306,7 +308,7 @@ class Scheduler:
             )
             if review.quota_exhausted:
                 return self._pause_for_quota(task, worktree, phase="review", decrement_attempt=False)
-            if review.capacity_exhausted:
+            if review.capacity_exhausted or review.transient_error:
                 return self._pause_for_capacity(task, worktree, phase="review", decrement_attempt=False)
             verdict_pass = review.ok and any(
                 line.strip() == "VERDICT: PASS" for line in review.output.splitlines()
@@ -385,7 +387,10 @@ class Scheduler:
                 return resumed
 
         previous_failure = runtime.last_error or runtime.review_feedback
-        while runtime.attempt < max_attempts:
+        while runtime.attempt < max_attempts and (
+            not getattr(self.runner, "manages_model_routing", False)
+            or self.runner.has_implementation_budget(task, model_class_override=model_class_override)
+        ):
             runtime.attempt += 1
             runtime.status = TaskStatus.RUNNING
             runtime.waiting_phase = None
@@ -393,8 +398,9 @@ class Scheduler:
             runtime.last_error = None
             self.state.save()
 
-            attempt_model_class = self._implementation_model_class(
-                task, runtime.attempt, model_class_override=model_class_override
+            attempt_model_class = (
+                model_class_override if getattr(self.runner, "manages_model_routing", False)
+                else self._implementation_model_class(task, runtime.attempt, model_class_override=model_class_override)
             )
             result = self.runner.implement(
                 task,
@@ -407,7 +413,7 @@ class Scheduler:
             )
             if result.quota_exhausted:
                 return self._pause_for_quota(task, worktree, phase="implement", decrement_attempt=True)
-            if result.capacity_exhausted:
+            if result.capacity_exhausted or result.transient_error:
                 return self._pause_for_capacity(task, worktree, phase="implement", decrement_attempt=True)
             if not result.ok:
                 previous_failure = result.error or "Agent execution failed"
