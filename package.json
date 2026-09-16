@@ -13,6 +13,7 @@
     "verify:foundation": "node scripts/verify-foundation.mjs",
     "verify:property-resolution": "node scripts/verify-property-resolution.mjs",
     "verify:ingestion-lifecycle": "node scripts/verify-ingestion-lifecycle.mjs",
+    "verify:ingestion-publication": "node scripts/verify-ingestion-publication.mjs",
     "verify:ecb-source-contract": "npm run build && node dist/cli/verify-ecb-source-contract.js",
     "start:api": "node dist/server.js",
     "start:worker": "node dist/workers/ingestion.worker.js"
