@@ -1,0 +1,61 @@
+x-app-image: &app-image
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: nyc-property-resolver:local
+
+x-app-environment: &app-environment
+  DATABASE_URL: postgresql://nycpr:nycpr@postgres:5432/nyc_property_resolver
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nycpr
+      POSTGRES_PASSWORD: nycpr
+      POSTGRES_DB: nyc_property_resolver
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  migrate:
+    <<: *app-image
+    environment:
+      <<: *app-environment
+    command: ["npx", "prisma", "migrate", "deploy"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    <<: *app-image
+    environment:
+      <<: *app-environment
+      PORT: 3000
+    command: ["npm", "run", "start:api"]
+    ports:
+      - "3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  worker:
+    <<: *app-image
+    environment:
+      <<: *app-environment
+    command: ["npm", "run", "start:worker"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

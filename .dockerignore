@@ -1,0 +1,45 @@
+# Git and harness runtime
+.git
+.gitignore
+.gitattributes
+.harness
+
+# Python harness tooling
+__pycache__
+.pytest_cache
+.venv
+.mypy_cache
+.ruff_cache
+*.pyc
+pyproject.toml
+requirements-harness*.txt
+
+# Node artifacts rebuilt inside the image
+node_modules
+dist
+coverage
+*.tsbuildinfo
+
+# Local secrets and operator overrides
+.env
+.env.*
+!.env.example
+
+# Documentation, planning, and harness tests (not part of app runtime)
+docs
+tasks
+plans
+schemas
+scripts
+tests/harness
+*.md
+ARCHITECTURE.md
+README-HARNESS.md
+AGENTS.md
+
+# Editor and CI metadata
+.cursor
+.vscode
+.github
+harness.yaml
+harness
