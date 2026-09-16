@@ -6,13 +6,13 @@ codex:
   auth: ChatGPT subscription login
   reasoning_effort: high
   implementation_sequence:
-    - {attempt: 1, model: gpt-5.6-luna}
-    - {attempt: 2, model: gpt-5.6-luna}
-    - {attempt: 3, model: gpt-5.6-terra}
-    - {attempt: 4, model: gpt-5.6-sol}
+    - {attempt: 1, model: gpt-5.6-sol, reasoning_effort: medium}
+    - {attempt: 2, model: gpt-5.6-sol, reasoning_effort: medium}
+    - {attempt: 3, model: gpt-5.6-sol, reasoning_effort: high}
+    - {attempt: 4, model: gpt-6-astra, reasoning_effort: medium}
   review_model: gpt-5.6-sol
   planner_model: gpt-5.6-sol
-  after_sol_substantive_failure: BLOCKED_PLAN_REPAIR
+  after_astra_substantive_failure: BLOCKED_PLAN_REPAIR
 cursor_fallback:
   trigger: explicit Codex quota exhaustion, auth unavailable, or model unavailable
   implementation_sequence:
@@ -25,5 +25,5 @@ rules:
   - A Codex quota switch applies to the current run; a future new run probes Codex again.
   - Capacity, network, timeout and CLI-transient failures preserve the same provider/model and retry budget.
   - Only substantive implementation/verification/review failures advance the active provider ladder.
-  - Cursor is not used as a quality escalation after a substantive Codex Sol failure.
+  - Cursor is not used as a quality escalation after a substantive Codex Astra failure.
   - Manual --model-class overrides remain one-shot Cursor recovery for backwards compatibility.

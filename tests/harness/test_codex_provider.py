@@ -51,7 +51,10 @@ def _write_config(tmp_path: Path, codex_command: str) -> HarnessConfig:
             "sandbox": "workspace-write",
             "windows_implementation_sandbox": "danger-full-access",
             "implementation_sequence": [
-                "gpt-5.6-luna", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"
+                {"model": "gpt-5.6-sol", "reasoning_effort": "medium"},
+                {"model": "gpt-5.6-sol", "reasoning_effort": "medium"},
+                {"model": "gpt-5.6-sol", "reasoning_effort": "high"},
+                {"model": "gpt-6-astra", "reasoning_effort": "medium"},
             ],
             "review_model": "gpt-5.6-sol",
             "planner_model": "gpt-5.6-sol",
@@ -63,6 +66,29 @@ def _write_config(tmp_path: Path, codex_command: str) -> HarnessConfig:
     path = tmp_path / "harness.yaml"
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
     return HarnessConfig.load(path)
+
+
+def test_codex_implementation_profiles_are_exact_and_legacy_strings_inherit_default(tmp_path: Path):
+    config = _write_config(tmp_path, "codex")
+    assert [config.codex.implementation_profile(i) for i in range(4)] == [
+        ("gpt-5.6-sol", "medium"),
+        ("gpt-5.6-sol", "medium"),
+        ("gpt-5.6-sol", "high"),
+        ("gpt-6-astra", "medium"),
+    ]
+    config.codex.implementation_sequence = ["legacy-model"]
+    assert config.codex.implementation_profile(0) == ("legacy-model", "high")
+
+
+def test_cursor_fallback_ladder_is_unchanged(tmp_path: Path):
+    config = _write_config(tmp_path, "codex")
+    assert config.retry.sequence == ["worker", "worker", "hard_worker", "escalation"]
+    assert config.cursor.models == {
+        "worker": "composer-2.5",
+        "hard_worker": "cursor-grok-4.6-high",
+        "reviewer": "cursor-grok-4.6-high",
+        "escalation": "claude-opus-5-thinking-high",
+    }
 
 
 def _fake_codex_cli(tmp_path: Path) -> Path:
@@ -120,7 +146,7 @@ print(json.dumps({"type":"turn.completed","usage":{"input_tokens":11,"cached_inp
     return script
 
 
-def test_codex_auth_luna_high_stdin_cwd_edit_and_structured_usage(tmp_path: Path):
+def test_codex_auth_sol_medium_stdin_cwd_edit_and_structured_usage(tmp_path: Path):
     cli = _fake_codex_cli(tmp_path)
     config = _write_config(tmp_path, str(cli))
     usage = UsageRecorder(tmp_path / "usage.jsonl")
@@ -134,7 +160,7 @@ def test_codex_auth_luna_high_stdin_cwd_edit_and_structured_usage(tmp_path: Path
     workspace.mkdir()
     result = runner._invoke(
         task_id="SMOKE", phase="implement", prompt="FAKE_EDIT\ncheck cwd and tool execution",
-        workspace=workspace, model="gpt-5.6-luna", timeout_minutes=1,
+        workspace=workspace, model="gpt-5.6-sol", reasoning_effort="medium", timeout_minutes=1,
         log_name="smoke.log", env=None,
     )
 
@@ -152,15 +178,32 @@ def test_codex_auth_luna_high_stdin_cwd_edit_and_structured_usage(tmp_path: Path
     assert argv[0] == "exec"
     assert "--json" in argv
     assert "--ephemeral" in argv
-    assert argv[argv.index("--model") + 1] == "gpt-5.6-luna"
+    assert argv[argv.index("--model") + 1] == "gpt-5.6-sol"
     assert argv[argv.index("--cd") + 1] == str(workspace)
-    assert 'model_reasoning_effort="high"' in argv
+    assert 'model_reasoning_effort="medium"' in argv
     assert 'approval_policy="never"' in argv
     assert "FAKE_EDIT" not in " ".join(argv)  # prompt must stay off argv
 
     rows = usage.summary_by_provider()
-    assert rows["codex:gpt-5.6-luna"]["calls"] == 1
-    assert rows["codex:gpt-5.6-luna"]["input_tokens"] == 11
+    assert rows["codex:gpt-5.6-sol"]["calls"] == 1
+    assert rows["codex:gpt-5.6-sol"]["input_tokens"] == 11
+
+
+def test_codex_default_effort_remains_high_when_no_implementation_override_is_supplied(tmp_path: Path):
+    cli = _fake_codex_cli(tmp_path)
+    config = _write_config(tmp_path, str(cli))
+    runner = CodexAgentRunner(config, tmp_path / "logs")
+    workspace = tmp_path / "default-effort"
+    workspace.mkdir()
+
+    result = runner._invoke(
+        task_id="DEFAULT", phase="review", prompt="check default effort", workspace=workspace,
+        model="gpt-5.6-sol", timeout_minutes=1, log_name="default.log", read_only=True,
+    )
+
+    assert result.ok
+    argv = json.loads((workspace / "fake-codex-argv.json").read_text(encoding="utf-8"))
+    assert 'model_reasoning_effort="high"' in argv
 
 
 def test_codex_windows_implementation_uses_configured_sandbox_override(tmp_path: Path):
@@ -232,13 +275,15 @@ class _FakeCodex:
         self.results = list(results or [])
         self.available = available
         self.models: list[str] = []
+        self.efforts: list[str | None] = []
         self.review_models: list[str] = []
 
     def availability(self, **kwargs):
         return self.available, "ok" if self.available else "not logged in"
 
-    def implement(self, task, workspace, timeout_minutes, attempt, previous_failure, *, model, env=None):
+    def implement(self, task, workspace, timeout_minutes, attempt, previous_failure, *, model, reasoning_effort=None, env=None):
         self.models.append(model)
+        self.efforts.append(reasoning_effort)
         if self.results:
             return self.results.pop(0)
         return AgentResult(True, "ok", model=model, provider="codex")
@@ -282,7 +327,7 @@ def _router(tmp_path: Path, codex: _FakeCodex, cursor: _FakeCursor):
     return ProviderAgentRunner(config, state, codex, cursor, usage), state, usage
 
 
-def test_codex_substantive_ladder_is_luna_luna_terra_sol_then_block_budget(tmp_path: Path):
+def test_codex_substantive_ladder_is_sol_medium_sol_medium_sol_high_astra_medium_then_block_budget(tmp_path: Path):
     codex = _FakeCodex()
     cursor = _FakeCursor()
     router, state, _ = _router(tmp_path, codex, cursor)
@@ -293,7 +338,8 @@ def test_codex_substantive_ladder_is_luna_luna_terra_sol_then_block_budget(tmp_p
         result = router.implement(task, workspace, 1, attempt, None)
         assert result.ok
 
-    assert codex.models == ["gpt-5.6-luna", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"]
+    assert codex.models == ["gpt-5.6-sol", "gpt-5.6-sol", "gpt-5.6-sol", "gpt-6-astra"]
+    assert codex.efforts == ["medium", "medium", "high", "medium"]
     assert state.get(task.id).provider_attempts == {"codex": 4}
     assert not router.has_implementation_budget(task)
     assert cursor.implement_classes == []
@@ -311,7 +357,7 @@ def test_codex_quota_switches_to_cursor_same_attempt_and_preserves_task_attempt(
     result = router.implement(task, workspace, 1, 7, None)
 
     assert result.ok and result.provider == "cursor"
-    assert codex.models == ["gpt-5.6-luna"]
+    assert codex.models == ["gpt-5.6-sol"]
     assert cursor.implement_classes == ["worker"]
     runtime = state.get(task.id)
     assert runtime.attempt == 7  # provider router never consumes scheduler attempt
@@ -338,7 +384,8 @@ def test_codex_capacity_and_transient_retry_same_model_without_consuming_provide
     assert r1.capacity_exhausted
     assert r2.transient_error
     assert r3.ok
-    assert codex.models == ["gpt-5.6-luna", "gpt-5.6-luna", "gpt-5.6-luna"]
+    assert codex.models == ["gpt-5.6-sol", "gpt-5.6-sol", "gpt-5.6-sol"]
+    assert codex.efforts == ["medium", "medium", "medium"]
     assert state.get(task.id).provider_attempts == {"codex": 1}
     assert state.get_meta("S1.provider.codex.disabled_run") is None
 

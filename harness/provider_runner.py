@@ -93,9 +93,10 @@ class ProviderAgentRunner:
                 if available:
                     index = self._provider_attempt(task, "codex")
                     if index < len(self.config.codex.implementation_sequence):
-                        model = self.config.codex.implementation_sequence[index]
+                        model, reasoning_effort = self.config.codex.implementation_profile(index)
                         result = self.codex.implement(
-                            task, workspace, timeout_minutes, attempt, previous_failure, model=model, env=env
+                            task, workspace, timeout_minutes, attempt, previous_failure,
+                            model=model, reasoning_effort=reasoning_effort, env=env,
                         )
                         if self._provider_unavailable(result):
                             reason = (f"quota:{result.quota_scope or 'unspecified'}" if result.quota_exhausted else ("auth" if result.auth_failure else "model_unavailable"))

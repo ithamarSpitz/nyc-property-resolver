@@ -54,13 +54,14 @@ def main() -> int:
             "3. Run a shell command that reads probe.txt and verifies the exact content.\n"
             "4. Reply with exactly: PROBE PASS\n"
         )
+        model, reasoning_effort = config.codex.implementation_profile(0)
         result = runner._invoke(
             task_id="CODEX-SMOKE", phase="implement", prompt=prompt, workspace=repo,
-            model=config.codex.implementation_sequence[0], timeout_minutes=5,
+            model=model, reasoning_effort=reasoning_effort, timeout_minutes=5,
             log_name="codex-provider-smoke.log", env=os.environ.copy(),
         )
         if not result.ok or result.output.strip() != "PROBE PASS":
-            raise SystemExit(f"Codex Luna High smoke failed: {result.error or result.output}")
+            raise SystemExit(f"Codex {model} {reasoning_effort} smoke failed: {result.error or result.output}")
         probe = repo / "probe.txt"
         try:
             if not probe.is_file():
@@ -74,7 +75,7 @@ def main() -> int:
             ) from exc
         if content != "CODEX_HARNESS_OK\n":
             raise SystemExit(f"Codex edit/cwd/tool smoke failed: probe.txt mismatch: {content!r}")
-        print("Codex Luna High exec/cwd/edit/tool smoke: PASS")
+        print(f"Codex {model} {reasoning_effort} exec/cwd/edit/tool smoke: PASS")
     return 0
 
 

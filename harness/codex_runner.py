@@ -171,14 +171,16 @@ class CodexAgentRunner:
 
     def _invoke(self, *, task_id: str, phase: str, prompt: str, workspace: Path, model: str,
                 timeout_minutes: int, log_name: str, attempt: int | None = None,
-                env: dict[str, str] | None = None, read_only: bool = False) -> AgentResult:
+                env: dict[str, str] | None = None, read_only: bool = False,
+                reasoning_effort: str | None = None) -> AgentResult:
         sandbox_mode = self._effective_sandbox(read_only=read_only)
+        effective_reasoning_effort = reasoning_effort or self.config.codex.reasoning_effort
         command = resolve_codex_argv(
             self.config.codex.command, "exec", "--json", "--ephemeral",
             "--model", model,
             "--sandbox", sandbox_mode,
             "--cd", str(workspace),
-            "--config", f'model_reasoning_effort="{self.config.codex.reasoning_effort}"',
+            "--config", f'model_reasoning_effort="{effective_reasoning_effort}"',
             "--config", f'approval_policy="{self.config.codex.approval_policy}"',
         )
         if not read_only and sandbox_mode == "workspace-write":
@@ -292,12 +294,13 @@ class CodexAgentRunner:
         return self.context.display_paths(task) if self.context is not None else []
 
     def implement(self, task: TaskSpec, workspace: Path, timeout_minutes: int, attempt: int,
-                  previous_failure: str | None, *, model: str, env: dict[str, str] | None = None) -> AgentResult:
+                  previous_failure: str | None, *, model: str, reasoning_effort: str | None = None,
+                  env: dict[str, str] | None = None) -> AgentResult:
         return self._invoke(
             task_id=task.id, phase="implement",
             prompt=implement_prompt(task, previous_failure, self._context_paths(task)), workspace=workspace,
             model=model, timeout_minutes=timeout_minutes, log_name=f"{task.id}-attempt-{attempt}-codex.log",
-            attempt=attempt, env=env, read_only=False,
+            attempt=attempt, env=env, read_only=False, reasoning_effort=reasoning_effort,
         )
 
     def review(self, task: TaskSpec, workspace: Path, base_ref: str, verification_summary: str,

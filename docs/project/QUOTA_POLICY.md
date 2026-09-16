@@ -8,13 +8,13 @@ For a new run, implementation/review/planning prefer Codex when the Codex CLI is
 
 ```text
 Codex implementation ladder
-  Luna High
-  Luna High
-  Terra High
+  Sol Medium
+  Sol Medium
   Sol High
+  Astra Medium
 ```
 
-A substantive failure advances this ladder. A substantive Sol failure blocks for human inspection / plan repair; Cursor is not used as a quality escalation after Sol.
+A substantive failure advances this ladder. A substantive Astra failure blocks for human inspection / plan repair; Cursor is not used as a quality escalation after Astra.
 
 Cursor's existing ladder remains unchanged and is entered automatically only when Codex becomes unavailable for the run (for example explicit Codex usage exhaustion, authentication loss, model unavailability, or adapter failure):
 

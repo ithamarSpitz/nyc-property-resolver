@@ -706,9 +706,13 @@ Expensive external work is not repeated by ordinary Harness verification. S5-T2 
 
 
 
+## v0.12.5 Codex implementation profiles
+
+Codex implementation routing is now Sol Medium, Sol Medium, Sol High, Astra Medium. Model and reasoning effort are pinned per implementation attempt; review and plan-repair continue to use the existing global Codex effort and Sol model. Cursor routing is unchanged. Explicit Codex quota/auth/model-unavailability still switches the current run to the existing Cursor Composer/Composer/Grok/Opus ladder without consuming a provider-switch attempt, while capacity/network/timeout/CLI-transient failures stay on the same Codex profile without consuming provider/model budget.
+
 ## v0.12.4 Codex-first provider routing
 
-Codex CLI is now the primary provider when ChatGPT authentication is available. Automatic implementation routing is Luna High, Luna High, Terra High, Sol High. Explicit Codex quota/auth/model-unavailability switches the current run to the existing Cursor Composer/Composer/Grok/Opus ladder without consuming a provider-switch attempt. Capacity/network/timeout/CLI-transient failures stay on the same provider/model and use the existing capacity wait path. Reviews and plan-repair analysis also prefer Codex Sol with Cursor fallback. `harness.py usage` separates providers.
+Codex CLI became the primary provider when ChatGPT authentication is available. The original v0.12.4 implementation routing was Luna High, Luna High, Terra High, Sol High. Explicit Codex quota/auth/model-unavailability switches the current run to the existing Cursor Composer/Composer/Grok/Opus ladder without consuming a provider-switch attempt. Capacity/network/timeout/CLI-transient failures stay on the same provider/model and use the existing capacity wait path. Reviews and plan-repair analysis also prefer Codex Sol with Cursor fallback. `harness.py usage` separates providers.
 
 ### Windows Codex sandbox note (v0.12.4)
 

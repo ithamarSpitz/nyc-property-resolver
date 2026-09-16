@@ -53,11 +53,33 @@ class CodexConfig:
     windows_implementation_sandbox: str | None = None
     approval_policy: str = "never"
     network_access: bool = True
-    implementation_sequence: list[str] = field(default_factory=lambda: [
-        "gpt-5.6-luna", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.6-sol"
+    # Each implementation attempt can pin both a model and a reasoning effort.
+    # String entries from v0.12.4 remain supported and inherit reasoning_effort.
+    implementation_sequence: list[str | dict[str, str]] = field(default_factory=lambda: [
+        {"model": "gpt-5.6-sol", "reasoning_effort": "medium"},
+        {"model": "gpt-5.6-sol", "reasoning_effort": "medium"},
+        {"model": "gpt-5.6-sol", "reasoning_effort": "high"},
+        {"model": "gpt-6-astra", "reasoning_effort": "medium"},
     ])
     review_model: str = "gpt-5.6-sol"
     planner_model: str = "gpt-5.6-sol"
+
+    def implementation_profile(self, index: int) -> tuple[str, str]:
+        entry = self.implementation_sequence[index]
+        if isinstance(entry, str):
+            model = entry.strip()
+            effort = self.reasoning_effort.strip()
+        elif isinstance(entry, dict):
+            model = str(entry.get("model") or "").strip()
+            effort = str(entry.get("reasoning_effort") or self.reasoning_effort).strip()
+        else:
+            raise TypeError(f"Unsupported Codex implementation profile at index {index}: {entry!r}")
+        if not model:
+            raise ValueError(f"Codex implementation profile {index + 1} is missing model")
+        if not effort:
+            raise ValueError(f"Codex implementation profile {index + 1} is missing reasoning_effort")
+        return model, effort
+
     auth_required_substring: str = "Logged in using ChatGPT"
     short_quota_patterns: list[str] = field(default_factory=lambda: [
         "5h limit exhausted", "5-hour limit exhausted", "5 hour limit exhausted",
