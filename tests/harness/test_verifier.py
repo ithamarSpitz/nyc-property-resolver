@@ -81,3 +81,30 @@ paths: {protected: [], review_required: []}
 
     inherited = verifier._verification_env(None)
     assert inherited["DATABASE_URL"] == "postgresql://ambient:ambient@localhost:5432/ambient"
+
+
+def test_stage_subprocess_uses_utf8_replacement_decoding(tmp_path, monkeypatch):
+    import subprocess
+    from types import SimpleNamespace
+    from harness.config import HarnessConfig
+    from harness.git_worktree import WorktreeManager
+    from harness.verifier import Verifier
+
+    (tmp_path / "harness.yaml").write_text("""
+execution: {}
+worktree: {}
+cursor: {models: {}}
+verification: {env: {}}
+paths: {protected: [], review_required: []}
+""", encoding="utf-8")
+    config = HarnessConfig.load(tmp_path / "harness.yaml")
+    verifier = Verifier(config, tmp_path / "logs", WorktreeManager(tmp_path, tmp_path / ".harness"))
+    seen = {}
+    def fake_run(*args, **kwargs):
+        seen.update(kwargs)
+        return SimpleNamespace(returncode=0, stdout="ok", stderr="")
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    result = verifier.verify_stage(tmp_path, ["echo ok"], "stage")
+    assert result.ok
+    assert seen["encoding"] == "utf-8"
+    assert seen["errors"] == "replace"

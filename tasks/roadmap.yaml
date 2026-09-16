@@ -41,9 +41,10 @@ sprints:
       - npm run typecheck
       - npm test -- --runInBand
       '2':
+      - npx prisma validate
+      - npx prisma generate
       - npm run typecheck
       - npm test -- --runInBand
-      - npx prisma validate
       - docker compose config --quiet
       '3':
       - npm run typecheck
@@ -110,8 +111,9 @@ sprints:
         - S1-T9
     stage_verification:
       '1':
-      - npm run typecheck
       - npx prisma validate
+      - npx prisma generate
+      - npm run typecheck
       - npm test -- --runInBand tests/unit/property-resolution/property-identifiers.test.ts
       '2':
       - npm run typecheck
@@ -180,8 +182,9 @@ sprints:
         - S2-T8
     stage_verification:
       '1':
-      - npm run typecheck
       - npx prisma validate
+      - npx prisma generate
+      - npm run typecheck
       - npm test -- --runInBand tests/unit/ingestion/source-contract.test.ts
       '2':
       - npm run typecheck
@@ -221,8 +224,9 @@ sprints:
         - S3-T4
     stage_verification:
       '1':
-      - npm run typecheck
       - npx prisma validate
+      - npx prisma generate
+      - npm run typecheck
       - docker compose build
       - docker compose up -d postgres
       - docker compose run --rm migrate

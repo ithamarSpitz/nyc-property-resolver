@@ -39,11 +39,13 @@ def test_s0_through_s5_project_sprints_are_executable_and_match_blueprint_stages
 
     s0 = project_sprints["S0-foundation"]
     s0_tasks = s0["tasks"]
-    assert set(s0_tasks) == {"S0-T1", "S0-T2", "S0-T3", "S0-T4", "S0-T5"}
+    assert set(s0_tasks) == {"S0-T1", "S0-T2", "S0-T3", "S0-T4", "S0-T5", "S0-T6"}
     assert s0_tasks["S0-T1"]["stage"] == 1
     assert {s0_tasks[t]["stage"] for t in ("S0-T2", "S0-T3", "S0-T4")} == {2}
-    assert s0_tasks["S0-T5"]["stage"] == 3
-    assert set(s0_tasks["S0-T5"]["depends_on"]) == {"S0-T2", "S0-T3", "S0-T4"}
+    assert s0_tasks["S0-T6"]["stage"] == 3
+    assert set(s0_tasks["S0-T6"]["depends_on"]) == {"S0-T1", "S0-T2", "S0-T3", "S0-T4"}
+    assert s0_tasks["S0-T5"]["stage"] == 4
+    assert s0_tasks["S0-T5"]["depends_on"] == ["S0-T6"]
 
     s1 = project_sprints["S1-property-resolution"]
     s1_tasks = s1["tasks"]
@@ -100,3 +102,16 @@ def test_s0_through_s5_project_sprints_are_executable_and_match_blueprint_stages
     assert s5_tasks["S5-T4"]["depends_on"] == ["S5-T3"]
     assert s5_tasks["S5-T5"]["depends_on"] == ["S5-T4"]
 
+
+
+def test_schema_stage_barriers_generate_prisma_client_before_typecheck():
+    import yaml
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2]
+    payload = yaml.safe_load((root / "tasks" / "roadmap.yaml").read_text(encoding="utf-8"))
+    for sprint_id, stage in [("S1-property-resolution", "1"), ("S2-ingestion-lifecycle", "1"), ("S3-ingestion-publication", "1")]:
+        commands = payload["sprints"][sprint_id]["stage_verification"][stage]
+        assert "npx prisma validate" in commands
+        assert "npx prisma generate" in commands
+        assert "npm run typecheck" in commands
+        assert commands.index("npx prisma validate") < commands.index("npx prisma generate") < commands.index("npm run typecheck")

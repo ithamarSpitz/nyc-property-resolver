@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def _run(args: list[str], cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(args, cwd=cwd, text=True, capture_output=True, check=check)
+    return subprocess.run(args, cwd=cwd, text=True, encoding="utf-8", errors="replace", capture_output=True, check=check)
 
 
 def _slug(value: str) -> str:
@@ -97,7 +97,7 @@ class WorktreeManager:
         result = subprocess.run(
             ["git", "commit", "-m", f"harness: {task_id}"],
             cwd=worktree,
-            text=True,
+            text=True, encoding="utf-8", errors="replace",
             capture_output=True,
             env=env,
         )

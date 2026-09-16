@@ -40,7 +40,7 @@ def _tree_hash(root: Path, paths: list[Path]) -> str | None:
 
 def _safe_command(args: list[str], cwd: Path) -> str | None:
     try:
-        proc = subprocess.run(args, cwd=cwd, text=True, capture_output=True, timeout=10)
+        proc = subprocess.run(args, cwd=cwd, text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=10)
     except (OSError, subprocess.TimeoutExpired):
         return None
     if proc.returncode != 0:

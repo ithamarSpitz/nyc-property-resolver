@@ -87,7 +87,7 @@ class EnvironmentManager:
             proc = subprocess.run(
                 prepare_external_argv(command),
                 cwd=workspace,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 capture_output=True,
                 env=env,
                 timeout=max(1, timeout_seconds),

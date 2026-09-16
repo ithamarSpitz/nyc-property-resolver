@@ -46,7 +46,7 @@ class Doctor:
             try:
                 proc = subprocess.run(
                     prepare_external_argv([*parts, *suffix]),
-                    text=True,
+                    text=True, encoding="utf-8", errors="replace",
                     capture_output=True,
                     timeout=15,
                 )
@@ -131,7 +131,7 @@ class Doctor:
                         proc = subprocess.run(
                             prepare_external_argv([*compose_parts, "version"]),
                             cwd=self.root,
-                            text=True,
+                            text=True, encoding="utf-8", errors="replace",
                             capture_output=True,
                             timeout=20,
                         )
@@ -160,7 +160,7 @@ class Doctor:
                 proc = subprocess.run(
                     prepare_external_argv([*cursor_parts, "models"]),
                     cwd=self.root,
-                    text=True,
+                    text=True, encoding="utf-8", errors="replace",
                     capture_output=True,
                     timeout=30,
                 )

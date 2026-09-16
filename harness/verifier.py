@@ -86,7 +86,7 @@ class Verifier:
         commands = [*self.config.verification.global_task_commands, *task.verification]
         command_env = self._verification_env(env)
         for command in commands:
-            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=command_env)
+            proc = subprocess.run(command, cwd=workspace, text=True, encoding="utf-8", errors="replace", shell=True, capture_output=True, env=command_env)
             rendered = f"$ {command}\nexit={proc.returncode}\n{proc.stdout}{proc.stderr}".rstrip()
             command_outputs.append(rendered)
             if proc.returncode != 0:
@@ -113,7 +113,7 @@ class Verifier:
         outputs: list[str] = []
         command_env = self._verification_env(env)
         for command in [*self.config.verification.global_task_commands, *task.verification]:
-            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=command_env)
+            proc = subprocess.run(command, cwd=workspace, text=True, encoding="utf-8", errors="replace", shell=True, capture_output=True, env=command_env)
             outputs.append(f"$ {command}\nexit={proc.returncode}\n{proc.stdout}{proc.stderr}".rstrip())
             if proc.returncode != 0:
                 failures.append(f"Revalidation command failed: {command}")
@@ -128,7 +128,7 @@ class Verifier:
         outputs: list[str] = []
         command_env = self._verification_env(env)
         for command in [*self.config.verification.stage_commands, *commands]:
-            proc = subprocess.run(command, cwd=workspace, text=True, shell=True, capture_output=True, env=command_env)
+            proc = subprocess.run(command, cwd=workspace, text=True, encoding="utf-8", errors="replace", shell=True, capture_output=True, env=command_env)
             outputs.append(f"$ {command}\nexit={proc.returncode}\n{proc.stdout}{proc.stderr}".rstrip())
             if proc.returncode != 0:
                 failures.append(f"Stage command failed: {command}")

@@ -70,7 +70,7 @@ class CursorAgentRunner:
             top = subprocess.run(
                 ["git", "rev-parse", "--show-toplevel"],
                 cwd=resolved,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 capture_output=True,
                 timeout=10,
             )
@@ -80,7 +80,7 @@ class CursorAgentRunner:
             listed = subprocess.run(
                 ["git", "worktree", "list", "--porcelain"],
                 cwd=self.repo_root,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 capture_output=True,
                 timeout=10,
             )
@@ -204,7 +204,7 @@ class CursorAgentRunner:
             proc = subprocess.Popen(
                 launch_command,
                 cwd=workspace,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 stdin=(subprocess.PIPE if pipe_prompt else None),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,

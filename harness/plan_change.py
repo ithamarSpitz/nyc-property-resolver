@@ -271,7 +271,7 @@ class PlanChangeManager:
             proc = subprocess.run(
                 ["python", "scripts/generate-architecture-contexts.py", "--check"],
                 cwd=self.root,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 capture_output=True,
             )
             if proc.returncode != 0:

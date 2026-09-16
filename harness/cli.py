@@ -479,7 +479,7 @@ def cmd_run_task(
     base_commit = task_runtime.base_ref or subprocess.run(
         ["git", "rev-parse", "HEAD"],
         cwd=runtime.worktrees.repo_root,
-        text=True,
+        text=True, encoding="utf-8", errors="replace",
         capture_output=True,
         check=True,
     ).stdout.strip()
@@ -744,11 +744,11 @@ def cmd_plan_change_apply(runtime: Runtime, request_id: str, affected: list[str]
             patch_path = archive_dir / f"{request_id}-{task_id}-pre-revision.patch"
             # Include untracked files in the forensic patch without committing
             # them: intent-to-add makes `git diff` render their full content.
-            subprocess.run(["git", "add", "-N", "."], cwd=worktree_path, text=True, capture_output=True)
+            subprocess.run(["git", "add", "-N", "."], cwd=worktree_path, text=True, encoding="utf-8", errors="replace", capture_output=True)
             proc = subprocess.run(
                 ["git", "diff", "--binary", task_rt.base_ref],
                 cwd=worktree_path,
-                text=True,
+                text=True, encoding="utf-8", errors="replace",
                 capture_output=True,
             )
             if proc.stdout:

@@ -218,7 +218,7 @@ class Scheduler:
                 proc = subprocess.run(
                     command,
                     cwd=worktree,
-                    text=True,
+                    text=True, encoding="utf-8", errors="replace",
                     shell=True,
                     capture_output=True,
                     timeout=timeout_seconds,

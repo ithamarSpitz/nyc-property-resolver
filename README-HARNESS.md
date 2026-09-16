@@ -1,4 +1,4 @@
-# Agent Harness Starter v0.11.6
+# Agent Harness Starter v0.11.8
 
 ## v0.11.6 deterministic verification environment
 
