@@ -299,6 +299,11 @@ sprints:
         stage: 5
         depends_on:
         - S4-T8
+      S4-T10:
+        file: tasks/sprint-04-api-operations/10-compose-runtime-config-propagation.md
+        stage: 6
+        depends_on:
+        - S4-T9
     stage_verification:
       '1':
       - npm run typecheck
@@ -321,6 +326,12 @@ sprints:
       '4':
       - node -e "process.env.API_HOST_PORT='0'; require('node:child_process').execSync('npm run verify:api-operations',{stdio:'inherit',env:process.env})"
       '5':
+      - npm run verify:api-operations
+      '6':
+      - npm run typecheck
+      - npm test -- --runInBand tests/unit/foundation/config.test.ts
+      - docker compose config --quiet
+      - node scripts/verify-runtime-config.mjs
       - npm run verify:api-operations
   S5-acceptance-submission:
     name: Real-Data Acceptance, Scale, Evidence and Submission
