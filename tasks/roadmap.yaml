@@ -371,20 +371,25 @@ sprints:
         stage: 5
         depends_on:
         - S5-T8
-      S5-T3:
-        file: tasks/sprint-05-acceptance-submission/03-scale-10000-evidence.md
+      S5-T11:
+        file: tasks/sprint-05-acceptance-submission/11-accepted-publication-scale-repair.md
         stage: 6
         depends_on:
         - S5-T9
         - S5-T10
+      S5-T3:
+        file: tasks/sprint-05-acceptance-submission/03-scale-10000-evidence.md
+        stage: 7
+        depends_on:
+        - S5-T11
       S5-T4:
         file: tasks/sprint-05-acceptance-submission/04-submission-documentation.md
-        stage: 7
+        stage: 8
         depends_on:
         - S5-T3
       S5-T5:
         file: tasks/sprint-05-acceptance-submission/05-final-submission-gate.md
-        stage: 8
+        stage: 9
         depends_on:
         - S5-T4
     stage_verification:
@@ -410,10 +415,17 @@ sprints:
       - docker compose run --rm migrate
       - docker compose run --rm --no-deps worker npm test -- --runInBand tests/integration/ingestion/raw-staging.persistence.test.ts tests/integration/ingestion/terminal-publication.scale.test.ts tests/integration/ingestion/terminal-failure-recovery.test.ts
       '6':
-      - npm run acceptance:scale:validate-evidence
+      - npm run typecheck
+      - npm test -- --runInBand tests/unit/cli/ingest-ecb.test.ts
+      - docker compose build
+      - docker compose up -d postgres
+      - docker compose run --rm migrate
+      - docker compose run --rm --no-deps -e INGESTION_PUBLICATION_INTEGRATION=1 worker npm test -- --runInBand tests/integration/ingestion/accepted-publication.scale.test.ts tests/integration/ingestion/accepted-publication-recovery.test.ts tests/integration/ingestion/ingestion-publication.behavior.test.ts tests/integration/ingestion/terminal-publication.scale.test.ts tests/integration/ingestion/terminal-failure-recovery.test.ts
       '7':
-      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      - npm run acceptance:scale:validate-evidence
       '8':
+      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      '9':
       - npm run verify:submission
   demo:
     name: Harness demo DAG

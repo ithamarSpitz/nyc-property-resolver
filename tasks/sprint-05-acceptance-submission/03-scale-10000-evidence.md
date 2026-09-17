@@ -1,13 +1,12 @@
 ---
 id: S5-T3
-stage: 6
+stage: 7
 model_class: hard_worker
 timeout_minutes: 180
 review: true
 allow_protected: false
 depends_on:
-  - S5-T9
-  - S5-T10
+  - S5-T11
 allowed_paths:
   - package.json
   - seed/scale-10000-bbls.json
