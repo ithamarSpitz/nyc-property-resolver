@@ -89,6 +89,7 @@ export type IngestionServiceOptions = {
   runRepository?: IngestionRunRepository;
   batchRepository?: IngestionBatchRepository;
   batchProcessorConfig?: Partial<BatchProcessorConfig> & {
+    acceptedPublicationTransactionTimeoutMs?: number;
     terminalPublicationTransactionTimeoutMs?: number;
   };
 };
@@ -237,6 +238,12 @@ export class EcbIngestionService {
           run: persistedFailure,
         };
       }
+      if (await this.isPersistedRunReadyForPublication(run)) {
+        return {
+          outcome: INGESTION_EXECUTION_OUTCOMES.READY_FOR_PUBLICATION,
+          run,
+        };
+      }
       const sourceChangedRun = await this.rejectResumeOnWatermarkMismatch(run.id, authority, run);
       if (sourceChangedRun !== null) {
         return {
@@ -260,6 +267,29 @@ export class EcbIngestionService {
     }
 
     return this.finalizePublicationHandoff(run.id, authority);
+  }
+
+  private async isPersistedRunReadyForPublication(run: IngestionRun): Promise<boolean> {
+    if (
+      !run.initializationComplete ||
+      run.expectedBatchCount === null ||
+      run.sourceWatermarkAtStart === null ||
+      run.sourceWatermarkAtEnd === null ||
+      !watermarksEqual(run.sourceWatermarkAtStart, run.sourceWatermarkAtEnd)
+    ) {
+      return false;
+    }
+
+    const batches = await this.batchRepository.listByRun(run.id);
+    return (
+      batches.length === run.expectedBatchCount &&
+      batches.every(
+        (batch) =>
+          batch.status === IngestionBatchStatus.COMPLETED &&
+          batch.completedAt !== null &&
+          batch.lastError === null,
+      )
+    );
   }
 
   private async publishPersistedTerminalBatchFailure(

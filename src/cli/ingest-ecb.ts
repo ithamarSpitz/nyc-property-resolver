@@ -35,6 +35,23 @@ export type ManualCliDependencies = {
   disconnect?: () => Promise<void>;
 };
 
+function failureDiagnostics(error: unknown): {
+  errorType: string;
+  errorCode?: string;
+  errorMessage?: string;
+} {
+  const errorType = error instanceof Error ? error.name : 'UnknownError';
+  if (
+    error instanceof Error &&
+    'code' in error &&
+    typeof error.code === 'string' &&
+    /^P\d{4}$/.test(error.code)
+  ) {
+    return { errorType, errorCode: error.code, errorMessage: error.message };
+  }
+  return { errorType };
+}
+
 /** Execute exactly one manual ingestion attempt and return a process-safe exit code. */
 export async function runManualIngestion(options: ManualIngestionOptions): Promise<number> {
   const now = options.now ?? Date.now;
@@ -67,7 +84,7 @@ export async function runManualIngestion(options: ManualIngestionOptions): Promi
       {
         triggerType: IngestionTriggerType.MANUAL,
         durationMs: now() - startedAt,
-        errorType: error instanceof Error ? error.name : 'UnknownError',
+        ...failureDiagnostics(error),
       },
       'ECB manual ingestion failed',
     );
@@ -91,7 +108,7 @@ export async function main(dependencies: ManualCliDependencies = {}): Promise<nu
     });
   } catch (error) {
     logger.error(
-      { errorType: error instanceof Error ? error.name : 'UnknownError' },
+      failureDiagnostics(error),
       'ECB manual ingestion could not start',
     );
     exitCode = MANUAL_INGESTION_EXIT_CODES.FAILURE;
@@ -101,7 +118,7 @@ export async function main(dependencies: ManualCliDependencies = {}): Promise<nu
     await (dependencies.disconnect ?? disconnectPrisma)();
   } catch (error) {
     logger.error(
-      { errorType: error instanceof Error ? error.name : 'UnknownError' },
+      failureDiagnostics(error),
       'ECB manual ingestion database shutdown failed',
     );
     exitCode = MANUAL_INGESTION_EXIT_CODES.FAILURE;

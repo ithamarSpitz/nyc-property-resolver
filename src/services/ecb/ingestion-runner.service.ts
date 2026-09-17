@@ -134,7 +134,12 @@ export class EcbIngestionRunnerService {
           options.batchProcessorConfig?.terminalPublicationTransactionTimeoutMs,
       });
     this.acceptedPublicationService =
-      acceptedPublicationService ?? new AcceptedPublicationService({ prisma: options.prisma });
+      acceptedPublicationService ??
+      new AcceptedPublicationService({
+        prisma: options.prisma,
+        transactionTimeoutMs:
+          options.batchProcessorConfig?.acceptedPublicationTransactionTimeoutMs,
+      });
     this.executor = new EcbIngestionService({
       ...executorOptions,
       lockService: this.lockService,
