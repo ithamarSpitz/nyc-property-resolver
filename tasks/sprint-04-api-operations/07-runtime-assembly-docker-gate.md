@@ -25,7 +25,7 @@ verification:
   - npm run typecheck
   - docker compose config --quiet
   - docker compose build
-  - docker compose up -d
+  - node -e "process.env.API_HOST_PORT='0'; require('node:child_process').execSync('docker compose up -d',{stdio:'inherit',env:process.env})"
   - docker compose run --rm --no-deps worker npm test -- --runInBand tests/integration/operations/runtime-assembly.test.ts
 ---
 

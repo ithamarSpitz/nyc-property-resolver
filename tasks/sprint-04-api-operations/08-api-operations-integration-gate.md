@@ -21,8 +21,7 @@ verification:
   - npm run typecheck
   - docker compose config --quiet
   - docker compose build
-  - docker compose up -d
-  - npm run verify:api-operations
+  - node -e "process.env.API_HOST_PORT='0'; require('node:child_process').execSync('npm run verify:api-operations',{stdio:'inherit',env:process.env})"
 ---
 
 # Goal
@@ -78,4 +77,6 @@ Do not:
 
 # Verification
 
-The frontmatter commands are authoritative. Keep this suite focused enough for repeated automated execution; S5 owns slow real-data/scale evidence.
+The frontmatter commands are authoritative. The temporary `API_HOST_PORT=0` child-process injection in this task's verification exists only so this already-integrated task can be revalidated before S4-T9 removes the old install-time `.env` workaround. It changes only Docker host publishing; the container API remains on port 3000 and the normal evaluator path remains unchanged.
+
+Keep this suite focused enough for repeated automated execution; S5 owns slow real-data/scale evidence.
