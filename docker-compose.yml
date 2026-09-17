@@ -6,8 +6,6 @@ x-app-image: &app-image
 
 x-app-environment: &app-environment
   DATABASE_URL: postgresql://nycpr:nycpr@postgres:5432/nyc_property_resolver
-  API_RATE_LIMIT: "100"
-  API_BODY_LIMIT: 512kb
 
 services:
   postgres:
@@ -40,6 +38,8 @@ services:
     <<: *app-image
     environment:
       <<: *app-environment
+      API_RATE_LIMIT: "${API_RATE_LIMIT:-100}"
+      API_BODY_LIMIT: "${API_BODY_LIMIT:-}"
       PORT: 3000
     command: ["npm", "run", "start:api"]
     ports:
@@ -53,6 +53,15 @@ services:
     <<: *app-image
     environment:
       <<: *app-environment
+      SOCRATA_APP_TOKEN: "${SOCRATA_APP_TOKEN:-}"
+      INGEST_INTERVAL_MS: "${INGEST_INTERVAL_MS:-}"
+      ECB_BATCH_SIZE: "${ECB_BATCH_SIZE:-}"
+      SOCRATA_PAGE_SIZE: "${SOCRATA_PAGE_SIZE:-}"
+      SOCRATA_MAX_PAGES_PER_BATCH: "${SOCRATA_MAX_PAGES_PER_BATCH:-}"
+      SOCRATA_CONCURRENCY: "${SOCRATA_CONCURRENCY:-}"
+      SOCRATA_REQUEST_TIMEOUT_MS: "${SOCRATA_REQUEST_TIMEOUT_MS:-}"
+      SOCRATA_MAX_RETRIES: "${SOCRATA_MAX_RETRIES:-}"
+      MAX_BATCH_ATTEMPTS_PER_RUN: "${MAX_BATCH_ATTEMPTS_PER_RUN:-}"
     command: ["npm", "run", "start:worker"]
     depends_on:
       migrate:
