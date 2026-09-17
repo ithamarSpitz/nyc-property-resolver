@@ -41,7 +41,7 @@ describe('SocrataClient', () => {
     const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
     const parsedUrl = new URL(url);
     expect(parsedUrl.pathname).toBe(`/resource/${DOB_ECB_DATASET_ID}.json`);
-    expect(parsedUrl.searchParams.get('$select')).toBe(':id,:updated_at,*');
+    expect(parsedUrl.searchParams.get('$select')).toBe('*,:id,:updated_at');
     expect(parsedUrl.searchParams.get('$order')).toBe(':updated_at,:id');
     expect(parsedUrl.searchParams.get('$limit')).toBe('1000');
     expect(parsedUrl.searchParams.get('$offset')).toBe('500');

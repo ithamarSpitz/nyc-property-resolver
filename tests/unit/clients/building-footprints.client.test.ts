@@ -4,7 +4,6 @@ import {
   BUILDING_FOOTPRINTS_ERROR_CODES,
   BUILDING_FOOTPRINTS_LOOKUP_RESULT_LIMIT,
   BUILDING_FOOTPRINTS_MAX_LOOKUP_PAGES,
-  BUILDING_FOOTPRINTS_SELECT_FIELDS,
   BuildingFootprintsClient,
 } from '../../../src/clients/building-footprints.client';
 
@@ -31,7 +30,7 @@ function footprintRecord(options: {
   };
 
   if (options.mapplutoBbl !== undefined) {
-    record.mpluto_bbl = options.mapplutoBbl;
+    record.mappluto_bbl = options.mapplutoBbl;
   }
 
   return record;
@@ -43,7 +42,7 @@ describe('BuildingFootprintsClient', () => {
     jest.restoreAllMocks();
   });
 
-  it('builds a bounded parcel lookup request matching base_bbl or mpluto_bbl', async () => {
+  it('builds a bounded parcel lookup request matching base_bbl or mappluto_bbl', async () => {
     const fetchImpl = jest.fn(async () => ({
       ok: true,
       status: 200,
@@ -62,9 +61,9 @@ describe('BuildingFootprintsClient', () => {
     const parsedUrl = new URL(url);
 
     expect(parsedUrl.origin + parsedUrl.pathname).toBe(BUILDING_FOOTPRINTS_DEFAULT_BASE_URL);
-    expect(parsedUrl.searchParams.get('$select')).toBe(BUILDING_FOOTPRINTS_SELECT_FIELDS);
+    expect(parsedUrl.searchParams.get('$select')).toBe('bin,base_bbl,mappluto_bbl');
     expect(parsedUrl.searchParams.get('$where')).toBe(
-      "base_bbl='1008350041' OR mpluto_bbl='1008350041'",
+      "base_bbl='1008350041' OR mappluto_bbl='1008350041'",
     );
     expect(parsedUrl.searchParams.get('$order')).toBe('bin');
     expect(parsedUrl.searchParams.get('$limit')).toBe(
@@ -72,6 +71,19 @@ describe('BuildingFootprintsClient', () => {
     );
     expect(init?.method).toBe('GET');
     expect(init?.headers).toEqual(new Headers({ 'X-App-Token': 'test-token' }));
+  });
+
+  it('builds a bulk parcel lookup request using the live mappluto_bbl field', () => {
+    const client = new BuildingFootprintsClient();
+
+    const parsedUrl = new URL(
+      client.buildBulkLookupUrl(['1008350041', '3035780050'], 'parcel', 100),
+    );
+
+    expect(parsedUrl.searchParams.get('$select')).toBe('bin,base_bbl,mappluto_bbl');
+    expect(parsedUrl.searchParams.get('$where')).toBe(
+      "base_bbl in ('1008350041','3035780050') OR mappluto_bbl in ('1008350041','3035780050')",
+    );
   });
 
   it('builds a bounded base_bbl lookup request for condo resolution', async () => {
@@ -263,7 +275,7 @@ describe('BuildingFootprintsClient', () => {
     expect(BUILDING_FOOTPRINTS_MAX_LOOKUP_PAGES).toBeGreaterThan(1);
   });
 
-  it('preserves present-but-unparseable mpluto_bbl separately from a missing field', async () => {
+  it('preserves present-but-unparseable mappluto_bbl separately from a missing field', async () => {
     const client = new BuildingFootprintsClient({
       fetchImpl: createFetchMock(async () => ({
         ok: true,
