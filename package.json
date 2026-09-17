@@ -19,6 +19,7 @@
     "acceptance:small": "node scripts/acceptance/small-acceptance.mjs",
     "acceptance:small:check": "node scripts/acceptance/small-acceptance.mjs --check",
     "acceptance:small:validate": "node scripts/acceptance/validate-small-evidence.mjs",
+    "acceptance:small:validate-evidence": "node scripts/acceptance/validate-small-evidence.mjs",
     "ingest:ecb": "node dist/cli/ingest-ecb.js",
     "start:api": "node dist/server.js",
     "start:worker": "node dist/workers/ingestion.worker.js"
