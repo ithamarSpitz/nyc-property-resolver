@@ -361,19 +361,30 @@ sprints:
         stage: 4
         depends_on:
         - S5-T2
-      S5-T3:
-        file: tasks/sprint-05-acceptance-submission/03-scale-10000-evidence.md
+      S5-T9:
+        file: tasks/sprint-05-acceptance-submission/09-ecb-zero-date-normalization-repair.md
         stage: 5
         depends_on:
         - S5-T8
+      S5-T10:
+        file: tasks/sprint-05-acceptance-submission/10-terminal-publication-scale-repair.md
+        stage: 5
+        depends_on:
+        - S5-T8
+      S5-T3:
+        file: tasks/sprint-05-acceptance-submission/03-scale-10000-evidence.md
+        stage: 6
+        depends_on:
+        - S5-T9
+        - S5-T10
       S5-T4:
         file: tasks/sprint-05-acceptance-submission/04-submission-documentation.md
-        stage: 6
+        stage: 7
         depends_on:
         - S5-T3
       S5-T5:
         file: tasks/sprint-05-acceptance-submission/05-final-submission-gate.md
-        stage: 7
+        stage: 8
         depends_on:
         - S5-T4
     stage_verification:
@@ -392,10 +403,17 @@ sprints:
       - npm run typecheck
       - npm test -- --runInBand tests/unit/clients/building-footprints.client.test.ts tests/unit/clients/socrata.client.test.ts
       '5':
-      - npm run acceptance:scale:validate-evidence
+      - npm run typecheck
+      - npm test -- --runInBand tests/unit/ingestion/ecb-normalization.test.ts
+      - docker compose build
+      - docker compose up -d postgres
+      - docker compose run --rm migrate
+      - docker compose run --rm --no-deps worker npm test -- --runInBand tests/integration/ingestion/raw-staging.persistence.test.ts tests/integration/ingestion/terminal-publication.scale.test.ts tests/integration/ingestion/terminal-failure-recovery.test.ts
       '6':
-      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      - npm run acceptance:scale:validate-evidence
       '7':
+      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      '8':
       - npm run verify:submission
   demo:
     name: Harness demo DAG

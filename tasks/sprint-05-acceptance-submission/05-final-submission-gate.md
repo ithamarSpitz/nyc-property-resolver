@@ -1,6 +1,6 @@
 ---
 id: S5-T5
-stage: 7
+stage: 8
 model_class: hard_worker
 timeout_minutes: 120
 review: true
