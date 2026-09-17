@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "preparedAt": "2026-09-17",
+  "properties": [
+    {
+      "id": "empire-state-building",
+      "label": "Empire State Building shared reference case",
+      "inputType": "address",
+      "originalInput": "350 5th Avenue, Manhattan, NY",
+      "requirementTags": [
+        "reference_empire_state"
+      ],
+      "provenance": [
+        {
+          "note": "The NYC Landmarks Preservation Commission designation report identifies the Empire State Building at 350 Fifth Avenue.",
+          "url": "https://s-media.nyc.gov/agencies/lpc/lp/2000.pdf",
+          "accessedAt": "2026-09-17"
+        }
+      ]
+    },
+    {
+      "id": "queens-hyphenated-37-15",
+      "label": "Queens hyphenated house-number preservation case",
+      "inputType": "address",
+      "originalInput": "37-15 82nd Street, Jackson Heights, Queens, NY",
+      "requirementTags": [
+        "queens_hyphenated_house_number"
+      ],
+      "provenance": [
+        {
+          "note": "NYC Planning Labs GeoSearch returns 37-15 as the actual house number and locates the address in Jackson Heights, Queens.",
+          "url": "https://geosearch.planninglabs.nyc/v2/search?text=37-15%2082nd%20Street%2C%20Jackson%20Heights%2C%20Queens%2C%20NY",
+          "accessedAt": "2026-09-17"
+        }
+      ]
+    },
+    {
+      "id": "downtown-club-condo-unit-12c",
+      "label": "Downtown Club condominium unit 12C",
+      "inputType": "address",
+      "originalInput": "20 West Street, Manhattan, NY Apt 12C",
+      "requirementTags": [
+        "condominium_unit"
+      ],
+      "provenance": [
+        {
+          "note": "NYC Open Data's Condominium Units dataset records unit designation 12C in the condominium whose billing parcel is identified by PLUTO as 20 West Street (The Downtown Club Condominium).",
+          "url": "https://data.cityofnewyork.us/resource/eguu-7ie3.json?$select=unit_bbl,condo_base_bbl,unit_designation&$where=condo_base_bbl='1000150019'%20AND%20unit_designation='12C'",
+          "accessedAt": "2026-09-17"
+        }
+      ]
+    },
+    {
+      "id": "avenue-n-two-family",
+      "label": "7204 Avenue N two-family brick house",
+      "inputType": "address",
+      "originalInput": "7204 Avenue N, Brooklyn, NY",
+      "requirementTags": [
+        "small_2_3_family"
+      ],
+      "provenance": [
+        {
+          "note": "NYC Department of Finance Property Tax Public Access classifies this parcel as building class B1, TWO FAMILY BRICK.",
+          "url": "https://a836-pts-access.nyc.gov/care/datalets/datalet.aspx?UseSearch=no&jur=65&mode=profileall2&pin=3083930048&s=",
+          "accessedAt": "2026-09-17"
+        }
+      ]
+    },
+    {
+      "id": "steinway-unpaid-ecb",
+      "label": "Steinway Street property with unpaid DOB ECB balance",
+      "inputType": "address",
+      "originalInput": "22-01 Steinway Street, Astoria, Queens, NY",
+      "requirementTags": [
+        "unpaid_ecb_balance"
+      ],
+      "provenance": [
+        {
+          "note": "Selected on 2026-09-17 because NYC Open Data DOB ECB rows for the building included ACTIVE violations with balance_due greater than zero. This is selection provenance only; the resolver must discover all property identifiers during acceptance.",
+          "url": "https://data.cityofnewyork.us/resource/6bgk-3dad.json?$select=isn_dob_bis_extract,ecb_violation_number,ecb_violation_status,bin,block,lot,issue_date,balance_due,:updated_at&$where=bin='4015377'%20AND%20balance_due%3E0&$order=issue_date%20DESC",
+          "accessedAt": "2026-09-17"
+        }
+      ]
+    }
+  ]
+}

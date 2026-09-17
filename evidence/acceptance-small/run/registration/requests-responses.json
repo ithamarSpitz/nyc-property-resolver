@@ -1,0 +1,261 @@
+{
+  "capturedAt": "2026-09-17T12:40:25.384Z",
+  "entries": [
+    {
+      "fixtureId": "empire-state-building",
+      "requestedAt": "2026-09-17T12:40:17.548Z",
+      "respondedAt": "2026-09-17T12:40:19.587Z",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3000/properties",
+        "body": {
+          "address": "350 5th Avenue, Manhattan, NY"
+        }
+      },
+      "httpStatus": 200,
+      "responseHeaders": {
+        "connection": "keep-alive",
+        "content-length": "312",
+        "content-security-policy": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests",
+        "content-type": "application/json; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "date": "Thu, 17 Sep 2026 12:40:19 GMT",
+        "etag": "W/\"138-hW1VZfc1+SmkID3aplMIz0RB8fY\"",
+        "keep-alive": "timeout=5",
+        "origin-agent-cluster": "?1",
+        "ratelimit": "limit=100, remaining=98, reset=60",
+        "ratelimit-policy": "100;w=60",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "off",
+        "x-download-options": "noopen",
+        "x-frame-options": "SAMEORIGIN",
+        "x-permitted-cross-domain-policies": "none",
+        "x-xss-protection": "0"
+      },
+      "response": {
+        "id": "21f0f802-96f9-4ce3-b6dd-8e5b54dc2556",
+        "identifierVersion": 1,
+        "bbl": "1008350041",
+        "condoBaseBbl": null,
+        "condoBillingBbl": null,
+        "normalizedAddress": "350 5th Avenue, Manhattan, Ny",
+        "borough": 1,
+        "block": 835,
+        "lot": 41,
+        "bins": [
+          "1015862"
+        ],
+        "createdAt": "2026-09-17T12:40:19.561Z",
+        "resolvedAt": "2026-09-17T12:40:19.558Z"
+      }
+    },
+    {
+      "fixtureId": "queens-hyphenated-37-15",
+      "requestedAt": "2026-09-17T12:40:19.587Z",
+      "respondedAt": "2026-09-17T12:40:20.461Z",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3000/properties",
+        "body": {
+          "address": "37-15 82nd Street, Jackson Heights, Queens, NY"
+        }
+      },
+      "httpStatus": 200,
+      "responseHeaders": {
+        "connection": "keep-alive",
+        "content-length": "330",
+        "content-security-policy": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests",
+        "content-type": "application/json; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "date": "Thu, 17 Sep 2026 12:40:20 GMT",
+        "etag": "W/\"14a-WYqyOEschyZkhqQATPXqoZNnGfU\"",
+        "keep-alive": "timeout=5",
+        "origin-agent-cluster": "?1",
+        "ratelimit": "limit=100, remaining=97, reset=58",
+        "ratelimit-policy": "100;w=60",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "off",
+        "x-download-options": "noopen",
+        "x-frame-options": "SAMEORIGIN",
+        "x-permitted-cross-domain-policies": "none",
+        "x-xss-protection": "0"
+      },
+      "response": {
+        "id": "f697ea8a-df74-42e7-9704-f5d2a9afdcbf",
+        "identifierVersion": 1,
+        "bbl": "4014700059",
+        "condoBaseBbl": null,
+        "condoBillingBbl": null,
+        "normalizedAddress": "37-15 82nd Street, Jackson Heights, Queens, Ny",
+        "borough": 4,
+        "block": 1470,
+        "lot": 59,
+        "bins": [
+          "4036223"
+        ],
+        "createdAt": "2026-09-17T12:40:20.435Z",
+        "resolvedAt": "2026-09-17T12:40:20.434Z"
+      }
+    },
+    {
+      "fixtureId": "downtown-club-condo-unit-12c",
+      "requestedAt": "2026-09-17T12:40:20.461Z",
+      "respondedAt": "2026-09-17T12:40:23.413Z",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3000/properties",
+        "body": {
+          "address": "20 West Street, Manhattan, NY Apt 12C"
+        }
+      },
+      "httpStatus": 200,
+      "responseHeaders": {
+        "connection": "keep-alive",
+        "content-length": "314",
+        "content-security-policy": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests",
+        "content-type": "application/json; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "date": "Thu, 17 Sep 2026 12:40:23 GMT",
+        "etag": "W/\"13a-8CpvAjQiNIGaoZo1kA+H9mb9KKI\"",
+        "keep-alive": "timeout=5",
+        "origin-agent-cluster": "?1",
+        "ratelimit": "limit=100, remaining=96, reset=58",
+        "ratelimit-policy": "100;w=60",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "off",
+        "x-download-options": "noopen",
+        "x-frame-options": "SAMEORIGIN",
+        "x-permitted-cross-domain-policies": "none",
+        "x-xss-protection": "0"
+      },
+      "response": {
+        "id": "bc83889e-f4e6-4426-9779-cee4c1d35ae9",
+        "identifierVersion": 1,
+        "bbl": "1000151137",
+        "condoBaseBbl": "1000150019",
+        "condoBillingBbl": "1000157502",
+        "normalizedAddress": "20 WEST STREET",
+        "borough": 1,
+        "block": 15,
+        "lot": 1137,
+        "bins": [
+          "1087243"
+        ],
+        "createdAt": "2026-09-17T12:40:23.368Z",
+        "resolvedAt": "2026-09-17T12:40:23.363Z"
+      }
+    },
+    {
+      "fixtureId": "avenue-n-two-family",
+      "requestedAt": "2026-09-17T12:40:23.413Z",
+      "respondedAt": "2026-09-17T12:40:24.324Z",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3000/properties",
+        "body": {
+          "address": "7204 Avenue N, Brooklyn, NY"
+        }
+      },
+      "httpStatus": 200,
+      "responseHeaders": {
+        "connection": "keep-alive",
+        "content-length": "321",
+        "content-security-policy": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests",
+        "content-type": "application/json; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "date": "Thu, 17 Sep 2026 12:40:24 GMT",
+        "etag": "W/\"141-HhyZPNefp/1DEd+oQbojvD7+wb4\"",
+        "keep-alive": "timeout=5",
+        "origin-agent-cluster": "?1",
+        "ratelimit": "limit=100, remaining=95, reset=55",
+        "ratelimit-policy": "100;w=60",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "off",
+        "x-download-options": "noopen",
+        "x-frame-options": "SAMEORIGIN",
+        "x-permitted-cross-domain-policies": "none",
+        "x-xss-protection": "0"
+      },
+      "response": {
+        "id": "a81e07f0-a479-4e7d-8ed8-c67512b9fe30",
+        "identifierVersion": 1,
+        "bbl": "3083930048",
+        "condoBaseBbl": null,
+        "condoBillingBbl": null,
+        "normalizedAddress": "7204 Avenue N, Brooklyn, Ny",
+        "borough": 3,
+        "block": 8393,
+        "lot": 48,
+        "bins": [
+          "3387970",
+          "3411069"
+        ],
+        "createdAt": "2026-09-17T12:40:24.266Z",
+        "resolvedAt": "2026-09-17T12:40:24.260Z"
+      }
+    },
+    {
+      "fixtureId": "steinway-unpaid-ecb",
+      "requestedAt": "2026-09-17T12:40:24.324Z",
+      "respondedAt": "2026-09-17T12:40:25.384Z",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3000/properties",
+        "body": {
+          "address": "22-01 Steinway Street, Astoria, Queens, NY"
+        }
+      },
+      "httpStatus": 200,
+      "responseHeaders": {
+        "connection": "keep-alive",
+        "content-length": "325",
+        "content-security-policy": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests",
+        "content-type": "application/json; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "date": "Thu, 17 Sep 2026 12:40:25 GMT",
+        "etag": "W/\"145-ikuO+tv4L4IVk1XVd8QYbmZk4L8\"",
+        "keep-alive": "timeout=5",
+        "origin-agent-cluster": "?1",
+        "ratelimit": "limit=100, remaining=94, reset=54",
+        "ratelimit-policy": "100;w=60",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "off",
+        "x-download-options": "noopen",
+        "x-frame-options": "SAMEORIGIN",
+        "x-permitted-cross-domain-policies": "none",
+        "x-xss-protection": "0"
+      },
+      "response": {
+        "id": "8bdfabb8-f7a9-4ba4-853a-2e2560ab54bb",
+        "identifierVersion": 1,
+        "bbl": "4007950032",
+        "condoBaseBbl": null,
+        "condoBillingBbl": null,
+        "normalizedAddress": "22-01 Steinway Street, Astoria, Queens, Ny",
+        "borough": 4,
+        "block": 795,
+        "lot": 32,
+        "bins": [
+          "4015377"
+        ],
+        "createdAt": "2026-09-17T12:40:25.359Z",
+        "resolvedAt": "2026-09-17T12:40:25.358Z"
+      }
+    }
+  ]
+}

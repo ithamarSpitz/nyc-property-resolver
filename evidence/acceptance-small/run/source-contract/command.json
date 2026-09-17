@@ -1,0 +1,13 @@
+{
+  "command": "docker",
+  "args": [
+    "compose",
+    "run",
+    "--rm",
+    "worker",
+    "npm",
+    "run",
+    "verify:ecb-source-contract"
+  ],
+  "display": "docker compose run --rm worker npm run verify:ecb-source-contract"
+}

@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "page": "BIS Property Profile Overview (https://a810-bisweb.nyc.gov/bisweb/bsqpm01.jsp -> PropertyProfileOverviewServlet)",
+  "retrievalLog": "retrieval-log.json",
+  "localSnapshot": "baseline/api/properties.json",
+  "checks": [
+    {
+      "fixtureId": "empire-state-building",
+      "propertyId": "21f0f802-96f9-4ce3-b6dd-8e5b54dc2556",
+      "bbl": "1008350041",
+      "bin": "1015862",
+      "checkedAt": "2026-09-17T13:50:14.629Z",
+      "requestedAfter": "2026-09-17T13:49:57.956Z",
+      "respondedBefore": "2026-09-17T13:50:14.629Z",
+      "bisUrl": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=1015862&requestid=0",
+      "bisPage": "PropertyProfileOverviewServlet",
+      "bisPageIdentity": "Property Profile Overview, Tax Block 835 / Tax Lot 41, 338-350 5 AVENUE, EMPIRE STATE BUILDING, DOF class O4-OFFICE BUILDINGS",
+      "artifacts": [
+        "property-profile/empire-state-building-bin-1015862.txt"
+      ],
+      "comparisons": [
+        {
+          "field": "Property Profile 'Violations-OATH/ECB' Total count for the BIN",
+          "localValue": "241 ECB violation rows served for property 21f0f802-96f9-4ce3-b6dd-8e5b54dc2556 (all rows carry bin 1015862)",
+          "bisValue": "241",
+          "matched": true
+        },
+        {
+          "field": "Parcel identity (Tax Block / Tax Lot)",
+          "localValue": "BBL 1008350041 -> borough 1 (Manhattan), block 835, lot 41",
+          "bisValue": "Tax Block: 835, Tax Lot: 41",
+          "matched": true
+        },
+        {
+          "field": "Buildings on Lot / additional BINs behind the single stored BIN",
+          "localValue": "bins = [\"1015862\"] (one valid BIN stored)",
+          "bisValue": "Buildings on Lot: 1; Additional BINs for Building: NONE",
+          "matched": true
+        }
+      ],
+      "notComparable": [
+        {
+          "field": "Property Profile 'Violations-OATH/ECB' Open count",
+          "reason": "The Open cell for the OATH/ECB row is empty in the captured page text, so no BIS open-count value is available to compare against the local 0 ACTIVE / 241 RESOLVE status split."
+        }
+      ],
+      "localObservation": "Baseline local API (/properties/21f0f802-96f9-4ce3-b6dd-8e5b54dc2556/ecb-violations) returned 241 ECB violation rows for BIN 1015862, all with ecbViolationStatus RESOLVE and balanceDue 0, coverage CHECKED (baseline/api/properties.json, fixture empire-state-building).",
+      "bisObservation": "BIS Property Profile Overview for bin=1015862 (Tax Block 835 / Tax Lot 41, 338-350 5 AVENUE, EMPIRE STATE BUILDING) shows Violations-OATH/ECB Total = 241; the Open cell of that row is empty in the captured page text.",
+      "matches": true,
+      "notes": "Total OATH/ECB count and parcel identity match exactly (241 = 241, block 835 / lot 41). No claim is made about the BIS open count because that cell was not legible in the captured artifact. Raw retrieval stored at property-profile/empire-state-building-bin-1015862.txt."
+    },
+    {
+      "fixtureId": "queens-hyphenated-37-15",
+      "propertyId": "f697ea8a-df74-42e7-9704-f5d2a9afdcbf",
+      "bbl": "4014700059",
+      "bin": "4036223",
+      "checkedAt": "2026-09-17T13:50:31.553Z",
+      "requestedAfter": "2026-09-17T13:50:14.629Z",
+      "respondedBefore": "2026-09-17T13:50:31.553Z",
+      "bisUrl": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=4036223&requestid=0",
+      "bisPage": "PropertyProfileOverviewServlet",
+      "bisPageIdentity": "Property Profile Overview, Tax Block 1470 / Tax Lot 59, 37-11 - 37-39 82 STREET, Community Board 403, DOF class K2-STORE BUILDING",
+      "artifacts": [
+        "property-profile/queens-hyphenated-37-15-bin-4036223.txt"
+      ],
+      "comparisons": [
+        {
+          "field": "Property Profile 'Violations-OATH/ECB' Total count for the BIN",
+          "localValue": "10 ECB violation rows served for property f697ea8a-df74-42e7-9704-f5d2a9afdcbf (all rows carry bin 4036223)",
+          "bisValue": "10",
+          "matched": true
+        },
+        {
+          "field": "Parcel identity (Tax Block / Tax Lot)",
+          "localValue": "BBL 4014700059 -> borough 4, block 1470, lot 59",
+          "bisValue": "Tax Block: 1470, Tax Lot: 59",
+          "matched": true
+        },
+        {
+          "field": "Hyphenated Queens house number preserved by resolution",
+          "localValue": "normalizedAddress \"37-15 82nd Street, Jackson Heights, Queens, Ny\" resolved to BIN 4036223",
+          "bisValue": "82 STREET address range 37-11 - 37-39 for bin=4036223, which contains house number 37-15",
+          "matched": true
+        }
+      ],
+      "notComparable": [
+        {
+          "field": "Property Profile 'Violations-OATH/ECB' Open count",
+          "reason": "The Open cell for the OATH/ECB row is empty in the captured page text, so the local 2 ACTIVE / 8 RESOLVE split has no BIS counterpart to compare."
+        }
+      ],
+      "localObservation": "Baseline local API (/properties/f697ea8a-df74-42e7-9704-f5d2a9afdcbf/ecb-violations) returned 10 ECB violation rows for BIN 4036223 (2 ecbViolationStatus ACTIVE, 8 RESOLVE, 0 rows with balanceDue > 0), coverage CHECKED (baseline/api/properties.json, fixture queens-hyphenated-37-15).",
+      "bisObservation": "BIS Property Profile Overview for bin=4036223 (Tax Block 1470 / Tax Lot 59, 82 STREET 37-11 - 37-39) shows Violations-OATH/ECB Total = 10; the Open cell of that row is empty in the captured page text.",
+      "matches": true,
+      "notes": "Total OATH/ECB count matches exactly (10 = 10) and the BIS address range confirms the hyphenated 37-15 house number resolves to this BIN and parcel. Raw retrieval stored at property-profile/queens-hyphenated-37-15-bin-4036223.txt."
+    },
+    {
+      "fixtureId": "steinway-unpaid-ecb",
+      "propertyId": "8bdfabb8-f7a9-4ba4-853a-2e2560ab54bb",
+      "bbl": "4007950032",
+      "bin": "4015377",
+      "checkedAt": "2026-09-17T13:50:47.842Z",
+      "requestedAfter": "2026-09-17T13:50:31.553Z",
+      "respondedBefore": "2026-09-17T13:50:47.842Z",
+      "bisUrl": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=4015377&requestid=0",
+      "bisPage": "PropertyProfileOverviewServlet",
+      "bisPageIdentity": "Property Profile Overview, Tax Block 795 / Tax Lot 32, 40-04 - 40-06 DITMARS BOULEVARD and 22-01 STEINWAY STREET, Community Board 401, DOF class S9-RESIDENCE-MULTI-U",
+      "artifacts": [
+        "property-profile/steinway-unpaid-ecb-bin-4015377.txt"
+      ],
+      "comparisons": [
+        {
+          "field": "Parcel identity (Tax Block / Tax Lot) behind the scanned BIN",
+          "localValue": "BBL 4007950032 -> borough 4, block 795, lot 32, valid BIN 4015377",
+          "bisValue": "Tax Block: 795, Tax Lot: 32 for bin=4015377",
+          "matched": true
+        },
+        {
+          "field": "Address identity of the scanned BIN",
+          "localValue": "normalizedAddress \"22-01 Steinway Street, Astoria, Queens, Ny\"",
+          "bisValue": "STEINWAY STREET 22-01 - 22-01 (also addressed DITMARS BOULEVARD 40-04 - 40-06)",
+          "matched": true
+        },
+        {
+          "field": "Single-BIN scan scope for the parcel",
+          "localValue": "bins = [\"4015377\"] (one valid BIN stored, so ECB scanning uses exactly this BIN)",
+          "bisValue": "Additional BINs for Building: NONE",
+          "matched": true
+        }
+      ],
+      "notComparable": [
+        {
+          "field": "Property Profile 'Violations-OATH/ECB' Total and Open counts",
+          "reason": "Both count cells of the OATH/ECB row are empty in the captured page text for this BIN, so the local 2 ACTIVE rows (39195205J balanceDue 6250, 39159272L balanceDue 12520, totalling 18770) cannot be compared against a BIS count. The linked OATH/ECB detail page (ECBQueryByLocationServlet?requestid=0&allbin=4015377) returned HTTP 403 to automated access, so no BIS-side violation number, status or penalty amount is claimed for this fixture. See retrieval-log.json unavailablePages."
+        }
+      ],
+      "localObservation": "Baseline local API (/properties/8bdfabb8-f7a9-4ba4-853a-2e2560ab54bb/ecb-violations) returned 2 ECB violation rows for BIN 4015377, both ecbViolationStatus ACTIVE with balanceDue > 0: violationNumber 39195205J balanceDue 6250 (issueDate 2026-07-08) and 39159272L balanceDue 12520 (issueDate 2025-09-04), coverage CHECKED (baseline/api/properties.json, fixture steinway-unpaid-ecb).",
+      "bisObservation": "BIS Property Profile Overview for bin=4015377 shows Tax Block 795, Tax Lot 32, addresses STEINWAY STREET 22-01 - 22-01 and DITMARS BOULEVARD 40-04 - 40-06, Additional BINs for Building NONE, Number of Dwelling Units 6, DOF class S9-RESIDENCE-MULTI-U, Violations-DOB Total 6 / Open 3; the Violations-OATH/ECB count cells are empty in the captured page text.",
+      "matches": true,
+      "notes": "Compared fields are parcel and address identity for the unpaid-balance fixture: BIS confirms bin=4015377 is block 795 / lot 32 at 22-01 Steinway Street with no additional BINs, which matches the locally resolved BBL 4007950032 and single-BIN scan scope. The unpaid balances themselves are not asserted as BIS-verified because the OATH/ECB count cells were empty and the ECB detail page refused automated access. Raw retrieval stored at property-profile/steinway-unpaid-ecb-bin-4015377.txt."
+    }
+  ],
+  "limitations": [
+    "The acceptance workstation network is refused by the BIS edge (HTTP 403 AkamaiGHost) for every direct client tried, including the bsqpm01.jsp entry page, so raw Property Profile HTML and browser screenshots could not be captured locally; the refusals are stored under local-access/ with edge reference IDs.",
+    "Property Profile pages were retrieved through the coding-agent hosted fetch egress, which returns extracted page text rather than raw HTML. The extractions are stored verbatim and every value asserted above is present in them; values whose cells came back empty are listed under notComparable instead of being claimed."
+  ]
+}

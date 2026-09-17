@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-09-17T12:40:47.853Z",
+  "baselineRunId": "796d778e-f98f-4ceb-813d-801e3091f10c",
+  "secondRunId": "ae44eea8-af81-4258-8936-8719bbf7ba7c",
+  "baseline": {
+    "propertyResultRows": 297,
+    "portfolioResultRows": 297,
+    "portfolioUniqueSourceIds": 297,
+    "duplicateSourceIdCount": 0
+  },
+  "secondRun": {
+    "propertyResultRows": 297,
+    "portfolioResultRows": 297,
+    "portfolioUniqueSourceIds": 297,
+    "duplicateSourceIdCount": 0
+  },
+  "delta": {
+    "propertyResultRows": 0,
+    "portfolioResultRows": 0,
+    "portfolioUniqueSourceIds": 0
+  },
+  "idempotentNoDuplicateGrowth": true
+}
