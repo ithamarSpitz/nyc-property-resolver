@@ -96,7 +96,93 @@ function sortGeoSearchCandidates(candidates: GeoSearchCandidate[]): GeoSearchCan
   });
 }
 
-function selectGeoSearchCandidate(candidates: GeoSearchCandidate[]): SelectedGeoSearchCandidate {
+const STREET_TOKEN_ALIASES: Readonly<Record<string, string>> = {
+  AVE: 'AVENUE',
+  BLVD: 'BOULEVARD',
+  CT: 'COURT',
+  DR: 'DRIVE',
+  E: 'EAST',
+  HWY: 'HIGHWAY',
+  LN: 'LANE',
+  N: 'NORTH',
+  PKWY: 'PARKWAY',
+  PL: 'PLACE',
+  RD: 'ROAD',
+  S: 'SOUTH',
+  ST: 'STREET',
+  TPKE: 'TURNPIKE',
+  W: 'WEST',
+};
+
+function normalizeStreetAddressEvidence(value: string): string {
+  return value
+    .toUpperCase()
+    .replace(/\b(\d+)(?:ST|ND|RD|TH)\b/g, '$1')
+    .replace(/[^A-Z0-9-]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .map((token) => STREET_TOKEN_ALIASES[token] ?? token)
+    .join(' ');
+}
+
+function requestedBorough(normalizedBaseAddress: string): string | undefined {
+  const boroughs = ['STATEN ISLAND', 'MANHATTAN', 'BROOKLYN', 'QUEENS', 'BRONX'];
+
+  for (const localitySegment of normalizedBaseAddress.split(',').slice(1)) {
+    const normalizedSegment = localitySegment.toUpperCase().replace(/[^A-Z]+/g, ' ').trim();
+    const borough = boroughs.find((candidate) => candidate === normalizedSegment);
+    if (borough !== undefined) {
+      return borough;
+    }
+  }
+
+  return undefined;
+}
+
+function candidateStreetAddress(candidate: GeoSearchCandidate): string {
+  return candidate.name ?? candidate.label.split(',')[0];
+}
+
+function narrowToSupportedCandidates(
+  candidates: GeoSearchCandidate[],
+  normalizedBaseAddress: string,
+): GeoSearchCandidate[] {
+  let supported = candidates;
+  const borough = requestedBorough(normalizedBaseAddress);
+
+  if (borough !== undefined) {
+    const boroughMatches = supported.filter(
+      (candidate) => candidate.borough?.trim().toUpperCase() === borough,
+    );
+    if (boroughMatches.length === 0) {
+      throw new AppError({
+        code: 'RESOLVER_GEOSEARCH_AMBIGUOUS',
+        message: 'GeoSearch returned no parcel candidate matching the requested borough',
+        statusCode: 422,
+      });
+    }
+    supported = boroughMatches;
+  }
+
+  const requestedStreetAddress = normalizeStreetAddressEvidence(
+    normalizedBaseAddress.split(',')[0],
+  );
+  const streetAddressMatches = supported.filter(
+    (candidate) =>
+      normalizeStreetAddressEvidence(candidateStreetAddress(candidate)) === requestedStreetAddress,
+  );
+  if (streetAddressMatches.length > 0) {
+    supported = streetAddressMatches;
+  }
+
+  const addressLayerCandidates = supported.filter((candidate) => candidate.layer === 'address');
+  return addressLayerCandidates.length > 0 ? addressLayerCandidates : supported;
+}
+
+function selectGeoSearchCandidate(
+  candidates: GeoSearchCandidate[],
+  normalizedBaseAddress: string,
+): SelectedGeoSearchCandidate {
   const withBbl = candidates.filter((candidate) => candidate.bbl !== undefined);
   if (withBbl.length === 0) {
     throw new AppError({
@@ -106,9 +192,7 @@ function selectGeoSearchCandidate(candidates: GeoSearchCandidate[]): SelectedGeo
     });
   }
 
-  const addressLayerCandidates = withBbl.filter((candidate) => candidate.layer === 'address');
-  const candidatePool =
-    addressLayerCandidates.length > 0 ? addressLayerCandidates : withBbl;
+  const candidatePool = narrowToSupportedCandidates(withBbl, normalizedBaseAddress);
   const sorted = sortGeoSearchCandidates(candidatePool);
   const distinctBbls = new Set(
     sorted.map((candidate) => assertValidBbl(candidate.bbl!)),
@@ -285,7 +369,10 @@ export class PropertyResolverService {
     normalized: ReturnType<typeof normalizeAddress>,
   ): Promise<ResolvePropertyResult> {
     const geoSearchResult = await this.clients.geoSearch.searchByAddress(normalizedBaseAddress);
-    const selected = selectGeoSearchCandidate(geoSearchResult.candidates);
+    const selected = selectGeoSearchCandidate(
+      geoSearchResult.candidates,
+      geoSearchResult.queriedAddress,
+    );
     const payload = await resolveNonCondoParcel(selected.canonicalBbl, this.clients, {
       geosearchBin: selected.candidate.bin,
       normalizedAddress: normalized.normalizedInput,
@@ -304,7 +391,10 @@ export class PropertyResolverService {
     normalized: ReturnType<typeof normalizeAddress>,
   ): Promise<ResolvePropertyResult> {
     const geoSearchResult = await this.clients.geoSearch.searchByAddress(normalizedBaseAddress);
-    const selected = selectGeoSearchCandidate(geoSearchResult.candidates);
+    const selected = selectGeoSearchCandidate(
+      geoSearchResult.candidates,
+      geoSearchResult.queriedAddress,
+    );
     const condoBaseBbl = resolveCondoBaseContextFromParcelBbl(selected.canonicalBbl);
     const condoResolution = await resolveCondoUnitByAddressContext(
       condoBaseBbl,
