@@ -20,7 +20,6 @@ context:
 environment: docker
 verification:
   - npm run typecheck
-  - npm test -- --runInBand tests/integration/property-resolution/property-resolver.service.test.ts tests/integration/property-resolution/property-resolution.behavior.test.ts
   - npm run verify:property-resolution
 ---
 

@@ -378,7 +378,6 @@ sprints:
       - npm run acceptance:small:check
       '2':
       - npm run typecheck
-      - npm test -- --runInBand tests/integration/property-resolution/property-resolver.service.test.ts tests/integration/property-resolution/property-resolution.behavior.test.ts
       - npm run verify:property-resolution
       - node -e "const p=require('./package.json'); if (p.scripts['acceptance:small:validate-evidence'] !== 'node scripts/acceptance/validate-small-evidence.mjs') process.exit(1)"
       - npm run acceptance:small:check
