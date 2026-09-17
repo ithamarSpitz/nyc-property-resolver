@@ -1,0 +1,17 @@
+{
+  "query": {
+    "sourceIdField": "ISN_DOB_BIS_EXTRACT",
+    "totalRows": "count(*)",
+    "distinctSourceIds": "count(distinct ISN_DOB_BIS_EXTRACT)",
+    "nullSourceIds": "count(*) where ISN_DOB_BIS_EXTRACT is null",
+    "duplicateGroups": "select ISN_DOB_BIS_EXTRACT, count(*) where ISN_DOB_BIS_EXTRACT is not null group by ISN_DOB_BIS_EXTRACT having count(*) > 1"
+  },
+  "sourceIdField": "ISN_DOB_BIS_EXTRACT",
+  "socrataRowIdField": ":id",
+  "sourceRowUpdatedAtField": ":updated_at",
+  "totalRowCount": 1835399,
+  "distinctSourceIdCount": 1835399,
+  "nullSourceIdCount": 0,
+  "duplicateGroups": [],
+  "valid": true
+}

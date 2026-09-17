@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "status": "complete",
+  "startedAt": "2026-09-17T12:39:22.153Z",
+  "finishedAt": "2026-09-17T12:40:47.854Z",
+  "apiBaseUrl": "http://localhost:3000",
+  "seed": {
+    "preparedAt": "2026-09-17",
+    "fixtureCount": 5,
+    "fixtureIds": [
+      "empire-state-building",
+      "queens-hyphenated-37-15",
+      "downtown-club-condo-unit-12c",
+      "avenue-n-two-family",
+      "steinway-unpaid-ecb"
+    ]
+  },
+  "sourceContract": {
+    "query": {
+      "sourceIdField": "ISN_DOB_BIS_EXTRACT",
+      "totalRows": "count(*)",
+      "distinctSourceIds": "count(distinct ISN_DOB_BIS_EXTRACT)",
+      "nullSourceIds": "count(*) where ISN_DOB_BIS_EXTRACT is null",
+      "duplicateGroups": "select ISN_DOB_BIS_EXTRACT, count(*) where ISN_DOB_BIS_EXTRACT is not null group by ISN_DOB_BIS_EXTRACT having count(*) > 1"
+    },
+    "sourceIdField": "ISN_DOB_BIS_EXTRACT",
+    "socrataRowIdField": ":id",
+    "sourceRowUpdatedAtField": ":updated_at",
+    "totalRowCount": 1835399,
+    "distinctSourceIdCount": 1835399,
+    "nullSourceIdCount": 0,
+    "duplicateGroups": [],
+    "valid": true
+  },
+  "runs": {
+    "baseline": {
+      "label": "baseline",
+      "startedAt": "2026-09-17T12:40:25.385Z",
+      "finishedAt": "2026-09-17T12:40:37.078Z",
+      "runId": "796d778e-f98f-4ceb-813d-801e3091f10c",
+      "status": "COMPLETED",
+      "outcome": "COMPLETED",
+      "metrics": {
+        "binsScanned": 6,
+        "socrataDataCalls": 1,
+        "socrataMetadataCalls": 2,
+        "socrataRetryCalls": 0,
+        "socrataTotalCalls": 3,
+        "rowsFetched": 297,
+        "rowsWritten": 297,
+        "failures": 0
+      },
+      "command": {
+        "command": "docker",
+        "args": [
+          "compose",
+          "run",
+          "--rm",
+          "worker",
+          "npm",
+          "run",
+          "ingest:ecb"
+        ],
+        "display": "docker compose run --rm worker npm run ingest:ecb"
+      },
+      "sourceWatermarks": [
+        "2026-09-16T16:59:26.000Z"
+      ]
+    },
+    "secondRun": {
+      "label": "second-run",
+      "startedAt": "2026-09-17T12:40:37.255Z",
+      "finishedAt": "2026-09-17T12:40:47.692Z",
+      "runId": "ae44eea8-af81-4258-8936-8719bbf7ba7c",
+      "status": "COMPLETED",
+      "outcome": "COMPLETED",
+      "metrics": {
+        "binsScanned": 6,
+        "socrataDataCalls": 1,
+        "socrataMetadataCalls": 2,
+        "socrataRetryCalls": 0,
+        "socrataTotalCalls": 3,
+        "rowsFetched": 297,
+        "rowsWritten": 297,
+        "failures": 0
+      },
+      "command": {
+        "command": "docker",
+        "args": [
+          "compose",
+          "run",
+          "--rm",
+          "worker",
+          "npm",
+          "run",
+          "ingest:ecb"
+        ],
+        "display": "docker compose run --rm worker npm run ingest:ecb"
+      },
+      "sourceWatermarks": [
+        "2026-09-16T16:59:26.000Z"
+      ]
+    }
+  },
+  "rowCountDeltas": {
+    "propertyResultRows": 0,
+    "portfolioResultRows": 0,
+    "portfolioUniqueSourceIds": 0
+  },
+  "duplicateAudit": {
+    "idempotentNoDuplicateGrowth": true
+  },
+  "bisSpotChecks": {
+    "page": "BIS Property Profile Overview (PropertyProfileOverviewServlet)",
+    "evidence": "bis/spot-checks.json",
+    "retrievalLog": "bis/retrieval-log.json",
+    "checks": [
+      {
+        "fixtureId": "empire-state-building",
+        "bin": "1015862",
+        "checkedAt": "2026-09-17T13:50:14.629Z",
+        "comparedField": "Violations-OATH/ECB Total",
+        "localValue": "241",
+        "bisValue": "241",
+        "matches": true
+      },
+      {
+        "fixtureId": "queens-hyphenated-37-15",
+        "bin": "4036223",
+        "checkedAt": "2026-09-17T13:50:31.553Z",
+        "comparedField": "Violations-OATH/ECB Total",
+        "localValue": "10",
+        "bisValue": "10",
+        "matches": true
+      },
+      {
+        "fixtureId": "steinway-unpaid-ecb",
+        "bin": "4015377",
+        "checkedAt": "2026-09-17T13:50:47.842Z",
+        "comparedField": "Tax Block / Tax Lot / address identity of the scanned BIN",
+        "localValue": "BBL 4007950032, block 795, lot 32, 22-01 Steinway Street, single BIN 4015377",
+        "bisValue": "Tax Block 795, Tax Lot 32, STEINWAY STREET 22-01 - 22-01, Additional BINs NONE",
+        "matches": true
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "run",
+        "--rm",
+        "worker",
+        "npm",
+        "run",
+        "verify:ecb-source-contract"
+      ],
+      "display": "docker compose run --rm worker npm run verify:ecb-source-contract"
+    },
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "run",
+        "--rm",
+        "worker",
+        "npm",
+        "run",
+        "ingest:ecb"
+      ],
+      "display": "docker compose run --rm worker npm run ingest:ecb"
+    },
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "run",
+        "--rm",
+        "worker",
+        "npm",
+        "run",
+        "ingest:ecb"
+      ],
+      "display": "docker compose run --rm worker npm run ingest:ecb"
+    }
+  ]
+}

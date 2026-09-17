@@ -1,0 +1,2892 @@
+{
+  "capturedAt": "2026-09-17T12:40:37.245Z",
+  "properties": [
+    {
+      "fixtureId": "empire-state-building",
+      "propertyId": "21f0f802-96f9-4ce3-b6dd-8e5b54dc2556",
+      "requests": [
+        {
+          "pageNumber": 1,
+          "requestedAt": "2026-09-17T12:40:37.079Z",
+          "respondedAt": "2026-09-17T12:40:37.114Z",
+          "method": "GET",
+          "url": "http://localhost:3000/properties/21f0f802-96f9-4ce3-b6dd-8e5b54dc2556/ecb-violations?limit=100",
+          "httpStatus": 200
+        },
+        {
+          "pageNumber": 2,
+          "requestedAt": "2026-09-17T12:40:37.114Z",
+          "respondedAt": "2026-09-17T12:40:37.140Z",
+          "method": "GET",
+          "url": "http://localhost:3000/properties/21f0f802-96f9-4ce3-b6dd-8e5b54dc2556/ecb-violations?limit=100&cursor=eyJpc3N1ZURhdGUiOiIyMDA0LTA2LTE0Iiwic291cmNlSWQiOiI0NzE3NjAifQ",
+          "httpStatus": 200
+        },
+        {
+          "pageNumber": 3,
+          "requestedAt": "2026-09-17T12:40:37.140Z",
+          "respondedAt": "2026-09-17T12:40:37.158Z",
+          "method": "GET",
+          "url": "http://localhost:3000/properties/21f0f802-96f9-4ce3-b6dd-8e5b54dc2556/ecb-violations?limit=100&cursor=eyJpc3N1ZURhdGUiOiIxOTk3LTAzLTI5Iiwic291cmNlSWQiOiIxNDkxMjIifQ",
+          "httpStatus": 200
+        }
+      ],
+      "pages": [
+        {
+          "violations": [
+            {
+              "sourceId": "1572407",
+              "bin": "1015862",
+              "violationNumber": "39107427M",
+              "issueDate": "2024-03-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "962073",
+              "bin": "1015862",
+              "violationNumber": "35646458M",
+              "issueDate": "2022-04-18",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1418233",
+              "bin": "1015862",
+              "violationNumber": "39007179Y",
+              "issueDate": "2019-08-06",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1058430",
+              "bin": "1015862",
+              "violationNumber": "38265858L",
+              "issueDate": "2018-10-23",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "-310",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1193614",
+              "bin": "1015862",
+              "violationNumber": "37002935P",
+              "issueDate": "2017-06-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1212513",
+              "bin": "1015862",
+              "violationNumber": "35267662J",
+              "issueDate": "2017-06-03",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "978102",
+              "bin": "1015862",
+              "violationNumber": "35244255K",
+              "issueDate": "2017-04-10",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1169874",
+              "bin": "1015862",
+              "violationNumber": "38251304M",
+              "issueDate": "2016-11-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1161275",
+              "bin": "1015862",
+              "violationNumber": "35223607M",
+              "issueDate": "2016-11-18",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "679571",
+              "bin": "1015862",
+              "violationNumber": "35223606K",
+              "issueDate": "2016-11-08",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "679556",
+              "bin": "1015862",
+              "violationNumber": "35223604R",
+              "issueDate": "2016-11-08",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1161202",
+              "bin": "1015862",
+              "violationNumber": "35223605Z",
+              "issueDate": "2016-11-08",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1120940",
+              "bin": "1015862",
+              "violationNumber": "35154048Z",
+              "issueDate": "2015-08-03",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1015894",
+              "bin": "1015862",
+              "violationNumber": "38234913N",
+              "issueDate": "2015-02-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1072648",
+              "bin": "1015862",
+              "violationNumber": "35067136N",
+              "issueDate": "2014-05-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1071711",
+              "bin": "1015862",
+              "violationNumber": "35067135L",
+              "issueDate": "2014-05-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1061940",
+              "bin": "1015862",
+              "violationNumber": "35067132X",
+              "issueDate": "2014-05-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1058465",
+              "bin": "1015862",
+              "violationNumber": "35067134J",
+              "issueDate": "2014-05-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "638228",
+              "bin": "1015862",
+              "violationNumber": "38230251P",
+              "issueDate": "2014-02-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "931576",
+              "bin": "1015862",
+              "violationNumber": "35077449N",
+              "issueDate": "2014-01-07",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "938830",
+              "bin": "1015862",
+              "violationNumber": "38224298L",
+              "issueDate": "2013-08-15",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "975468",
+              "bin": "1015862",
+              "violationNumber": "34982665L",
+              "issueDate": "2012-10-18",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "508096",
+              "bin": "1015862",
+              "violationNumber": "34952263L",
+              "issueDate": "2012-08-07",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "975057",
+              "bin": "1015862",
+              "violationNumber": "34948751Z",
+              "issueDate": "2012-07-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "90203",
+              "bin": "1015862",
+              "violationNumber": "34948753M",
+              "issueDate": "2012-07-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "90181",
+              "bin": "1015862",
+              "violationNumber": "34948752K",
+              "issueDate": "2012-07-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "90111",
+              "bin": "1015862",
+              "violationNumber": "34948750R",
+              "issueDate": "2012-07-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1425831",
+              "bin": "1015862",
+              "violationNumber": "34948754Y",
+              "issueDate": "2012-07-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1298955",
+              "bin": "1015862",
+              "violationNumber": "34948755X",
+              "issueDate": "2012-07-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "916192",
+              "bin": "1015862",
+              "violationNumber": "38222428L",
+              "issueDate": "2012-06-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "533076",
+              "bin": "1015862",
+              "violationNumber": "38221465X",
+              "issueDate": "2012-06-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "962345",
+              "bin": "1015862",
+              "violationNumber": "38222077Z",
+              "issueDate": "2012-06-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "871265",
+              "bin": "1015862",
+              "violationNumber": "38221464Y",
+              "issueDate": "2012-06-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "962341",
+              "bin": "1015862",
+              "violationNumber": "38221783L",
+              "issueDate": "2012-06-07",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "956727",
+              "bin": "1015862",
+              "violationNumber": "38221463M",
+              "issueDate": "2012-06-07",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "962349",
+              "bin": "1015862",
+              "violationNumber": "38222110L",
+              "issueDate": "2012-06-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "871254",
+              "bin": "1015862",
+              "violationNumber": "38221460R",
+              "issueDate": "2012-06-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "972410",
+              "bin": "1015862",
+              "violationNumber": "34842154P",
+              "issueDate": "2012-05-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "956725",
+              "bin": "1015862",
+              "violationNumber": "38221458H",
+              "issueDate": "2012-05-24",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "533077",
+              "bin": "1015862",
+              "violationNumber": "38221779Z",
+              "issueDate": "2012-05-21",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "533057",
+              "bin": "1015862",
+              "violationNumber": "38221457X",
+              "issueDate": "2012-05-15",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "533047",
+              "bin": "1015862",
+              "violationNumber": "38221456Y",
+              "issueDate": "2012-05-15",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "532994",
+              "bin": "1015862",
+              "violationNumber": "38219873M",
+              "issueDate": "2012-05-03",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "980416",
+              "bin": "1015862",
+              "violationNumber": "38219872K",
+              "issueDate": "2012-04-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "-100",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "961706",
+              "bin": "1015862",
+              "violationNumber": "34935356X",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "942489",
+              "bin": "1015862",
+              "violationNumber": "34935373H",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "939944",
+              "bin": "1015862",
+              "violationNumber": "34935372X",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "939927",
+              "bin": "1015862",
+              "violationNumber": "34935370M",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "939912",
+              "bin": "1015862",
+              "violationNumber": "34935368N",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "918626",
+              "bin": "1015862",
+              "violationNumber": "34935500L",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "918624",
+              "bin": "1015862",
+              "violationNumber": "34935374J",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "911202",
+              "bin": "1015862",
+              "violationNumber": "34935366J",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "-1600",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "901285",
+              "bin": "1015862",
+              "violationNumber": "34935364X",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "901284",
+              "bin": "1015862",
+              "violationNumber": "34935363Y",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "901281",
+              "bin": "1015862",
+              "violationNumber": "34935362M",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "901279",
+              "bin": "1015862",
+              "violationNumber": "34935361K",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "867151",
+              "bin": "1015862",
+              "violationNumber": "34935359L",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "867150",
+              "bin": "1015862",
+              "violationNumber": "34935357H",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "601185",
+              "bin": "1015862",
+              "violationNumber": "34935365H",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "545184",
+              "bin": "1015862",
+              "violationNumber": "34935369P",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "545151",
+              "bin": "1015862",
+              "violationNumber": "34935360Z",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "545134",
+              "bin": "1015862",
+              "violationNumber": "34935358J",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "545107",
+              "bin": "1015862",
+              "violationNumber": "34935355Y",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "198115",
+              "bin": "1015862",
+              "violationNumber": "34935371Y",
+              "issueDate": "2012-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "490826",
+              "bin": "1015862",
+              "violationNumber": "38210154P",
+              "issueDate": "2010-03-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "771319",
+              "bin": "1015862",
+              "violationNumber": "38208672M",
+              "issueDate": "2010-02-19",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "692462",
+              "bin": "1015862",
+              "violationNumber": "36011781J",
+              "issueDate": "2010-01-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "866313",
+              "bin": "1015862",
+              "violationNumber": "38207063M",
+              "issueDate": "2009-06-05",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "618236",
+              "bin": "1015862",
+              "violationNumber": "38203883J",
+              "issueDate": "2009-06-05",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "493568",
+              "bin": "1015862",
+              "violationNumber": "38203884L",
+              "issueDate": "2009-06-05",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "691307",
+              "bin": "1015862",
+              "violationNumber": "38190592J",
+              "issueDate": "2008-08-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "686677",
+              "bin": "1015862",
+              "violationNumber": "38183041H",
+              "issueDate": "2008-05-16",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "85802",
+              "bin": "1015862",
+              "violationNumber": "34606284Z",
+              "issueDate": "2008-01-11",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "586689",
+              "bin": "1015862",
+              "violationNumber": "34606274P",
+              "issueDate": "2008-01-11",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "729780",
+              "bin": "1015862",
+              "violationNumber": "38169561K",
+              "issueDate": "2007-10-09",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "729570",
+              "bin": "1015862",
+              "violationNumber": "38168827Y",
+              "issueDate": "2007-08-16",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "729569",
+              "bin": "1015862",
+              "violationNumber": "38168826M",
+              "issueDate": "2007-08-16",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "615611",
+              "bin": "1015862",
+              "violationNumber": "38163798L",
+              "issueDate": "2007-08-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "492015",
+              "bin": "1015862",
+              "violationNumber": "38163797J",
+              "issueDate": "2007-08-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "615713",
+              "bin": "1015862",
+              "violationNumber": "38167719M",
+              "issueDate": "2007-06-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "615709",
+              "bin": "1015862",
+              "violationNumber": "38167718K",
+              "issueDate": "2007-06-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "683312",
+              "bin": "1015862",
+              "violationNumber": "38165571X",
+              "issueDate": "2007-05-09",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "683302",
+              "bin": "1015862",
+              "violationNumber": "38165570Y",
+              "issueDate": "2007-05-09",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "563495",
+              "bin": "1015862",
+              "violationNumber": "38165569R",
+              "issueDate": "2007-05-09",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "563491",
+              "bin": "1015862",
+              "violationNumber": "38165568P",
+              "issueDate": "2007-05-09",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "539512",
+              "bin": "1015862",
+              "violationNumber": "38157773Y",
+              "issueDate": "2006-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "300540",
+              "bin": "1015862",
+              "violationNumber": "38157774X",
+              "issueDate": "2006-04-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "-350",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "367179",
+              "bin": "1015862",
+              "violationNumber": "34451650X",
+              "issueDate": "2004-10-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "356582",
+              "bin": "1015862",
+              "violationNumber": "38149042K",
+              "issueDate": "2004-10-05",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "356457",
+              "bin": "1015862",
+              "violationNumber": "38149041Z",
+              "issueDate": "2004-10-05",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "561393",
+              "bin": "1015862",
+              "violationNumber": "38149040R",
+              "issueDate": "2004-10-04",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "-350",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "561390",
+              "bin": "1015862",
+              "violationNumber": "38149039J",
+              "issueDate": "2004-10-04",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "447293",
+              "bin": "1015862",
+              "violationNumber": "38149038H",
+              "issueDate": "2004-09-30",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "357657",
+              "bin": "1015862",
+              "violationNumber": "38149037X",
+              "issueDate": "2004-09-30",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "455430",
+              "bin": "1015862",
+              "violationNumber": "38149036Y",
+              "issueDate": "2004-09-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "455425",
+              "bin": "1015862",
+              "violationNumber": "38149035M",
+              "issueDate": "2004-09-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "16148",
+              "bin": "1015862",
+              "violationNumber": "38149034K",
+              "issueDate": "2004-09-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "16136",
+              "bin": "1015862",
+              "violationNumber": "38149033Z",
+              "issueDate": "2004-09-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "470008",
+              "bin": "1015862",
+              "violationNumber": "38148632X",
+              "issueDate": "2004-08-06",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "471760",
+              "bin": "1015862",
+              "violationNumber": "38146733X",
+              "issueDate": "2004-06-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            }
+          ],
+          "coverage": {
+            "status": "CHECKED",
+            "statusReason": null,
+            "lastAttemptAt": "2026-09-17T12:40:36.464Z",
+            "lastSuccessAt": "2026-09-17T12:40:36.464Z",
+            "sourceWatermarkAt": "2026-09-16T16:59:26.000Z",
+            "lastError": null
+          },
+          "page": {
+            "limit": 100,
+            "hasMore": true,
+            "nextCursor": "eyJpc3N1ZURhdGUiOiIyMDA0LTA2LTE0Iiwic291cmNlSWQiOiI0NzE3NjAifQ"
+          }
+        },
+        {
+          "violations": [
+            {
+              "sourceId": "450900",
+              "bin": "1015862",
+              "violationNumber": "38146731M",
+              "issueDate": "2004-06-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "431872",
+              "bin": "1015862",
+              "violationNumber": "34433996Y",
+              "issueDate": "2004-04-16",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "441644",
+              "bin": "1015862",
+              "violationNumber": "34407907Y",
+              "issueDate": "2003-11-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "441624",
+              "bin": "1015862",
+              "violationNumber": "34407906M",
+              "issueDate": "2003-11-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "441619",
+              "bin": "1015862",
+              "violationNumber": "34407905K",
+              "issueDate": "2003-11-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "441615",
+              "bin": "1015862",
+              "violationNumber": "34407903R",
+              "issueDate": "2003-11-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "436412",
+              "bin": "1015862",
+              "violationNumber": "34407904Z",
+              "issueDate": "2003-11-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "394993",
+              "bin": "1015862",
+              "violationNumber": "34400941X",
+              "issueDate": "2003-06-10",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "362675",
+              "bin": "1015862",
+              "violationNumber": "38134681P",
+              "issueDate": "2003-01-06",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "409352",
+              "bin": "1015862",
+              "violationNumber": "38125713X",
+              "issueDate": "2002-09-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "409288",
+              "bin": "1015862",
+              "violationNumber": "38125709N",
+              "issueDate": "2002-09-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "350409",
+              "bin": "1015862",
+              "violationNumber": "38125712Y",
+              "issueDate": "2002-09-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "350405",
+              "bin": "1015862",
+              "violationNumber": "38125711M",
+              "issueDate": "2002-09-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "340219",
+              "bin": "1015862",
+              "violationNumber": "38125710K",
+              "issueDate": "2002-09-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "303257",
+              "bin": "1015862",
+              "violationNumber": "38110632M",
+              "issueDate": "2001-01-09",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "103912",
+              "bin": "1015862",
+              "violationNumber": "38110626X",
+              "issueDate": "2001-01-03",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "314636",
+              "bin": "1015862",
+              "violationNumber": "38109514N",
+              "issueDate": "2000-11-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "314633",
+              "bin": "1015862",
+              "violationNumber": "38109513L",
+              "issueDate": "2000-11-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "314612",
+              "bin": "1015862",
+              "violationNumber": "38109512J",
+              "issueDate": "2000-11-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "313998",
+              "bin": "1015862",
+              "violationNumber": "38109515P",
+              "issueDate": "2000-11-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "270565",
+              "bin": "1015862",
+              "violationNumber": "38096192J",
+              "issueDate": "2000-05-17",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "851877",
+              "bin": "1015862",
+              "violationNumber": "38096179P",
+              "issueDate": "2000-04-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "-350",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "232969",
+              "bin": "1015862",
+              "violationNumber": "38093824P",
+              "issueDate": "2000-04-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "283330",
+              "bin": "1015862",
+              "violationNumber": "38094111J",
+              "issueDate": "2000-02-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "274390",
+              "bin": "1015862",
+              "violationNumber": "38094106P",
+              "issueDate": "2000-02-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "259775",
+              "bin": "1015862",
+              "violationNumber": "38094107R",
+              "issueDate": "2000-02-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "252527",
+              "bin": "1015862",
+              "violationNumber": "38094105N",
+              "issueDate": "2000-02-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "217353",
+              "bin": "1015862",
+              "violationNumber": "38094110H",
+              "issueDate": "2000-02-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "217226",
+              "bin": "1015862",
+              "violationNumber": "38094109K",
+              "issueDate": "2000-02-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "217219",
+              "bin": "1015862",
+              "violationNumber": "38094108Z",
+              "issueDate": "2000-02-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "201869",
+              "bin": "1015862",
+              "violationNumber": "38094104L",
+              "issueDate": "2000-02-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "288078",
+              "bin": "1015862",
+              "violationNumber": "38094064X",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "288058",
+              "bin": "1015862",
+              "violationNumber": "38094063Y",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "287840",
+              "bin": "1015862",
+              "violationNumber": "38094062M",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "287765",
+              "bin": "1015862",
+              "violationNumber": "38094061K",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "287751",
+              "bin": "1015862",
+              "violationNumber": "38094060Z",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "286899",
+              "bin": "1015862",
+              "violationNumber": "38092720X",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "256804",
+              "bin": "1015862",
+              "violationNumber": "38094065H",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "255809",
+              "bin": "1015862",
+              "violationNumber": "38092719Z",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "217121",
+              "bin": "1015862",
+              "violationNumber": "38094103J",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "178802",
+              "bin": "1015862",
+              "violationNumber": "38094066J",
+              "issueDate": "2000-01-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "43861",
+              "bin": "1015862",
+              "violationNumber": "38094102H",
+              "issueDate": "2000-01-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "43639",
+              "bin": "1015862",
+              "violationNumber": "38094101X",
+              "issueDate": "2000-01-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "286897",
+              "bin": "1015862",
+              "violationNumber": "38092718R",
+              "issueDate": "2000-01-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "286896",
+              "bin": "1015862",
+              "violationNumber": "38092717P",
+              "issueDate": "2000-01-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "279982",
+              "bin": "1015862",
+              "violationNumber": "38093175Y",
+              "issueDate": "2000-01-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "279981",
+              "bin": "1015862",
+              "violationNumber": "38093174M",
+              "issueDate": "2000-01-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "20637",
+              "bin": "1015862",
+              "violationNumber": "38093173K",
+              "issueDate": "2000-01-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "160869",
+              "bin": "1015862",
+              "violationNumber": "38092716N",
+              "issueDate": "2000-01-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "287699",
+              "bin": "1015862",
+              "violationNumber": "38094059L",
+              "issueDate": "2000-01-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "287682",
+              "bin": "1015862",
+              "violationNumber": "38094058J",
+              "issueDate": "2000-01-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "287541",
+              "bin": "1015862",
+              "violationNumber": "38094057H",
+              "issueDate": "2000-01-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "178131",
+              "bin": "1015862",
+              "violationNumber": "38094056X",
+              "issueDate": "2000-01-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "288197",
+              "bin": "1015862",
+              "violationNumber": "38094149P",
+              "issueDate": "2000-01-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "288196",
+              "bin": "1015862",
+              "violationNumber": "38094148N",
+              "issueDate": "2000-01-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "288194",
+              "bin": "1015862",
+              "violationNumber": "38094146J",
+              "issueDate": "2000-01-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "287516",
+              "bin": "1015862",
+              "violationNumber": "38094054M",
+              "issueDate": "2000-01-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "263952",
+              "bin": "1015862",
+              "violationNumber": "38094147L",
+              "issueDate": "2000-01-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "180170",
+              "bin": "1015862",
+              "violationNumber": "38094150M",
+              "issueDate": "2000-01-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "179202",
+              "bin": "1015862",
+              "violationNumber": "38094145H",
+              "issueDate": "2000-01-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "103145",
+              "bin": "1015862",
+              "violationNumber": "38094055Y",
+              "issueDate": "2000-01-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "217788",
+              "bin": "1015862",
+              "violationNumber": "38090505Y",
+              "issueDate": "1999-10-07",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "188661",
+              "bin": "1015862",
+              "violationNumber": "38076262H",
+              "issueDate": "1998-06-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "188644",
+              "bin": "1015862",
+              "violationNumber": "38076261X",
+              "issueDate": "1998-06-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "188588",
+              "bin": "1015862",
+              "violationNumber": "38076260Y",
+              "issueDate": "1998-06-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "39037",
+              "bin": "1015862",
+              "violationNumber": "38058766M",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "36863",
+              "bin": "1015862",
+              "violationNumber": "38058767Y",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "165081",
+              "bin": "1015862",
+              "violationNumber": "38058769H",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "163489",
+              "bin": "1015862",
+              "violationNumber": "38058169Y",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "163326",
+              "bin": "1015862",
+              "violationNumber": "38058168M",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "163203",
+              "bin": "1015862",
+              "violationNumber": "38058166Z",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "161182",
+              "bin": "1015862",
+              "violationNumber": "38057949K",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "158972",
+              "bin": "1015862",
+              "violationNumber": "38059005M",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "157783",
+              "bin": "1015862",
+              "violationNumber": "38059026L",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "157637",
+              "bin": "1015862",
+              "violationNumber": "38058799Z",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "157134",
+              "bin": "1015862",
+              "violationNumber": "38059028P",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "156579",
+              "bin": "1015862",
+              "violationNumber": "38059027N",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "156555",
+              "bin": "1015862",
+              "violationNumber": "38059006Y",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "156499",
+              "bin": "1015862",
+              "violationNumber": "38059004K",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "156470",
+              "bin": "1015862",
+              "violationNumber": "38059003Z",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "156398",
+              "bin": "1015862",
+              "violationNumber": "38059002R",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "155162",
+              "bin": "1015862",
+              "violationNumber": "38057950H",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "153314",
+              "bin": "1015862",
+              "violationNumber": "38058798R",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "153005",
+              "bin": "1015862",
+              "violationNumber": "38058770P",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "152969",
+              "bin": "1015862",
+              "violationNumber": "38058768X",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "152959",
+              "bin": "1015862",
+              "violationNumber": "38058765K",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "142164",
+              "bin": "1015862",
+              "violationNumber": "38058167K",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "103022",
+              "bin": "1015862",
+              "violationNumber": "38059001P",
+              "issueDate": "1997-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "23182",
+              "bin": "1015862",
+              "violationNumber": "38058342Z",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "155883",
+              "bin": "1015862",
+              "violationNumber": "38058950M",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "155833",
+              "bin": "1015862",
+              "violationNumber": "38058949P",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "155451",
+              "bin": "1015862",
+              "violationNumber": "38058948N",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "155353",
+              "bin": "1015862",
+              "violationNumber": "38058947L",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "155095",
+              "bin": "1015862",
+              "violationNumber": "38058946J",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "155068",
+              "bin": "1015862",
+              "violationNumber": "38058944X",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "149585",
+              "bin": "1015862",
+              "violationNumber": "38058344M",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "149584",
+              "bin": "1015862",
+              "violationNumber": "38058343K",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "149316",
+              "bin": "1015862",
+              "violationNumber": "38058341R",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "149266",
+              "bin": "1015862",
+              "violationNumber": "38058340P",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "149122",
+              "bin": "1015862",
+              "violationNumber": "38058339H",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            }
+          ],
+          "coverage": {
+            "status": "CHECKED",
+            "statusReason": null,
+            "lastAttemptAt": "2026-09-17T12:40:36.464Z",
+            "lastSuccessAt": "2026-09-17T12:40:36.464Z",
+            "sourceWatermarkAt": "2026-09-16T16:59:26.000Z",
+            "lastError": null
+          },
+          "page": {
+            "limit": 100,
+            "hasMore": true,
+            "nextCursor": "eyJpc3N1ZURhdGUiOiIxOTk3LTAzLTI5Iiwic291cmNlSWQiOiIxNDkxMjIifQ"
+          }
+        },
+        {
+          "violations": [
+            {
+              "sourceId": "149051",
+              "bin": "1015862",
+              "violationNumber": "38058338X",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "100304",
+              "bin": "1015862",
+              "violationNumber": "38058945H",
+              "issueDate": "1997-03-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "99299",
+              "bin": "1015862",
+              "violationNumber": "38058926M",
+              "issueDate": "1997-03-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154973",
+              "bin": "1015862",
+              "violationNumber": "38058943Y",
+              "issueDate": "1997-03-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154947",
+              "bin": "1015862",
+              "violationNumber": "38058942M",
+              "issueDate": "1997-03-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154881",
+              "bin": "1015862",
+              "violationNumber": "38058941K",
+              "issueDate": "1997-03-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154722",
+              "bin": "1015862",
+              "violationNumber": "38058940Z",
+              "issueDate": "1997-03-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "137270",
+              "bin": "1015862",
+              "violationNumber": "38058275H",
+              "issueDate": "1997-03-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154693",
+              "bin": "1015862",
+              "violationNumber": "38058938J",
+              "issueDate": "1997-03-25",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154665",
+              "bin": "1015862",
+              "violationNumber": "38058937H",
+              "issueDate": "1997-03-25",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154619",
+              "bin": "1015862",
+              "violationNumber": "38058935Y",
+              "issueDate": "1997-03-25",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154577",
+              "bin": "1015862",
+              "violationNumber": "38058933K",
+              "issueDate": "1997-03-25",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "100303",
+              "bin": "1015862",
+              "violationNumber": "38058939L",
+              "issueDate": "1997-03-25",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "100115",
+              "bin": "1015862",
+              "violationNumber": "38058936X",
+              "issueDate": "1997-03-25",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "99622",
+              "bin": "1015862",
+              "violationNumber": "38058927Y",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "18548",
+              "bin": "1015862",
+              "violationNumber": "38058272M",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "165080",
+              "bin": "1015862",
+              "violationNumber": "38058271K",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "156336",
+              "bin": "1015862",
+              "violationNumber": "38058934M",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154526",
+              "bin": "1015862",
+              "violationNumber": "38058932Z",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154521",
+              "bin": "1015862",
+              "violationNumber": "38058931R",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154501",
+              "bin": "1015862",
+              "violationNumber": "38058930P",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "154493",
+              "bin": "1015862",
+              "violationNumber": "38058929H",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "148829",
+              "bin": "1015862",
+              "violationNumber": "38058274X",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "148599",
+              "bin": "1015862",
+              "violationNumber": "38058273Y",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "100047",
+              "bin": "1015862",
+              "violationNumber": "38058928X",
+              "issueDate": "1997-03-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "91629",
+              "bin": "1015862",
+              "violationNumber": "38056437M",
+              "issueDate": "1996-04-09",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "137874",
+              "bin": "1015862",
+              "violationNumber": "38052036N",
+              "issueDate": "1995-09-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "108589",
+              "bin": "1015862",
+              "violationNumber": "38052035L",
+              "issueDate": "1995-09-01",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "117362",
+              "bin": "1015862",
+              "violationNumber": "38048149H",
+              "issueDate": "1995-08-12",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "587267",
+              "bin": "1015862",
+              "violationNumber": "34100906X",
+              "issueDate": "1993-10-21",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "77497",
+              "bin": "1015862",
+              "violationNumber": "34070785Y",
+              "issueDate": "1992-09-15",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "64589",
+              "bin": "1015862",
+              "violationNumber": "34070787H",
+              "issueDate": "1992-09-15",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "59032",
+              "bin": "1015862",
+              "violationNumber": "38023703P",
+              "issueDate": "1992-03-23",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "62838",
+              "bin": "1015862",
+              "violationNumber": "38013294Y",
+              "issueDate": "1991-06-21",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "136403",
+              "bin": "1015862",
+              "violationNumber": "38013295X",
+              "issueDate": "1991-06-21",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "35270",
+              "bin": "1015862",
+              "violationNumber": "38013296H",
+              "issueDate": "1991-06-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "75323",
+              "bin": "1015862",
+              "violationNumber": "34042413P",
+              "issueDate": "1990-05-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "24380",
+              "bin": "1015862",
+              "violationNumber": "34042412N",
+              "issueDate": "1990-05-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "563",
+              "bin": "1015862",
+              "violationNumber": "34014013H",
+              "issueDate": "1988-12-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "35648",
+              "bin": "1015862",
+              "violationNumber": "34009356N",
+              "issueDate": "1988-06-06",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "1342",
+              "bin": "1015862",
+              "violationNumber": "34009357P",
+              "issueDate": "1988-06-06",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            }
+          ],
+          "coverage": {
+            "status": "CHECKED",
+            "statusReason": null,
+            "lastAttemptAt": "2026-09-17T12:40:36.464Z",
+            "lastSuccessAt": "2026-09-17T12:40:36.464Z",
+            "sourceWatermarkAt": "2026-09-16T16:59:26.000Z",
+            "lastError": null
+          },
+          "page": {
+            "limit": 100,
+            "hasMore": false,
+            "nextCursor": null
+          }
+        }
+      ]
+    },
+    {
+      "fixtureId": "queens-hyphenated-37-15",
+      "propertyId": "f697ea8a-df74-42e7-9704-f5d2a9afdcbf",
+      "requests": [
+        {
+          "pageNumber": 1,
+          "requestedAt": "2026-09-17T12:40:37.158Z",
+          "respondedAt": "2026-09-17T12:40:37.169Z",
+          "method": "GET",
+          "url": "http://localhost:3000/properties/f697ea8a-df74-42e7-9704-f5d2a9afdcbf/ecb-violations?limit=100",
+          "httpStatus": 200
+        }
+      ],
+      "pages": [
+        {
+          "violations": [
+            {
+              "sourceId": "1391267",
+              "bin": "4036223",
+              "violationNumber": "38274041L",
+              "issueDate": "2021-05-06",
+              "ecbViolationStatus": "ACTIVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1296048",
+              "bin": "4036223",
+              "violationNumber": "38260099R",
+              "issueDate": "2017-12-28",
+              "ecbViolationStatus": "ACTIVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1169003",
+              "bin": "4036223",
+              "violationNumber": "34848315Y",
+              "issueDate": "2010-06-15",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "435705",
+              "bin": "4036223",
+              "violationNumber": "34311387N",
+              "issueDate": "2001-11-19",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "435101",
+              "bin": "4036223",
+              "violationNumber": "34305069R",
+              "issueDate": "2001-10-23",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "336111",
+              "bin": "4036223",
+              "violationNumber": "34262963Y",
+              "issueDate": "2001-02-24",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "339571",
+              "bin": "4036223",
+              "violationNumber": "34271945P",
+              "issueDate": "2001-01-18",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "175691",
+              "bin": "4036223",
+              "violationNumber": "34258450R",
+              "issueDate": "2000-09-11",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "197647",
+              "bin": "4036223",
+              "violationNumber": "34173666N",
+              "issueDate": "1998-05-22",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "10305",
+              "bin": "4036223",
+              "violationNumber": "34036468L",
+              "issueDate": "1990-03-16",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            }
+          ],
+          "coverage": {
+            "status": "CHECKED",
+            "statusReason": null,
+            "lastAttemptAt": "2026-09-17T12:40:36.464Z",
+            "lastSuccessAt": "2026-09-17T12:40:36.464Z",
+            "sourceWatermarkAt": "2026-09-16T16:59:26.000Z",
+            "lastError": null
+          },
+          "page": {
+            "limit": 100,
+            "hasMore": false,
+            "nextCursor": null
+          }
+        }
+      ]
+    },
+    {
+      "fixtureId": "downtown-club-condo-unit-12c",
+      "propertyId": "bc83889e-f4e6-4426-9779-cee4c1d35ae9",
+      "requests": [
+        {
+          "pageNumber": 1,
+          "requestedAt": "2026-09-17T12:40:37.169Z",
+          "respondedAt": "2026-09-17T12:40:37.183Z",
+          "method": "GET",
+          "url": "http://localhost:3000/properties/bc83889e-f4e6-4426-9779-cee4c1d35ae9/ecb-violations?limit=100",
+          "httpStatus": 200
+        }
+      ],
+      "pages": [
+        {
+          "violations": [
+            {
+              "sourceId": "982152",
+              "bin": "1087243",
+              "violationNumber": "39554473H",
+              "issueDate": "2026-05-21",
+              "ecbViolationStatus": "ACTIVE",
+              "balanceDue": "2500",
+              "sourceRowUpdatedAt": "2026-07-31T17:01:50.404Z"
+            },
+            {
+              "sourceId": "1844118",
+              "bin": "1087243",
+              "violationNumber": "39554472X",
+              "issueDate": "2026-05-21",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2026-09-01T16:59:25.816Z"
+            },
+            {
+              "sourceId": "1032045",
+              "bin": "1087243",
+              "violationNumber": "35329467P",
+              "issueDate": "2018-04-23",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1274225",
+              "bin": "1087243",
+              "violationNumber": "38260868M",
+              "issueDate": "2018-02-02",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "929933",
+              "bin": "1087243",
+              "violationNumber": "37000276L",
+              "issueDate": "2015-09-21",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1012751",
+              "bin": "1087243",
+              "violationNumber": "35133280K",
+              "issueDate": "2015-07-27",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "978697",
+              "bin": "1087243",
+              "violationNumber": "35031506R",
+              "issueDate": "2013-11-19",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1029239",
+              "bin": "1087243",
+              "violationNumber": "35031505P",
+              "issueDate": "2013-11-19",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1203780",
+              "bin": "1087243",
+              "violationNumber": "35014827N",
+              "issueDate": "2013-03-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "1094089",
+              "bin": "1087243",
+              "violationNumber": "35014825J",
+              "issueDate": "2013-03-20",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "629973",
+              "bin": "1087243",
+              "violationNumber": "34995806Z",
+              "issueDate": "2012-10-11",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "629962",
+              "bin": "1087243",
+              "violationNumber": "34995805R",
+              "issueDate": "2012-10-11",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-10-20T17:02:25.556Z"
+            },
+            {
+              "sourceId": "767277",
+              "bin": "1087243",
+              "violationNumber": "38198649H",
+              "issueDate": "2009-02-11",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "766979",
+              "bin": "1087243",
+              "violationNumber": "38190952Y",
+              "issueDate": "2008-08-29",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "767003",
+              "bin": "1087243",
+              "violationNumber": "38190953X",
+              "issueDate": "2008-08-08",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "729039",
+              "bin": "1087243",
+              "violationNumber": "38167311Z",
+              "issueDate": "2007-06-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "729038",
+              "bin": "1087243",
+              "violationNumber": "38167310R",
+              "issueDate": "2007-06-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "729037",
+              "bin": "1087243",
+              "violationNumber": "38167309J",
+              "issueDate": "2007-06-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "1084030",
+              "bin": "1087243",
+              "violationNumber": "38156537H",
+              "issueDate": "2006-05-10",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "695606",
+              "bin": "1087243",
+              "violationNumber": "34549569Y",
+              "issueDate": "2006-03-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "538939",
+              "bin": "1087243",
+              "violationNumber": "38155442K",
+              "issueDate": "2005-11-04",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "743141",
+              "bin": "1087243",
+              "violationNumber": "34489058K",
+              "issueDate": "2005-08-30",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "278741",
+              "bin": "1087243",
+              "violationNumber": "34492760H",
+              "issueDate": "2005-01-28",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "424245",
+              "bin": "1087243",
+              "violationNumber": "34459916K",
+              "issueDate": "2004-07-30",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "490577",
+              "bin": "1087243",
+              "violationNumber": "38147450K",
+              "issueDate": "2004-05-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "490496",
+              "bin": "1087243",
+              "violationNumber": "38141674M",
+              "issueDate": "2004-05-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "485771",
+              "bin": "1087243",
+              "violationNumber": "34460255K",
+              "issueDate": "2004-03-31",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "-700",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "290118",
+              "bin": "1087243",
+              "violationNumber": "38092903Z",
+              "issueDate": "1999-12-08",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "263525",
+              "bin": "1087243",
+              "violationNumber": "38092901P",
+              "issueDate": "1999-12-08",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "241594",
+              "bin": "1087243",
+              "violationNumber": "38092902R",
+              "issueDate": "1999-12-08",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "211851",
+              "bin": "1087243",
+              "violationNumber": "38092904K",
+              "issueDate": "1999-12-08",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "195853",
+              "bin": "1087243",
+              "violationNumber": "38078314J",
+              "issueDate": "1998-08-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "138999",
+              "bin": "1087243",
+              "violationNumber": "38078315L",
+              "issueDate": "1998-08-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "203236",
+              "bin": "1087243",
+              "violationNumber": "38078312X",
+              "issueDate": "1998-08-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "203167",
+              "bin": "1087243",
+              "violationNumber": "38078311Y",
+              "issueDate": "1998-08-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "203068",
+              "bin": "1087243",
+              "violationNumber": "38078310M",
+              "issueDate": "1998-08-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "202924",
+              "bin": "1087243",
+              "violationNumber": "38078309P",
+              "issueDate": "1998-08-13",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "126242",
+              "bin": "1087243",
+              "violationNumber": "38049993H",
+              "issueDate": "1995-06-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "103021",
+              "bin": "1087243",
+              "violationNumber": "38049992X",
+              "issueDate": "1995-06-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "102814",
+              "bin": "1087243",
+              "violationNumber": "38049991Y",
+              "issueDate": "1995-06-26",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "126233",
+              "bin": "1087243",
+              "violationNumber": "38049989P",
+              "issueDate": "1995-06-24",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "102561",
+              "bin": "1087243",
+              "violationNumber": "38049990M",
+              "issueDate": "1995-06-24",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "35704",
+              "bin": "1087243",
+              "violationNumber": "38028771J",
+              "issueDate": "1992-11-14",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            },
+            {
+              "sourceId": "66809",
+              "bin": "1087243",
+              "violationNumber": "34020515Z",
+              "issueDate": "1989-01-19",
+              "ecbViolationStatus": "RESOLVE",
+              "balanceDue": "0",
+              "sourceRowUpdatedAt": "2025-03-03T14:31:52.675Z"
+            }
+          ],
+          "coverage": {
+            "status": "CHECKED",
+            "statusReason": null,
+            "lastAttemptAt": "2026-09-17T12:40:36.464Z",
+            "lastSuccessAt": "2026-09-17T12:40:36.464Z",
+            "sourceWatermarkAt": "2026-09-16T16:59:26.000Z",
+            "lastError": null
+          },
+          "page": {
+            "limit": 100,
+            "hasMore": false,
+            "nextCursor": null
+          }
+        }
+      ]
+    },
+    {
+      "fixtureId": "avenue-n-two-family",
+      "propertyId": "a81e07f0-a479-4e7d-8ed8-c67512b9fe30",
+      "requests": [
+        {
+          "pageNumber": 1,
+          "requestedAt": "2026-09-17T12:40:37.183Z",
+          "respondedAt": "2026-09-17T12:40:37.199Z",
+          "method": "GET",
+          "url": "http://localhost:3000/properties/a81e07f0-a479-4e7d-8ed8-c67512b9fe30/ecb-violations?limit=100",
+          "httpStatus": 200
+        }
+      ],
+      "pages": [
+        {
+          "violations": [],
+          "coverage": {
+            "status": "CHECKED",
+            "statusReason": null,
+            "lastAttemptAt": "2026-09-17T12:40:36.464Z",
+            "lastSuccessAt": "2026-09-17T12:40:36.464Z",
+            "sourceWatermarkAt": "2026-09-16T16:59:26.000Z",
+            "lastError": null
+          },
+          "page": {
+            "limit": 100,
+            "hasMore": false,
+            "nextCursor": null
+          }
+        }
+      ]
+    },
+    {
+      "fixtureId": "steinway-unpaid-ecb",
+      "propertyId": "8bdfabb8-f7a9-4ba4-853a-2e2560ab54bb",
+      "requests": [
+        {
+          "pageNumber": 1,
+          "requestedAt": "2026-09-17T12:40:37.200Z",
+          "respondedAt": "2026-09-17T12:40:37.211Z",
+          "method": "GET",
+          "url": "http://localhost:3000/properties/8bdfabb8-f7a9-4ba4-853a-2e2560ab54bb/ecb-violations?limit=100",
+          "httpStatus": 200
+        }
+      ],
+      "pages": [
+        {
+          "violations": [
+            {
+              "sourceId": "1671991",
+              "bin": "4015377",
+              "violationNumber": "39195205J",
+              "issueDate": "2026-07-08",
+              "ecbViolationStatus": "ACTIVE",
+              "balanceDue": "6250",
+              "sourceRowUpdatedAt": "2026-09-16T16:59:22.394Z"
+            },
+            {
+              "sourceId": "1685165",
+              "bin": "4015377",
+              "violationNumber": "39159272L",
+              "issueDate": "2025-09-04",
+              "ecbViolationStatus": "ACTIVE",
+              "balanceDue": "12520",
+              "sourceRowUpdatedAt": "2026-04-17T17:01:03.494Z"
+            }
+          ],
+          "coverage": {
+            "status": "CHECKED",
+            "statusReason": null,
+            "lastAttemptAt": "2026-09-17T12:40:36.464Z",
+            "lastSuccessAt": "2026-09-17T12:40:36.464Z",
+            "sourceWatermarkAt": "2026-09-16T16:59:26.000Z",
+            "lastError": null
+          },
+          "page": {
+            "limit": 100,
+            "hasMore": false,
+            "nextCursor": null
+          }
+        }
+      ]
+    }
+  ]
+}

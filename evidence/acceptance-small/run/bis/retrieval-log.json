@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "capturedOn": "2026-09-17",
+  "page": "BIS Property Profile Overview (PropertyProfileOverviewServlet)",
+  "entryPoint": "https://a810-bisweb.nyc.gov/bisweb/bsqpm01.jsp",
+  "transport": {
+    "id": "agent-http-fetch-egress",
+    "description": "HTTP GET issued through the coding-agent hosted fetch egress, which reaches a810-bisweb.nyc.gov. The response body is returned as extracted page text, not raw HTML; the extraction is stored verbatim as the artifact.",
+    "rawHtmlAvailable": false,
+    "rawHtmlUnavailableReason": "The agent fetch transport returns extracted text only, and every direct client on the acceptance workstation network is refused by the BIS edge (see localNetworkAccess)."
+  },
+  "retrievals": [
+    {
+      "fixtureId": "empire-state-building",
+      "bin": "1015862",
+      "method": "GET",
+      "url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=1015862&requestid=0",
+      "requestedAfter": "2026-09-17T13:49:57.956Z",
+      "respondedBefore": "2026-09-17T13:50:14.629Z",
+      "outcome": "page returned",
+      "pageIdentity": "Property Profile Overview for Tax Block 835 / Tax Lot 41, 338-350 5 AVENUE, EMPIRE STATE BUILDING",
+      "artifact": "property-profile/empire-state-building-bin-1015862.txt"
+    },
+    {
+      "fixtureId": "queens-hyphenated-37-15",
+      "bin": "4036223",
+      "method": "GET",
+      "url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=4036223&requestid=0",
+      "requestedAfter": "2026-09-17T13:50:14.629Z",
+      "respondedBefore": "2026-09-17T13:50:31.553Z",
+      "outcome": "page returned",
+      "pageIdentity": "Property Profile Overview for Tax Block 1470 / Tax Lot 59, 37-11 - 37-39 82 STREET",
+      "artifact": "property-profile/queens-hyphenated-37-15-bin-4036223.txt"
+    },
+    {
+      "fixtureId": "steinway-unpaid-ecb",
+      "bin": "4015377",
+      "method": "GET",
+      "url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=4015377&requestid=0",
+      "requestedAfter": "2026-09-17T13:50:31.553Z",
+      "respondedBefore": "2026-09-17T13:50:47.842Z",
+      "outcome": "page returned",
+      "pageIdentity": "Property Profile Overview for Tax Block 795 / Tax Lot 32, 40-04 - 40-06 DITMARS BOULEVARD / 22-01 STEINWAY STREET",
+      "artifact": "property-profile/steinway-unpaid-ecb-bin-4015377.txt",
+      "notes": "The same profile was also retrieved earlier in this session through the alternate boro/block/lot URL form (PropertyProfileOverviewServlet?boro=4&block=00795&lot=0032&go2=+GO+&requestid=0) and returned identical field values, including the same empty Violations-OATH/ECB count cells. Exact request bounds for that corroborating retrieval were not instrumented; only the session date 2026-09-17 is known, so no comparison in spot-checks.json relies on it."
+    }
+  ],
+  "unavailablePages": [
+    {
+      "url": "https://a810-bisweb.nyc.gov/bisweb/ECBQueryByLocationServlet?requestid=0&allbin=4015377",
+      "purpose": "OATH/ECB violation detail list linked from the BIN 4015377 Property Profile, which would have carried per-violation numbers, statuses and penalty amounts.",
+      "httpStatus": 403,
+      "observedOn": "2026-09-17",
+      "consequence": "No BIS-side per-violation number, status or penalty amount is claimed for the steinway-unpaid-ecb fixture."
+    },
+    {
+      "url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=1087243&requestid=0",
+      "purpose": "Property Profile for the condo billing BIN of the downtown-club-condo-unit-12c fixture.",
+      "httpStatus": 200,
+      "observedOn": "2026-09-17",
+      "consequence": "Returned the BIS 'Visitor Prioritization' queue interstitial instead of the profile, so this fixture is not used as a spot check."
+    }
+  ],
+  "localNetworkAccess": {
+    "summary": "a810-bisweb.nyc.gov refuses every direct request from the acceptance workstation network with HTTP 403 from AkamaiGHost, including the plain bsqpm01.jsp entry page, so raw HTML and browser screenshots of the Property Profile could not be captured locally.",
+    "attempts": [
+      {
+        "client": "curl 'Chrome 129' user agent",
+        "url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=1015862&requestid=0",
+        "requestedAfter": "2026-09-17T13:51:08.923Z",
+        "respondedBefore": "2026-09-17T13:51:09.578Z",
+        "httpStatus": 403,
+        "edgeReference": "18.3d3ccbc7.1789653067.1887efda",
+        "artifacts": [
+          "local-access/curl-response-headers.txt",
+          "local-access/curl-response-body.html"
+        ]
+      },
+      {
+        "client": "Google Chrome 'headless=new' --dump-dom",
+        "url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=1015862&requestid=0",
+        "requestedAfter": "2026-09-17T13:51:22.005Z",
+        "respondedBefore": "2026-09-17T13:51:24.097Z",
+        "httpStatus": 403,
+        "edgeReference": "18.3d3ccbc7.1789653081.188811b3",
+        "artifacts": [
+          "local-access/chrome-headless-dump.html"
+        ]
+      },
+      {
+        "client": "Google Chrome 'headless=new' --screenshot",
+        "url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=1015862&requestid=0",
+        "requestedAfter": "2026-09-17T13:51:38.566Z",
+        "respondedBefore": "2026-09-17T13:51:40.641Z",
+        "httpStatus": 403,
+        "artifacts": [
+          "local-access/chrome-headless-access-denied.png"
+        ]
+      },
+      {
+        "client": "Node 22 global fetch",
+        "url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=4015377&requestid=0",
+        "observedOn": "2026-09-17",
+        "httpStatus": 403,
+        "artifacts": []
+      },
+      {
+        "client": "PowerShell Invoke-WebRequest",
+        "url": "https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=4015377&requestid=0",
+        "observedOn": "2026-09-17",
+        "httpStatus": 403,
+        "artifacts": []
+      },
+      {
+        "client": "curl 'Chrome 129' user agent",
+        "url": "https://a810-bisweb.nyc.gov/bisweb/bsqpm01.jsp",
+        "observedOn": "2026-09-17",
+        "httpStatus": 403,
+        "artifacts": []
+      }
+    ]
+  }
+}

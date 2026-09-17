@@ -1,0 +1,155 @@
+# Content from https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=1015862&requestid=0
+
+Property Profile Overview
+
+Property Profile Overview
+
+ 5 AVENUE
+
+338 - 350
+
+Health Area
+
+: 5200
+
+Tax Block
+
+: 835
+
+ 5 AVENUE
+
+350 A - 350 A
+
+Census Tract
+
+: 76
+
+Tax Lot
+
+: 41
+
+ 5 AVENUE
+
+350 B - 350 B
+
+Community Board
+
+: 105
+
+Condo
+
+WEST 33 STREET
+
+1 - 31
+
+Buildings on Lot
+
+: 1
+
+Vacant
+
+WEST 34 STREET
+
+2 - 20
+
+EMPIRE STATE BUILDING
+
+NO NUMBER
+
+ View DCP Addresses... Browse Block 
+
+ View Zoning Documents 
+
+Cross Street(s):
+
+EAST 33 STREET, EAST 34 STREET
+
+DOB Special Place Name:
+
+DOB Building Remarks:
+
+Landmark Status:
+
+L - LANDMARK
+
+Special Status:
+
+ N/A 
+
+Local Law:
+
+NO
+
+Loft Law:
+
+NO 
+
+SRO Restricted:
+
+NO
+
+TA Restricted:
+
+NO
+
+UB Restricted:
+
+NO
+
+Environmental Restrictions:
+
+Grandfathered Sign:
+
+NO
+
+Legal Adult Use:
+
+NO
+
+City Owned:
+
+NO
+
+Additional BINs for Building:
+
+ NONE 
+
+HPD Multiple Dwelling:
+
+This property is not located in an area that may be affected by Tidal Wetlands, Freshwater Wetlands, Coastal Erosion Hazard Area, or Special Flood Hazard Area. Click here for more information 
+
+Department of Finance Building Classification:
+
+O4-OFFICE BUILDINGS
+
+ Please Note: The Department of Finance's building classification information shows a building's tax status, which may not be the same as the legal use of the structure. To determine the legal use of a structure, research the records of the Department of Buildings. 
+
+ Total 
+
+ Open 
+
+Complaints
+
+153
+
+1
+
+Violations-DOB
+
+863
+
+0
+
+Violations-OATH/ECB
+
+241
+
+Jobs/Filings
+
+3309
+
+12
+
+Total Jobs
+
+ If you have any questions please review these Frequently Asked Questions, the Glossary, or call the 311 Citizen Service Center by dialing 311 or (212) NEW YORK outside of New York City.

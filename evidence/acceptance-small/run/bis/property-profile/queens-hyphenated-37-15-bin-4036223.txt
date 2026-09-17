@@ -1,0 +1,131 @@
+# Content from https://a810-bisweb.nyc.gov/bisweb/PropertyProfileOverviewServlet?bin=4036223&requestid=0
+
+Property Profile Overview
+
+Property Profile Overview
+
+ 82 STREET
+
+37-11 - 37-39
+
+Health Area
+
+: 1011
+
+Tax Block
+
+: 1470
+
+Census Tract
+
+: 283
+
+Tax Lot
+
+: 59
+
+Community Board
+
+: 403
+
+Condo
+
+Buildings on Lot
+
+Vacant
+
+ View DCP Addresses... Browse Block 
+
+ View Zoning Documents 
+
+Cross Street(s):
+
+ 37 AVENUE, ROOSEVELT AVENUE
+
+DOB Special Place Name:
+
+DOB Building Remarks:
+
+Landmark Status:
+
+L - LANDMARK
+
+Special Status:
+
+ N/A 
+
+Local Law:
+
+Loft Law:
+
+NO 
+
+SRO Restricted:
+
+NO
+
+TA Restricted:
+
+NO
+
+UB Restricted:
+
+NO
+
+Environmental Restrictions:
+
+Grandfathered Sign:
+
+NO
+
+Legal Adult Use:
+
+NO
+
+City Owned:
+
+NO
+
+Additional BINs for Building:
+
+ NONE 
+
+HPD Multiple Dwelling:
+
+Number of Dwelling Units:
+
+This property is not located in an area that may be affected by Tidal Wetlands, Freshwater Wetlands, Coastal Erosion Hazard Area, or Special Flood Hazard Area. Click here for more information 
+
+Department of Finance Building Classification:
+
+K2-STORE BUILDING
+
+ Please Note: The Department of Finance's building classification information shows a building's tax status, which may not be the same as the legal use of the structure. To determine the legal use of a structure, research the records of the Department of Buildings. 
+
+ Total 
+
+ Open 
+
+Complaints
+
+37
+
+0
+
+Violations-DOB
+
+90
+
+Violations-OATH/ECB
+
+10
+
+Jobs/Filings
+
+85
+
+Total Jobs
+
+87
+
+ If you have any questions please review these Frequently Asked Questions, the Glossary, or call the 311 Citizen Service Center by dialing 311 or (212) NEW YORK outside of New York City.

@@ -1,0 +1,31 @@
+ Container nyc-harness-s5-t2-postgres-1  Running
+ Container nyc-harness-s5-t2-migrate-1  Created
+ Container nyc-harness-s5-t2-postgres-1  Waiting
+ Container nyc-harness-s5-t2-postgres-1  Healthy
+ Container nyc-harness-s5-t2-migrate-1  Starting
+ Container nyc-harness-s5-t2-migrate-1  Started
+
+> nyc-property-resolver@0.1.0 verify:ecb-source-contract
+> npm run build && node dist/cli/verify-ecb-source-contract.js
+
+
+> nyc-property-resolver@0.1.0 build
+> tsc -p tsconfig.build.json
+
+{
+  "query": {
+    "sourceIdField": "ISN_DOB_BIS_EXTRACT",
+    "totalRows": "count(*)",
+    "distinctSourceIds": "count(distinct ISN_DOB_BIS_EXTRACT)",
+    "nullSourceIds": "count(*) where ISN_DOB_BIS_EXTRACT is null",
+    "duplicateGroups": "select ISN_DOB_BIS_EXTRACT, count(*) where ISN_DOB_BIS_EXTRACT is not null group by ISN_DOB_BIS_EXTRACT having count(*) > 1"
+  },
+  "sourceIdField": "ISN_DOB_BIS_EXTRACT",
+  "socrataRowIdField": ":id",
+  "sourceRowUpdatedAtField": ":updated_at",
+  "totalRowCount": 1835399,
+  "distinctSourceIdCount": 1835399,
+  "nullSourceIdCount": 0,
+  "duplicateGroups": [],
+  "valid": true
+}

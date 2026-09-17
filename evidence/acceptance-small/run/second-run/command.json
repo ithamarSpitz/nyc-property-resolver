@@ -1,0 +1,13 @@
+{
+  "command": "docker",
+  "args": [
+    "compose",
+    "run",
+    "--rm",
+    "worker",
+    "npm",
+    "run",
+    "ingest:ecb"
+  ],
+  "display": "docker compose run --rm worker npm run ingest:ecb"
+}
