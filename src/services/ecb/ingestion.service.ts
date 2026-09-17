@@ -88,7 +88,9 @@ export type IngestionServiceOptions = {
   batchProcessor?: EcbBatchProcessorService;
   runRepository?: IngestionRunRepository;
   batchRepository?: IngestionBatchRepository;
-  batchProcessorConfig?: Partial<BatchProcessorConfig>;
+  batchProcessorConfig?: Partial<BatchProcessorConfig> & {
+    terminalPublicationTransactionTimeoutMs?: number;
+  };
 };
 
 export type ExecuteIngestionInput = {
@@ -124,6 +126,7 @@ export class EcbIngestionService {
   private readonly batchProcessor: EcbBatchProcessorService;
   private readonly runRepository: IngestionRunRepository;
   private readonly batchRepository: IngestionBatchRepository;
+  private readonly maxBatchAttemptsPerRun: number;
 
   constructor(options: IngestionServiceOptions) {
     this.prisma = options.prisma;
@@ -135,6 +138,9 @@ export class EcbIngestionService {
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.runRepository = options.runRepository ?? new IngestionRunRepository(options.prisma);
     this.batchRepository = options.batchRepository ?? new IngestionBatchRepository(options.prisma);
+    this.maxBatchAttemptsPerRun =
+      options.batchProcessorConfig?.maxBatchAttemptsPerRun ??
+      CONFIG_DEFAULTS.MAX_BATCH_ATTEMPTS_PER_RUN;
     this.lockService =
       options.lockService ?? new EcbIngestionLockService({ connectionString: this.connectionString });
     this.initializationService =
@@ -221,6 +227,16 @@ export class EcbIngestionService {
     }
 
     if (resumedExistingRunning) {
+      const persistedFailure = await this.publishPersistedTerminalBatchFailure(
+        run.id,
+        authority,
+      );
+      if (persistedFailure !== null) {
+        return {
+          outcome: INGESTION_EXECUTION_OUTCOMES.TERMINAL_FAILURE_PUBLISHED,
+          run: persistedFailure,
+        };
+      }
       const sourceChangedRun = await this.rejectResumeOnWatermarkMismatch(run.id, authority, run);
       if (sourceChangedRun !== null) {
         return {
@@ -244,6 +260,24 @@ export class EcbIngestionService {
     }
 
     return this.finalizePublicationHandoff(run.id, authority);
+  }
+
+  private async publishPersistedTerminalBatchFailure(
+    runId: string,
+    authority: IngestionExecutionAuthority,
+  ): Promise<IngestionRun | null> {
+    authority.assertAuthorized('recover a persisted terminal batch failure');
+    const batches = await this.batchRepository.listByRun(runId);
+    const exhaustedBatch = batches.find(
+      (batch) =>
+        batch.status === IngestionBatchStatus.FAILED &&
+        batch.attemptCount >= this.maxBatchAttemptsPerRun,
+    );
+    if (exhaustedBatch === undefined) {
+      return null;
+    }
+
+    return this.publishTerminalBatchFailure(runId, authority, exhaustedBatch.lastError);
   }
 
   private async rejectResumeOnWatermarkMismatch(
@@ -288,6 +322,21 @@ export class EcbIngestionService {
       const nextBatch = batches.find((batch) => batch.status !== IngestionBatchStatus.COMPLETED);
       if (nextBatch === undefined) {
         return { outcome: 'ALL_BATCHES_COMPLETED' };
+      }
+
+      if (
+        nextBatch.status === IngestionBatchStatus.FAILED &&
+        nextBatch.attemptCount >= this.maxBatchAttemptsPerRun
+      ) {
+        const failedRun = await this.publishTerminalBatchFailure(
+          runId,
+          authority,
+          nextBatch.lastError,
+        );
+        return {
+          outcome: INGESTION_EXECUTION_OUTCOMES.TERMINAL_FAILURE_PUBLISHED,
+          run: failedRun,
+        };
       }
 
       const outcome = await this.batchProcessor.executeBatchAttempt(nextBatch.id, authority);
