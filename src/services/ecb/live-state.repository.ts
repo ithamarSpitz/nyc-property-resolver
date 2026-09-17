@@ -63,23 +63,22 @@ export async function promoteEcbLiveState(
   `);
 
   const reconciledCount = await executor.$executeRaw(Prisma.sql`
+    WITH scanned_bins AS MATERIALIZED (
+      SELECT DISTINCT snapshot."bin"
+      FROM "ingestion_run_property_bins" AS snapshot
+      WHERE snapshot."run_id" = ${runId}::uuid
+    )
     UPDATE "ecb_violations" AS live
     SET
       "is_current" = false,
       "updated_at" = CURRENT_TIMESTAMP
-    WHERE live."is_current" = true
-      AND EXISTS (
-        SELECT 1
-        FROM "ingestion_run_property_bins" AS snapshot
-        WHERE snapshot."run_id" = ${runId}::uuid
-          AND snapshot."bin" = live."bin"
-      )
-      AND NOT EXISTS (
-        SELECT 1
-        FROM "ecb_violation_staging" AS staging
-        WHERE staging."run_id" = ${runId}::uuid
-          AND staging."source_id" = live."source_id"
-      )
+    FROM scanned_bins
+    WHERE live."bin" = scanned_bins."bin"
+      AND live."is_current" = true
+      -- Promotion immediately above stamps every candidate present in this
+      -- accepted run. A differently stamped row in the scanned BIN scope is
+      -- therefore exactly a source row absent from this run's staging state.
+      AND live."last_success_run_id" <> ${runId}::uuid
   `);
 
   return { promotedCount, reconciledCount };

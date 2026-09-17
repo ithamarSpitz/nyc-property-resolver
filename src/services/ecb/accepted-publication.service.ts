@@ -8,6 +8,7 @@ import {
 } from '@prisma/client';
 
 import type { IngestionExecutionAuthority } from './ingestion-lock.service';
+import { CONFIG_DEFAULTS } from '../../config/defaults';
 import {
   promoteEcbLiveState,
   type LiveStatePromotionResult,
@@ -42,6 +43,7 @@ export type AcceptedPublicationTestHooks = {
 
 export type AcceptedPublicationServiceOptions = {
   prisma: PrismaClient;
+  transactionTimeoutMs?: number;
   testHooks?: AcceptedPublicationTestHooks;
   now?: () => Date;
 };
@@ -170,11 +172,18 @@ export class AcceptedPublicationService {
   private readonly prisma: PrismaClient;
   private readonly testHooks: AcceptedPublicationTestHooks;
   private readonly now: () => Date;
+  private readonly transactionTimeoutMs: number;
 
   constructor(options: AcceptedPublicationServiceOptions) {
     this.prisma = options.prisma;
     this.testHooks = options.testHooks ?? {};
     this.now = options.now ?? (() => new Date());
+    this.transactionTimeoutMs =
+      options.transactionTimeoutMs ??
+      CONFIG_DEFAULTS.ACCEPTED_PUBLICATION_TRANSACTION_TIMEOUT_MS;
+    if (!Number.isInteger(this.transactionTimeoutMs) || this.transactionTimeoutMs <= 0) {
+      throw publicationError('transactionTimeoutMs must be a positive integer');
+    }
   }
 
   async publish(
@@ -233,7 +242,7 @@ export class AcceptedPublicationService {
         liveState,
         coverage,
       };
-    });
+    }, { timeout: this.transactionTimeoutMs });
   }
 
   async publishAcceptedRun(
