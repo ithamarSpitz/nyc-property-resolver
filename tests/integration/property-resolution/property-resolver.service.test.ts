@@ -514,6 +514,116 @@ describe('PropertyResolverService integration', () => {
     expect(condominiums.lookupByCondoBaseBbl).toBeDefined();
   });
 
+  it('resolves the uniquely supported parcel from a multi-BBL GeoSearch response', async () => {
+    mockStandardNonCondoResolution();
+    geoSearch.searchByAddress.mockResolvedValue({
+      queriedAddress: '350 5th Avenue, Manhattan, NY',
+      candidates: [
+        {
+          label: '350 5 AVENUE, New York, NY, USA',
+          name: '350 5 AVENUE',
+          layer: 'venue',
+          confidence: 0.8,
+          bbl: EMPIRE_STATE_BBL,
+          bin: EMPIRE_STATE_BIN,
+          borough: 'Manhattan',
+          sourceId: 'feature-1',
+        },
+        {
+          label: '350 5 AVENUE, Brooklyn, NY, USA',
+          name: '350 5 AVENUE',
+          layer: 'venue',
+          confidence: 0.8,
+          bbl: '3009810111',
+          bin: '3021057',
+          borough: 'Brooklyn',
+          sourceId: 'feature-2',
+        },
+        {
+          label: '43 5 AVENUE, New York, NY, USA',
+          name: '43 5 AVENUE',
+          layer: 'venue',
+          confidence: 0.8,
+          bbl: '1005690001',
+          bin: '1009272',
+          borough: 'Manhattan',
+          sourceId: 'feature-3',
+        },
+      ],
+    });
+
+    const result = await resolver.resolveAddress('350 5th Avenue, Manhattan, NY');
+
+    expect(result.property.bbl).toBe(EMPIRE_STATE_BBL);
+    expect(pluto.lookupByBbl).toHaveBeenCalledWith(EMPIRE_STATE_BBL);
+    expect(buildingFootprints.lookupByParcelBbl).toHaveBeenCalledWith(EMPIRE_STATE_BBL);
+  });
+
+  it('uses the explicit locality borough instead of a borough name in the street', async () => {
+    const brooklynBbl = '3012340056';
+    const brooklynBin = '3012345';
+    mockStandardNonCondoResolution({
+      bbl: brooklynBbl,
+      bin: brooklynBin,
+      footprintBin: brooklynBin,
+    });
+    geoSearch.searchByAddress.mockResolvedValue({
+      queriedAddress: '100 Manhattan Avenue, Brooklyn, NY',
+      candidates: [
+        {
+          label: '100 MANHATTAN AVENUE, New York, NY, USA',
+          name: '100 MANHATTAN AVENUE',
+          layer: 'address',
+          confidence: 0.99,
+          bbl: EMPIRE_STATE_BBL,
+          bin: EMPIRE_STATE_BIN,
+          borough: 'Manhattan',
+          sourceId: 'feature-1',
+        },
+        {
+          label: '100 MANHATTAN AVENUE, Brooklyn, NY, USA',
+          name: '100 MANHATTAN AVENUE',
+          layer: 'address',
+          confidence: 0.9,
+          bbl: brooklynBbl,
+          bin: brooklynBin,
+          borough: 'Brooklyn',
+          sourceId: 'feature-2',
+        },
+      ],
+    });
+
+    const result = await resolver.resolveAddress('100 Manhattan Avenue, Brooklyn, NY');
+
+    expect(result.property.bbl).toBe(brooklynBbl);
+    expect(pluto.lookupByBbl).toHaveBeenCalledWith(brooklynBbl);
+  });
+
+  it('rejects candidates that contradict an explicit locality borough', async () => {
+    geoSearch.searchByAddress.mockResolvedValue({
+      queriedAddress: '100 Manhattan Avenue, Brooklyn, NY',
+      candidates: [
+        {
+          label: '100 MANHATTAN AVENUE, New York, NY, USA',
+          name: '100 MANHATTAN AVENUE',
+          layer: 'address',
+          confidence: 0.99,
+          bbl: EMPIRE_STATE_BBL,
+          bin: EMPIRE_STATE_BIN,
+          borough: 'Manhattan',
+          sourceId: 'feature-1',
+        },
+      ],
+    });
+
+    await expect(
+      resolver.resolveAddress('100 Manhattan Avenue, Brooklyn, NY'),
+    ).rejects.toMatchObject({
+      code: 'RESOLVER_GEOSEARCH_AMBIGUOUS',
+    });
+    expect(pluto.lookupByBbl).not.toHaveBeenCalled();
+  });
+
   it('surfaces GeoSearch ambiguity explicitly instead of guessing', async () => {
     geoSearch.searchByAddress.mockResolvedValue({
       queriedAddress: '120 Broadway',
