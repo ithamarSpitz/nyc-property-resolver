@@ -62,6 +62,9 @@ const rawEnvSchema = z.object({
   SOCRATA_REQUEST_TIMEOUT_MS: envPositiveInt(CONFIG_DEFAULTS.SOCRATA_REQUEST_TIMEOUT_MS),
   SOCRATA_MAX_RETRIES: envPositiveInt(CONFIG_DEFAULTS.SOCRATA_MAX_RETRIES),
   MAX_BATCH_ATTEMPTS_PER_RUN: envPositiveInt(CONFIG_DEFAULTS.MAX_BATCH_ATTEMPTS_PER_RUN),
+  TERMINAL_PUBLICATION_TRANSACTION_TIMEOUT_MS: envPositiveInt(
+    CONFIG_DEFAULTS.TERMINAL_PUBLICATION_TRANSACTION_TIMEOUT_MS,
+  ),
   API_RATE_LIMIT: optionalNonEmptyString,
   API_BODY_LIMIT: z.preprocess((value) => {
     if (value === undefined || value === '') {
@@ -84,6 +87,7 @@ const appConfigSchema = rawEnvSchema.transform((env) => ({
   socrataRequestTimeoutMs: env.SOCRATA_REQUEST_TIMEOUT_MS,
   socrataMaxRetries: env.SOCRATA_MAX_RETRIES,
   maxBatchAttemptsPerRun: env.MAX_BATCH_ATTEMPTS_PER_RUN,
+  terminalPublicationTransactionTimeoutMs: env.TERMINAL_PUBLICATION_TRANSACTION_TIMEOUT_MS,
   apiRateLimit: env.API_RATE_LIMIT,
   apiBodyLimit: env.API_BODY_LIMIT,
 }));

@@ -130,6 +130,8 @@ export class EcbIngestionRunnerService {
       new TerminalPublicationService({
         prisma: options.prisma,
         executionAuthority: () => this.lockService.authority,
+        transactionTimeoutMs:
+          options.batchProcessorConfig?.terminalPublicationTransactionTimeoutMs,
       });
     this.acceptedPublicationService =
       acceptedPublicationService ?? new AcceptedPublicationService({ prisma: options.prisma });

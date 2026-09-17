@@ -13,6 +13,7 @@ import type {
   IngestionTerminalPublicationPort,
   IngestionTerminalPublicationRequest,
 } from './ingestion-terminal-publication.port';
+import { CONFIG_DEFAULTS } from '../../config/defaults';
 
 export const TERMINAL_COVERAGE_ERRORS = Object.freeze({
   SOURCE_CHANGED: 'SOURCE_CHANGED',
@@ -30,6 +31,7 @@ export type TerminalPublicationTestHooks = {
 
 export type TerminalPublicationServiceOptions = {
   prisma: PrismaClient;
+  transactionTimeoutMs?: number;
   testHooks?: TerminalPublicationTestHooks;
   executionAuthority?:
     | IngestionExecutionAuthority
@@ -156,34 +158,59 @@ async function publishFailedCoverage(
     request.status === IngestionRunStatus.SOURCE_CHANGED
       ? Prisma.sql`${TERMINAL_COVERAGE_ERRORS.SOURCE_CHANGED}::text`
       : Prisma.sql`COALESCE(
-          (
-            SELECT batch."last_error"
+          failed_property."last_error",
+          ${TERMINAL_COVERAGE_ERRORS.RUN_NOT_PROMOTED}::text
+        )`;
+
+  const failedBatchCtes =
+    request.status === IngestionRunStatus.SOURCE_CHANGED
+      ? Prisma.sql`
+          failed_property AS MATERIALIZED (
+            SELECT NULL::uuid AS "property_id", NULL::text AS "last_error"
+            WHERE FALSE
+          )
+        `
+      : Prisma.sql`
+          failed_bins AS MATERIALIZED (
+            SELECT
+              failed_bin."bin",
+              batch."batch_number",
+              batch."last_error"
             FROM "ingestion_batches" AS batch
-            JOIN LATERAL jsonb_array_elements_text(
+            CROSS JOIN LATERAL jsonb_array_elements_text(
               CASE
                 WHEN jsonb_typeof(batch."batch_definition"->'bins') = 'array'
                   THEN batch."batch_definition"->'bins'
                 ELSE '[]'::jsonb
               END
-            ) AS failed_bin("bin") ON TRUE
-            WHERE batch."run_id" = snapshot."run_id"
+            ) AS failed_bin("bin")
+            WHERE batch."run_id" = ${request.runId}::uuid
               AND batch."status" = ${IngestionBatchStatus.FAILED}::"IngestionBatchStatus"
               AND batch."last_error" IS NOT NULL
               AND length(trim(batch."last_error")) > 0
-              AND EXISTS (
-                SELECT 1
-                FROM "ingestion_run_property_bins" AS required_bin
-                WHERE required_bin."run_id" = snapshot."run_id"
-                  AND required_bin."property_id" = snapshot."property_id"
-                  AND required_bin."bin" = failed_bin."bin"
-              )
-            ORDER BY batch."batch_number"
-            LIMIT 1
           ),
-          ${TERMINAL_COVERAGE_ERRORS.RUN_NOT_PROMOTED}::text
-        )`;
+          failed_property AS MATERIALIZED (
+            SELECT DISTINCT ON (snapshot."property_id")
+              snapshot."property_id",
+              failed_bins."last_error"
+            FROM "ingestion_run_property_bins" AS snapshot
+            JOIN failed_bins ON failed_bins."bin" = snapshot."bin"
+            WHERE snapshot."run_id" = ${request.runId}::uuid
+            ORDER BY snapshot."property_id", failed_bins."batch_number"
+          )
+        `;
 
   await tx.$executeRaw(Prisma.sql`
+    WITH
+    eligible_snapshot AS MATERIALIZED (
+      SELECT DISTINCT ON (snapshot."property_id")
+        snapshot."property_id",
+        snapshot."property_identifier_version"
+      FROM "ingestion_run_property_bins" AS snapshot
+      WHERE snapshot."run_id" = ${request.runId}::uuid
+      ORDER BY snapshot."property_id", snapshot."bin"
+    ),
+    ${failedBatchCtes}
     INSERT INTO "property_dataset_coverage" (
       "property_id",
       "dataset",
@@ -193,7 +220,7 @@ async function publishFailedCoverage(
       "last_attempt_at",
       "last_error"
     )
-    SELECT DISTINCT ON (snapshot."property_id")
+    SELECT
       snapshot."property_id",
       ${Dataset.DOB_ECB_VIOLATIONS}::"Dataset",
       ${CoverageStatus.FAILED}::"CoverageStatus",
@@ -201,11 +228,11 @@ async function publishFailedCoverage(
       ${request.runId}::uuid,
       ${request.finishedAt},
       ${failureReason}
-    FROM "ingestion_run_property_bins" AS snapshot
+    FROM eligible_snapshot AS snapshot
     JOIN "properties" AS property ON property."id" = snapshot."property_id"
-    WHERE snapshot."run_id" = ${request.runId}::uuid
-      AND property."identifier_version" = snapshot."property_identifier_version"
-    ORDER BY snapshot."property_id", snapshot."bin"
+    LEFT JOIN failed_property
+      ON failed_property."property_id" = snapshot."property_id"
+    WHERE property."identifier_version" = snapshot."property_identifier_version"
     ON CONFLICT ("property_id", "dataset") DO UPDATE SET
       "status" = EXCLUDED."status",
       "status_reason" = NULL,
@@ -222,6 +249,7 @@ async function publishFailedCoverage(
 export class TerminalPublicationService implements IngestionTerminalPublicationPort {
   private readonly prisma: PrismaClient;
   private readonly testHooks: TerminalPublicationTestHooks;
+  private readonly transactionTimeoutMs: number;
   private readonly configuredAuthority:
     | IngestionExecutionAuthority
     | (() => IngestionExecutionAuthority | undefined)
@@ -230,6 +258,12 @@ export class TerminalPublicationService implements IngestionTerminalPublicationP
   constructor(options: TerminalPublicationServiceOptions) {
     this.prisma = options.prisma;
     this.testHooks = options.testHooks ?? {};
+    this.transactionTimeoutMs =
+      options.transactionTimeoutMs ??
+      CONFIG_DEFAULTS.TERMINAL_PUBLICATION_TRANSACTION_TIMEOUT_MS;
+    if (!Number.isInteger(this.transactionTimeoutMs) || this.transactionTimeoutMs <= 0) {
+      throw publicationError('transactionTimeoutMs must be a positive integer');
+    }
     this.configuredAuthority = options.executionAuthority;
   }
 
@@ -284,7 +318,7 @@ export class TerminalPublicationService implements IngestionTerminalPublicationP
         throw publicationError(`run ${request.runId} disappeared after publication`);
       }
       return terminalRun;
-    });
+    }, { timeout: this.transactionTimeoutMs });
   }
 
   async publish(
