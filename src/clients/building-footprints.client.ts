@@ -17,7 +17,7 @@ export const BUILDING_FOOTPRINTS_MAX_LOOKUP_PAGES = 20;
 export const BUILDING_FOOTPRINTS_BULK_LOOKUP_CHUNK_SIZE = 500;
 export const BUILDING_FOOTPRINTS_BULK_BINS_PER_BBL_ESTIMATE = 50;
 export const BUILDING_FOOTPRINTS_BULK_MAX_LOOKUP_PAGES = 20;
-export const BUILDING_FOOTPRINTS_SELECT_FIELDS = 'bin,base_bbl,mpluto_bbl';
+export const BUILDING_FOOTPRINTS_SELECT_FIELDS = 'bin,base_bbl,mappluto_bbl';
 
 export const BUILDING_FOOTPRINTS_ERROR_CODES = {
   INVALID_BBL: 'BUILDING_FOOTPRINTS_INVALID_BBL',
@@ -111,11 +111,11 @@ function parseSourceBin(value: unknown): CanonicalBin | null {
 function parseMapplutoBblEvidence(
   record: BuildingFootprintSourceRecord,
 ): CanonicalBbl | null | undefined {
-  if (!Object.prototype.hasOwnProperty.call(record, 'mpluto_bbl')) {
+  if (!Object.prototype.hasOwnProperty.call(record, 'mappluto_bbl')) {
     return undefined;
   }
 
-  return parseSourceBbl(record.mpluto_bbl);
+  return parseSourceBbl(record.mappluto_bbl);
 }
 
 function parseBuildingFootprintCandidate(
@@ -173,7 +173,7 @@ function buildWhereClause(bbl: CanonicalBbl, lookupMode: BuildingFootprintLookup
     return `base_bbl='${escapeSoqlString(bbl)}'`;
   }
 
-  return `base_bbl='${escapeSoqlString(bbl)}' OR mpluto_bbl='${escapeSoqlString(bbl)}'`;
+  return `base_bbl='${escapeSoqlString(bbl)}' OR mappluto_bbl='${escapeSoqlString(bbl)}'`;
 }
 
 function bulkFootprintPageLimit(bblCount: number): number {
@@ -193,7 +193,7 @@ function buildBulkWhereClause(
     return `base_bbl in (${quotedBbls})`;
   }
 
-  return `base_bbl in (${quotedBbls}) OR mpluto_bbl in (${quotedBbls})`;
+  return `base_bbl in (${quotedBbls}) OR mappluto_bbl in (${quotedBbls})`;
 }
 
 export class BuildingFootprintsClient {

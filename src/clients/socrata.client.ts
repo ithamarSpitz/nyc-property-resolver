@@ -21,7 +21,7 @@ export const SOCRATA_ECB_METADATA_URL =
   `${SOCRATA_DEFAULT_BASE_URL}/api/views/${DOB_ECB_DATASET_ID}`;
 export const SOCRATA_ECB_BIN_FIELD = 'bin';
 const SOCRATA_ECB_SOURCE_ID_RESPONSE_FIELD = 'isn_dob_bis_extract';
-export const SOCRATA_ECB_PAGE_SELECT = `${SOCRATA_ROW_ID_FIELD},${SOURCE_ROW_UPDATED_AT_FIELD},*`;
+export const SOCRATA_ECB_PAGE_SELECT = `*,${SOCRATA_ROW_ID_FIELD},${SOURCE_ROW_UPDATED_AT_FIELD}`;
 export const SOCRATA_ECB_PAGE_ORDER = `${SOURCE_ROW_UPDATED_AT_FIELD},${SOCRATA_ROW_ID_FIELD}`;
 export const SOCRATA_MAX_PAGE_SIZE = 50_000;
 /** A BIN is an identifier, not an unbounded query fragment. */
