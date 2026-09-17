@@ -1,12 +1,13 @@
 ---
 id: S5-T2
-stage: 2
+stage: 3
 model_class: hard_worker
 timeout_minutes: 120
 review: true
 allow_protected: false
 depends_on:
-  - S5-T1
+  - S5-T6
+  - S5-T7
 allowed_paths:
   - evidence/acceptance-small/**
 context:
@@ -15,7 +16,7 @@ context:
   - architecture.operations
 environment: docker
 verification:
-  - npm run acceptance:small:validate-evidence
+  - npm run acceptance:small:validate-evidence -- evidence/acceptance-small/run
 ---
 
 # Goal
@@ -43,6 +44,8 @@ The evidence must show, in order:
 9. the second complete console log and final coverage/run summary.
 
 Store raw logs and machine-readable summaries under `evidence/acceptance-small/`. Do not replace raw evidence with prose-only conclusions.
+
+For this task, use the deterministic evidence root `evidence/acceptance-small/run` so task and stage verification validate the same artifact set.
 
 BIS verification is an external/manual acceptance dependency. If BIS is unavailable, blocks access, or the evidence cannot be observed reliably, stop with a precise external-verification failure. Do **not** claim a match based on Socrata, cached memory, or another website as a substitute for BIS.
 
@@ -75,7 +78,7 @@ Do not:
 4. At least two genuine BIS spot checks are recorded with reproducible page/property identity and explicit local-vs-BIS comparison.
 5. The immediate second run completes safely and the duplicate audit demonstrates logical idempotency.
 6. Baseline and second-run raw console logs are both retained.
-7. `npm run acceptance:small:validate-evidence` rejects incomplete evidence and passes the committed evidence set.
+7. `npm run acceptance:small:validate-evidence -- evidence/acceptance-small/run` rejects incomplete evidence and passes the committed evidence set.
 8. No S0–S4 implementation file changes in this task.
 
 # Verification

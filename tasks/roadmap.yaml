@@ -340,24 +340,35 @@ sprints:
         file: tasks/sprint-05-acceptance-submission/01-acceptance-fixtures-tooling.md
         stage: 1
         depends_on: []
-      S5-T2:
-        file: tasks/sprint-05-acceptance-submission/02-small-real-data-evidence.md
+      S5-T6:
+        file: tasks/sprint-05-acceptance-submission/06-resolver-acceptance-repair.md
         stage: 2
         depends_on:
         - S5-T1
+      S5-T7:
+        file: tasks/sprint-05-acceptance-submission/07-small-acceptance-validator-alias.md
+        stage: 2
+        depends_on:
+        - S5-T1
+      S5-T2:
+        file: tasks/sprint-05-acceptance-submission/02-small-real-data-evidence.md
+        stage: 3
+        depends_on:
+        - S5-T6
+        - S5-T7
       S5-T3:
         file: tasks/sprint-05-acceptance-submission/03-scale-10000-evidence.md
-        stage: 3
+        stage: 4
         depends_on:
         - S5-T2
       S5-T4:
         file: tasks/sprint-05-acceptance-submission/04-submission-documentation.md
-        stage: 4
+        stage: 5
         depends_on:
         - S5-T3
       S5-T5:
         file: tasks/sprint-05-acceptance-submission/05-final-submission-gate.md
-        stage: 5
+        stage: 6
         depends_on:
         - S5-T4
     stage_verification:
@@ -366,12 +377,18 @@ sprints:
       - docker compose config --quiet
       - npm run acceptance:small:check
       '2':
-      - npm run acceptance:small:validate-evidence
+      - npm run typecheck
+      - npm test -- --runInBand tests/integration/property-resolution/property-resolver.service.test.ts tests/integration/property-resolution/property-resolution.behavior.test.ts
+      - npm run verify:property-resolution
+      - node -e "const p=require('./package.json'); if (p.scripts['acceptance:small:validate-evidence'] !== 'node scripts/acceptance/validate-small-evidence.mjs') process.exit(1)"
+      - npm run acceptance:small:check
       '3':
-      - npm run acceptance:scale:validate-evidence
+      - npm run acceptance:small:validate-evidence -- evidence/acceptance-small/run
       '4':
-      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      - npm run acceptance:scale:validate-evidence
       '5':
+      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      '6':
       - npm run verify:submission
   demo:
     name: Harness demo DAG
