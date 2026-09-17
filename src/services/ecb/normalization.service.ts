@@ -141,6 +141,14 @@ export function parseEcbDate(value: string | number | null | undefined, field: s
   return invalidField(field, `must be a valid date, received ${JSON.stringify(value)}`);
 }
 
+function parseIssueDate(value: string | number | null | undefined): Date | null {
+  if (value === '0') {
+    return null;
+  }
+
+  return parseEcbDate(value, ECB_ISSUE_DATE_API_FIELD);
+}
+
 function parseSourceTimestamp(value: string, field: string): Date {
   const parsed = parseEcbDate(value, field);
   if (parsed === null) {
@@ -197,7 +205,7 @@ export function normalizeEcbViolation(input: unknown): NormalizedEcbViolation {
     socrataRowId: identity.socrataRowId,
     bin,
     violationNumber: nullableText(sourceField(row, ECB_VIOLATION_NUMBER_API_FIELD)),
-    issueDate: parseEcbDate(sourceField(row, ECB_ISSUE_DATE_API_FIELD), ECB_ISSUE_DATE_API_FIELD),
+    issueDate: parseIssueDate(sourceField(row, ECB_ISSUE_DATE_API_FIELD)),
     ecbViolationStatus: nullableText(sourceField(row, ECB_VIOLATION_STATUS_API_FIELD)),
     balanceDue: parseNumber(sourceField(row, ECB_BALANCE_DUE_API_FIELD), ECB_BALANCE_DUE_API_FIELD),
     sourceRowUpdatedAt: parseSourceTimestamp(

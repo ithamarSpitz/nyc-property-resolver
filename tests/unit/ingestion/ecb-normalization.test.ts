@@ -66,6 +66,10 @@ describe('ECB normalization', () => {
     });
   });
 
+  it('normalizes the exact DOB ECB issue-date sentinel "0" to null', () => {
+    expect(normalizeEcbViolation(sourceRow({ issue_date: '0' })).issueDate).toBeNull();
+  });
+
   it('resolves source fields case-insensitively for display-label spellings', () => {
     const displayLabelRow = {
       ISN_DOB_BIS_EXTRACT: 'ECB-1001',
@@ -93,6 +97,8 @@ describe('ECB normalization', () => {
 
   it('rejects invalid dates, BINs, and balances explicitly', () => {
     expect(() => normalizeEcbViolation(sourceRow({ issue_date: 'not-a-date' }))).toThrow(ZodError);
+    expect(() => normalizeEcbViolation(sourceRow({ issue_date: 0 }))).toThrow(ZodError);
+    expect(() => normalizeEcbViolation(sourceRow({ issue_date: ' 0 ' }))).toThrow(ZodError);
     expect(() => normalizeEcbViolation(sourceRow({ issue_date: '2026-02-30' }))).toThrow(ZodError);
     expect(() => normalizeEcbViolation(sourceRow({ issue_date: '02/30/2026' }))).toThrow(ZodError);
     expect(() => normalizeEcbViolation(sourceRow({ issue_date: '2026/02/30' }))).toThrow(ZodError);

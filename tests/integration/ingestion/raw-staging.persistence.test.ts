@@ -91,6 +91,29 @@ describeIntegration('ECB raw-before-normalization staging persistence', () => {
     expect(await prisma.ecbViolationStaging.count()).toBe(0);
   });
 
+  it('preserves the "0" issue-date sentinel in raw and stages SQL NULL idempotently', async () => {
+    const run = await createRun();
+    const sentinelRow = row({
+      isn_dob_bis_extract: '319877',
+      ':id': 'socrata-319877',
+      issue_date: '0',
+    });
+
+    await service.processRow({ runId: run.id, row: sentinelRow });
+    await service.processRow({ runId: run.id, row: sentinelRow });
+
+    expect(await prisma.ecbViolationRaw.count()).toBe(1);
+    expect(await prisma.ecbViolationRaw.findFirst()).toMatchObject({
+      sourceId: '319877',
+      payload: expect.objectContaining({ issue_date: '0' }),
+    });
+    expect(await prisma.ecbViolationStaging.count()).toBe(1);
+    expect(await prisma.ecbViolationStaging.findFirst()).toMatchObject({
+      sourceId: '319877',
+      issueDate: null,
+    });
+  });
+
   it('rejects an invalid source timestamp before raw persistence', async () => {
     const run = await createRun();
 
