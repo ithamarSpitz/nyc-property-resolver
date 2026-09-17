@@ -99,7 +99,7 @@ Business services do not construct Socrata or GeoSearch HTTP calls directly.
 Every DOB ECB page query explicitly requests the Socrata system fields required by the ingestion schema:
 
 ```text
-$select=:id,:updated_at,*
+$select=*,:id,:updated_at
 ```
 
 Queries may use these fields for stable ordering as well:

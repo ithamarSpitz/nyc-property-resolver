@@ -356,19 +356,24 @@ sprints:
         depends_on:
         - S5-T6
         - S5-T7
-      S5-T3:
-        file: tasks/sprint-05-acceptance-submission/03-scale-10000-evidence.md
+      S5-T8:
+        file: tasks/sprint-05-acceptance-submission/08-live-nyc-contract-repair.md
         stage: 4
         depends_on:
         - S5-T2
+      S5-T3:
+        file: tasks/sprint-05-acceptance-submission/03-scale-10000-evidence.md
+        stage: 5
+        depends_on:
+        - S5-T8
       S5-T4:
         file: tasks/sprint-05-acceptance-submission/04-submission-documentation.md
-        stage: 5
+        stage: 6
         depends_on:
         - S5-T3
       S5-T5:
         file: tasks/sprint-05-acceptance-submission/05-final-submission-gate.md
-        stage: 6
+        stage: 7
         depends_on:
         - S5-T4
     stage_verification:
@@ -384,10 +389,13 @@ sprints:
       '3':
       - npm run acceptance:small:validate-evidence -- evidence/acceptance-small/run
       '4':
-      - npm run acceptance:scale:validate-evidence
+      - npm run typecheck
+      - npm test -- --runInBand tests/unit/clients/building-footprints.client.test.ts tests/unit/clients/socrata.client.test.ts
       '5':
-      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      - npm run acceptance:scale:validate-evidence
       '6':
+      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      '7':
       - npm run verify:submission
   demo:
     name: Harness demo DAG

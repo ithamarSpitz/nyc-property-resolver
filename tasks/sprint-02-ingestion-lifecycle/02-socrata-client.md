@@ -35,7 +35,7 @@ The client must provide typed operations for:
 - dataset metadata lookup exposing `rowsUpdatedAt`;
 - one ordered ECB data page for a supplied immutable BIN batch and page offset/size;
 - source-contract aggregate/duplicate-group queries required by S2-T1's verification service;
-- explicit `$select=:id,:updated_at,*` for every ECB data page;
+- explicit `$select=*,:id,:updated_at` for every ECB data page;
 - stable `$order=:updated_at,:id` for page traversal;
 - bounded bulk `BIN IN (...)` query construction with proper URL/query encoding;
 - minimal transport/JSON shape validation sufficient for downstream raw persistence;
@@ -66,7 +66,7 @@ Do not implement:
 
 # Acceptance criteria
 
-1. Tests assert every ECB page request contains `$select=:id,:updated_at,*` and `$order=:updated_at,:id`.
+1. Tests assert every ECB page request contains `$select=*,:id,:updated_at` and `$order=:updated_at,:id`.
 2. Metadata responses produce a typed `rowsUpdatedAt` watermark and malformed/missing metadata fails explicitly.
 3. BIN batch queries are encoded deterministically and page size/offset are explicit.
 4. Non-2xx, timeout/abort, malformed JSON, and malformed transport shapes surface explicit typed errors/classification data.
