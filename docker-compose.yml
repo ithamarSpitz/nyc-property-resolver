@@ -6,6 +6,8 @@ x-app-image: &app-image
 
 x-app-environment: &app-environment
   DATABASE_URL: postgresql://nycpr:nycpr@postgres:5432/nyc_property_resolver
+  API_RATE_LIMIT: "100"
+  API_BODY_LIMIT: 512kb
 
 services:
   postgres:
