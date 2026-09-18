@@ -1,0 +1,20 @@
+{
+  "runId": "a8d868d2-8149-4092-9667-a09218b3898b",
+  "status": "COMPLETED",
+  "expectedBinCount": 10800,
+  "expectedBatchCount": 11,
+  "sourceWatermarkAtStart": "2026-09-17T17:11:00+00:00",
+  "sourceWatermarkAtEnd": "2026-09-17T17:11:00+00:00",
+  "failureStage": null,
+  "lastError": null,
+  "propertyCount": 9985,
+  "snapshotPropertyCount": 9740,
+  "snapshotBinCount": 10800,
+  "propertyBinSnapshotCount": 10800,
+  "persistedBatchCount": 11,
+  "completedBatchCount": 11,
+  "rowsFetchedFromBatches": 81485,
+  "rowsStaged": 81485,
+  "rowsPromoted": 81485,
+  "successfulCoverageCount": 9740
+}

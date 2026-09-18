@@ -1,0 +1,7 @@
+{
+  "checkedAt": "2026-09-17T23:00:16.980Z",
+  "url": "http://localhost:3000/health",
+  "response": {
+    "status": "ok"
+  }
+}

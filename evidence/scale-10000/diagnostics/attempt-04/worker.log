@@ -1,0 +1,15 @@
+ Container nyc-s5-t3-scale-postgres-1  Running
+ Container nyc-s5-t3-scale-migrate-1  Recreate
+ Container nyc-s5-t3-scale-migrate-1  Recreated
+ Container nyc-s5-t3-scale-postgres-1  Waiting
+ Container nyc-s5-t3-scale-postgres-1  Healthy
+ Container nyc-s5-t3-scale-migrate-1  Starting
+ Container nyc-s5-t3-scale-migrate-1  Started
+
+> nyc-property-resolver@0.1.0 ingest:ecb
+> node dist/cli/ingest-ecb.js
+
+{"level":30,"time":1789686779651,"pid":19,"hostname":"1ca31f806049","triggerType":"MANUAL","msg":"ECB manual ingestion started"}
+prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, add this command to your Dockerfile, or switch to an image that already has OpenSSL installed.
+{"level":30,"time":1789688118475,"pid":19,"hostname":"1ca31f806049","outcome":"COMPLETED","runId":"a8d868d2-8149-4092-9667-a09218b3898b","status":"COMPLETED","binsScanned":10800,"socrataDataCalls":11,"socrataMetadataCalls":2,"socrataRetryCalls":4,"socrataTotalCalls":17,"rowsFetched":81485,"rowsWritten":81485,"failures":0,"durationMs":1338823,"msg":"ECB manual ingestion completed"}

@@ -1,0 +1,7 @@
+api-1  | 
+api-1  | > nyc-property-resolver@0.1.0 start:api
+api-1  | > node dist/server.js
+api-1  | 
+api-1  | {"level":30,"time":1789686430148,"pid":19,"hostname":"fa12b7c081cf","port":3000,"msg":"API listening"}
+api-1  | prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+api-1  | Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, add this command to your Dockerfile, or switch to an image that already has OpenSSL installed.
