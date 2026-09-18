@@ -152,6 +152,13 @@ describe('footprint validation', () => {
         }),
       );
     });
+
+    it('does not treat an empty footprint set as an identifier contradiction', () => {
+      const validation = validateFootprintCandidates([], canonicalBbl, 'non-condo');
+
+      expect(validation).toEqual({ accepted: [], rejected: [] });
+      expect(() => assertFootprintIdentifierAgreement(validation, false)).not.toThrow();
+    });
   });
 
   describe('GeoSearch BIN corroboration', () => {

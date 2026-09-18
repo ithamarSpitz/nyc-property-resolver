@@ -328,6 +328,52 @@ describe('BulkPropertyRegistrationService', () => {
     expect(geoSearch.searchByAddress).not.toHaveBeenCalled();
   });
 
+  it('surfaces incomplete PLUTO rows distinctly from absent parcels', async () => {
+    const foundBbl = '1008350041';
+    const incompleteBbl = '1008350042';
+
+    pluto.lookupByBbls.mockResolvedValue(
+      new Map([
+        [foundBbl, { status: 'found', parcel: plutoParcel(foundBbl) }],
+        [incompleteBbl, { status: 'incomplete', reasons: ['missing_address'] }],
+      ]),
+    );
+    buildingFootprints.lookupByParcelBbls.mockImplementation(async (inputs: readonly string[]) => {
+      const results = new Map<string, BuildingFootprintsLookupResult>();
+      for (const bbl of inputs) {
+        results.set(bbl, {
+          status: 'found',
+          queriedBbl: bbl,
+          lookupMode: 'parcel',
+          candidates: [
+            {
+              bin: '1012345',
+              baseBbl: bbl,
+              mapplutoBbl: bbl,
+            },
+          ],
+        });
+      }
+      return results;
+    });
+    condoUnits.lookupByUnitBbls.mockResolvedValue(new Map());
+    condominiums.lookupByCondoBaseBbls.mockResolvedValue(new Map());
+    buildingFootprints.lookupByBaseBbls.mockResolvedValue(new Map());
+
+    const response = await service.registerBbls([foundBbl, incompleteBbl]);
+
+    expect(response.summary.succeeded).toBe(1);
+    expect(response.summary.failed).toBe(1);
+    expect(response.results.find((result) => result.inputBbl === incompleteBbl)).toMatchObject({
+      status: 'failed',
+      error: {
+        code: 'RESOLVER_PLUTO_INCOMPLETE',
+        message: expect.stringContaining('missing_address'),
+      },
+    });
+    expect(propertyIdentity.findOrCreateProperty).toHaveBeenCalledTimes(1);
+  });
+
   it('surfaces partial source resolution failures per input', async () => {
     const foundBbl = '1008350041';
     const missingBbl = '1008350042';
@@ -370,6 +416,82 @@ describe('BulkPropertyRegistrationService', () => {
         code: 'RESOLVER_PLUTO_NOT_FOUND',
       },
     });
+  });
+
+  it('persists NO_VALID_BIN coverage when footprints are absent without treating it as identifier conflict', async () => {
+    const bbl = '1008350041';
+
+    pluto.lookupByBbls.mockResolvedValue(
+      new Map([[bbl, { status: 'found', parcel: plutoParcel(bbl) }]]),
+    );
+    buildingFootprints.lookupByParcelBbls.mockResolvedValue(
+      new Map([
+        [
+          bbl,
+          {
+            status: 'not_found',
+            queriedBbl: bbl,
+            lookupMode: 'parcel',
+            candidates: [],
+          },
+        ],
+      ]),
+    );
+    condoUnits.lookupByUnitBbls.mockResolvedValue(new Map());
+    condominiums.lookupByCondoBaseBbls.mockResolvedValue(new Map());
+    buildingFootprints.lookupByBaseBbls.mockResolvedValue(new Map());
+
+    const response = await service.registerBbls([bbl]);
+
+    expect(response.summary.succeeded).toBe(1);
+    expect(propertyIdentity.findOrCreateProperty).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bbl,
+        candidateBins: [],
+      }),
+    );
+    expect(propertyIdentity.applyEffectiveBinSet).not.toHaveBeenCalled();
+  });
+
+  it('fails explicitly on footprint identifier contradiction without silently treating it as no BIN', async () => {
+    const bbl = '1008350041';
+
+    pluto.lookupByBbls.mockResolvedValue(
+      new Map([[bbl, { status: 'found', parcel: plutoParcel(bbl) }]]),
+    );
+    buildingFootprints.lookupByParcelBbls.mockResolvedValue(
+      new Map([
+        [
+          bbl,
+          {
+            status: 'found',
+            queriedBbl: bbl,
+            lookupMode: 'parcel',
+            candidates: [
+              {
+                bin: '1012345',
+                baseBbl: bbl,
+                mapplutoBbl: '1008350042',
+              },
+            ],
+          },
+        ],
+      ]),
+    );
+    condoUnits.lookupByUnitBbls.mockResolvedValue(new Map());
+    condominiums.lookupByCondoBaseBbls.mockResolvedValue(new Map());
+    buildingFootprints.lookupByBaseBbls.mockResolvedValue(new Map());
+
+    const response = await service.registerBbls([bbl]);
+
+    expect(response.summary.failed).toBe(1);
+    expect(response.results[0]).toMatchObject({
+      status: 'failed',
+      error: {
+        code: 'RESOLVER_FOOTPRINT_MAPPLUTO_BBL_MISMATCH',
+      },
+    });
+    expect(propertyIdentity.findOrCreateProperty).not.toHaveBeenCalled();
   });
 
   it('exposes the configured bulk chunk size for bounded-query tests', () => {

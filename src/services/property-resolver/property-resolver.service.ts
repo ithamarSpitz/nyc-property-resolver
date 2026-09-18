@@ -35,6 +35,7 @@ import {
   findPropertyIdByResolutionInput,
   persistResolutionInput,
 } from './property-input.service';
+import { requirePlutoParcel } from './require-pluto-parcel';
 
 export type PropertyResolverClients = {
   geoSearch: GeoSearchClient;
@@ -213,31 +214,6 @@ function selectGeoSearchCandidate(
   };
 }
 
-async function lookupPlutoParcel(
-  pluto: PlutoClient,
-  bbl: CanonicalBbl,
-): Promise<PlutoParcelRecord> {
-  const lookup = await pluto.lookupByBbl(bbl);
-
-  if (lookup.status === 'not_found') {
-    throw new AppError({
-      code: 'RESOLVER_PLUTO_NOT_FOUND',
-      message: `PLUTO did not contain parcel ${bbl}`,
-      statusCode: 422,
-    });
-  }
-
-  if (lookup.status === 'multiple') {
-    throw new AppError({
-      code: 'RESOLVER_PLUTO_MULTIPLE',
-      message: `PLUTO returned multiple parcels for BBL ${bbl}`,
-      statusCode: 422,
-    });
-  }
-
-  return lookup.parcel;
-}
-
 async function resolveNonCondoParcel(
   canonicalBbl: CanonicalBbl,
   clients: PropertyResolverClients,
@@ -247,7 +223,10 @@ async function resolveNonCondoParcel(
     geosearchCandidate?: GeoSearchCandidate;
   } = {},
 ): Promise<NonCondoResolutionPayload> {
-  const parcel = await lookupPlutoParcel(clients.pluto, canonicalBbl);
+  const parcel = requirePlutoParcel(
+    canonicalBbl,
+    await clients.pluto.lookupByBbl(canonicalBbl),
+  );
   const footprintLookup = await clients.buildingFootprints.lookupByParcelBbl(canonicalBbl);
 
   if (footprintLookup.status === 'not_found') {

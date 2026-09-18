@@ -153,7 +153,105 @@ describe('PlutoClient', () => {
     });
   });
 
-  it('rejects parcel records with inconsistent identifier components', async () => {
+  it('returns incomplete when PLUTO returns a row missing required resolver attributes', async () => {
+    const client = new PlutoClient({
+      fetchImpl: createFetchMock(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            borough: 'MN',
+            borocode: '1',
+            block: '835',
+            lot: '41',
+            bbl: '1008350041.00000000',
+          },
+        ],
+      })),
+    });
+
+    await expect(client.lookupByBbl('1008350041')).resolves.toEqual({
+      status: 'incomplete',
+      reasons: ['missing_address'],
+    });
+  });
+
+  it('returns incomplete for bulk lookup when a requested BBL row is present but unusable', async () => {
+    const fetchImpl = jest.fn(async (url: string) => {
+      const parsedUrl = new URL(url);
+      const whereClause = parsedUrl.searchParams.get('$where') ?? '';
+      const chunkBbls = [...whereClause.matchAll(/'(\d{10})'/g)].map((match) => match[1]);
+
+      return {
+        ok: true,
+        status: 200,
+        json: async () =>
+          chunkBbls.map((bbl) => ({
+            borocode: '1',
+            block: bbl.slice(1, 6),
+            lot: bbl.slice(6, 10),
+            bbl: `${bbl}.00000000`,
+          })),
+      };
+    });
+    const client = new PlutoClient({ fetchImpl: createFetchMock(fetchImpl) });
+
+    const results = await client.lookupByBbls(['1008350041', '1008350042']);
+
+    expect(results.get('1008350041')).toEqual({
+      status: 'incomplete',
+      reasons: ['missing_address'],
+    });
+    expect(results.get('1008350042')).toEqual({
+      status: 'incomplete',
+      reasons: ['missing_address'],
+    });
+  });
+
+  it('keeps bulk not_found distinct from present-but-incomplete rows', async () => {
+    const client = new PlutoClient({
+      fetchImpl: createFetchMock(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            borocode: '1',
+            block: '00835',
+            lot: '0041',
+            bbl: '1008350041.00000000',
+          },
+          {
+            borocode: '1',
+            block: '00835',
+            lot: '0042',
+            address: '340 5 AVENUE',
+            bbl: '1008350042.00000000',
+          },
+        ],
+      })),
+    });
+
+    const results = await client.lookupByBbls(['1008350041', '1008350042', '1008350099']);
+
+    expect(results.get('1008350041')).toEqual({
+      status: 'incomplete',
+      reasons: ['missing_address'],
+    });
+    expect(results.get('1008350042')).toEqual({
+      status: 'found',
+      parcel: {
+        bbl: '1008350042',
+        borough: 1,
+        block: 835,
+        lot: 42,
+        address: '340 5 AVENUE',
+        bldgclass: null,
+      },
+    });
+    expect(results.get('1008350099')).toEqual({ status: 'not_found' });
+  });
+
+  it('rejects parcel records with inconsistent identifier components as incomplete', async () => {
     const client = new PlutoClient({
       fetchImpl: createFetchMock(async () => ({
         ok: true,
@@ -171,8 +269,9 @@ describe('PlutoClient', () => {
       })),
     });
 
-    await expect(client.lookupByBbl('1008350041')).rejects.toMatchObject({
-      code: PLUTO_ERROR_CODES.MALFORMED_RESPONSE,
+    await expect(client.lookupByBbl('1008350041')).resolves.toEqual({
+      status: 'incomplete',
+      reasons: ['identifier_mismatch'],
     });
   });
 
