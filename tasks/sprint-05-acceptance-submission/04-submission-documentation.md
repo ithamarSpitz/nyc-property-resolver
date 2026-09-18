@@ -1,12 +1,12 @@
 ---
 id: S5-T4
-stage: 8
+stage: 9
 model_class: hard_worker
 timeout_minutes: 75
 review: true
 allow_protected: false
 depends_on:
-  - S5-T3
+  - S5-T12
 allowed_paths:
   - README.md
   - DESIGN.md

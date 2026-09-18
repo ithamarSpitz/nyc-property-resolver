@@ -382,14 +382,19 @@ sprints:
         stage: 7
         depends_on:
         - S5-T11
-      S5-T4:
-        file: tasks/sprint-05-acceptance-submission/04-submission-documentation.md
+      S5-T12:
+        file: tasks/sprint-05-acceptance-submission/12-pluto-failure-scale-correction.md
         stage: 8
         depends_on:
         - S5-T3
+      S5-T4:
+        file: tasks/sprint-05-acceptance-submission/04-submission-documentation.md
+        stage: 9
+        depends_on:
+        - S5-T12
       S5-T5:
         file: tasks/sprint-05-acceptance-submission/05-final-submission-gate.md
-        stage: 9
+        stage: 10
         depends_on:
         - S5-T4
     stage_verification:
@@ -424,8 +429,10 @@ sprints:
       '7':
       - npm run acceptance:scale:validate-evidence
       '8':
-      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      - npm run acceptance:scale:validate-evidence
       '9':
+      - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
+      '10':
       - npm run verify:submission
   demo:
     name: Harness demo DAG
