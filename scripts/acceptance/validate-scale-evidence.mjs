@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -119,21 +120,19 @@ export function validateScaleEvidence(evidenceDirectory) {
   for (const field of ['wallTimeMs', 'registrationWallTimeMs', 'ingestionWallTimeMs']) push(errors, isPositiveInteger(summary?.[field]), `summary.${field} must be a positive integer`);
   push(errors, summary?.sample?.requestedProperties === REQUIRED_PROPERTY_COUNT, 'summary must record exactly 10,000 requested properties');
   push(errors, summary?.sample?.requestedUniqueBbls === REQUIRED_PROPERTY_COUNT, 'summary must record exactly 10,000 unique requested BBLs');
-  push(errors, summary?.sample?.uniqueProperties === REQUIRED_PROPERTY_COUNT, 'summary must record exactly 10,000 unique persisted properties');
+  const bulk = summary?.bulkRegistration;
+  push(errors, summary?.sample?.uniqueProperties === bulk?.accepted, 'summary unique properties must equal accepted bulk properties');
   push(errors, JSON.stringify(summary?.sample?.communityDistricts) === JSON.stringify(seed?.communityDistricts), 'summary community districts must match the seed');
 
-  const bulk = summary?.bulkRegistration;
   push(errors, bulk?.endpoint === '/properties/bulk', 'bulk registration must use /properties/bulk');
   push(errors, isPositiveInteger(bulk?.bulkRequestSize) && bulk.bulkRequestSize > 1, 'bulk registration request size must prove a non-single-property path');
   push(errors, bulk?.httpRequestCount === Math.ceil(REQUIRED_PROPERTY_COUNT / (bulk?.bulkRequestSize ?? 1)), 'bulk registration HTTP request count must match its bounded chunk size');
   push(errors, bulk?.httpRequestCount < REQUIRED_PROPERTY_COUNT, 'bulk registration must not issue one application request per property');
   push(errors, bulk?.submitted === REQUIRED_PROPERTY_COUNT, 'bulk registration submitted count must equal 10,000');
   push(errors, bulk?.unique === REQUIRED_PROPERTY_COUNT, 'bulk registration unique count must equal 10,000');
-  push(errors, bulk?.accepted === REQUIRED_PROPERTY_COUNT, 'bulk registration must accept exactly 10,000 properties');
-  push(errors, bulk?.failed === 0, 'bulk registration failed count must equal zero');
   push(errors, bulk?.accepted + bulk?.failed === REQUIRED_PROPERTY_COUNT, 'bulk registration accepted plus failed must account for all 10,000 inputs');
   push(errors, bulk?.accepted === bulk?.succeeded + bulk?.cached, 'bulk accepted count must equal succeeded plus cached');
-  push(errors, summary?.sample?.uniqueProperties === bulk?.accepted, 'summary unique properties must equal accepted bulk properties');
+  push(errors, bulk?.accepted >= 0 && bulk?.failed >= 0, 'bulk registration accepted and failed counts must be non-negative');
   push(errors, registration?.request?.method === 'POST' && registration?.request?.path === '/properties/bulk', 'registration evidence must record POST /properties/bulk');
   push(errors, registration?.request?.bblCount === REQUIRED_PROPERTY_COUNT, 'registration evidence must record 10,000 input BBLs');
   push(errors, registration?.request?.bulkRequestSize === bulk?.bulkRequestSize, 'registration request size must match summary');
@@ -150,8 +149,29 @@ export function validateScaleEvidence(evidenceDirectory) {
   push(errors, registration?.resultAudit?.resultCount === REQUIRED_PROPERTY_COUNT, 'registration evidence must audit 10,000 results');
   push(errors, registration?.resultAudit?.acceptedResultCount === bulk?.accepted, 'registration accepted result count must match summary');
   push(errors, registration?.resultAudit?.uniquePropertyIds === bulk?.accepted, 'registration evidence unique property IDs must equal accepted properties');
-  push(errors, registration?.resultAudit?.allBinsValid === true, 'registration result BINs must all be valid');
+  push(errors, registration?.resultAudit?.allBinsValid === true, 'registration result BINs must all be valid for accepted properties');
   push(errors, registration?.resultAudit?.uniqueBins?.every((bin) => VALID_BIN.test(bin)), 'registration evidence may only contain canonical valid BINs');
+  const terminalResults = registration?.resultAudit?.terminalResults;
+  push(errors, Array.isArray(terminalResults), 'registration evidence must preserve every per-BBL terminal result');
+  push(errors, terminalResults?.length === REQUIRED_PROPERTY_COUNT, 'terminal registration result count must equal 10,000');
+  push(
+    errors,
+    terminalResults?.every(
+      (result) =>
+        VALID_BBL.test(result?.inputBbl ?? '') &&
+        VALID_BBL.test(result?.canonicalBbl ?? '') &&
+        ['succeeded', 'cached', 'failed'].includes(result?.status),
+    ),
+    'every terminal registration result must retain canonical BBL identity and a supported status',
+  );
+  push(
+    errors,
+    JSON.stringify(terminalResults?.map((result) => result.inputBbl)) === JSON.stringify(seed?.bbls),
+    'terminal registration results must contain exactly one ordered outcome for every seed BBL',
+  );
+  push(errors, terminalResults?.filter((result) => result.status === 'succeeded').length === bulk?.succeeded, 'terminal succeeded result count must match summary');
+  push(errors, terminalResults?.filter((result) => result.status === 'cached').length === bulk?.cached, 'terminal cached result count must match summary');
+  push(errors, terminalResults?.filter((result) => result.status === 'failed').length === bulk?.failed, 'terminal failed result count must match summary');
   const failedResults = registration?.resultAudit?.failedResults;
   push(errors, Array.isArray(failedResults), 'registration evidence must preserve failed per-BBL results');
   push(errors, failedResults?.length === bulk?.failed, 'preserved failed per-BBL result count must match bulk failed count');
@@ -173,6 +193,11 @@ export function validateScaleEvidence(evidenceDirectory) {
     ? registration.requests.flatMap((request) => request.failedResults ?? [])
     : [];
   push(errors, JSON.stringify(requestFailedResults) === JSON.stringify(failedResults), 'per-request and audited failed registration results must match exactly');
+  push(
+    errors,
+    JSON.stringify(terminalResults?.filter((result) => result.status === 'failed')) === JSON.stringify(failedResults),
+    'terminal and audited failed registration results must match exactly',
+  );
   const auditedFailureCounts = Object.fromEntries(
     Object.entries(
       (failedResults ?? []).reduce((counts, result) => {
@@ -183,6 +208,7 @@ export function validateScaleEvidence(evidenceDirectory) {
     ).sort(),
   );
   push(errors, JSON.stringify(registration?.resultAudit?.failureCountsByCode) === JSON.stringify(auditedFailureCounts), 'failure counts by code must be derived from preserved failed per-BBL results');
+  push(errors, JSON.stringify(summary?.failures?.bulkRegistrationByCode) === JSON.stringify(auditedFailureCounts), 'summary failure counts by code must equal preserved failed per-BBL results');
 
   const ingestion = summary?.ingestion;
   push(errors, isNonEmptyString(ingestion?.runId), 'ingestion.runId is required');
@@ -207,10 +233,44 @@ export function validateScaleEvidence(evidenceDirectory) {
   push(errors, bounds?.pageSize <= 50_000, 'configured page size must be at most 50,000');
   const expectedBatches = Math.ceil((ingestion?.uniqueValidBins ?? 0) / (bounds?.batchSize ?? 1));
   push(errors, ingestion?.persistedBatchCount === expectedBatches, 'persisted batch count must equal ceil(unique valid BINs / batch size)');
+  push(errors, database?.expectedBinCount === ingestion?.uniqueValidBins, 'database expected BIN count must match summary');
+  push(errors, database?.persistedBatchCount === ingestion?.persistedBatchCount, 'database persisted batch count must match summary');
   push(errors, database?.expectedBatchCount === ingestion?.persistedBatchCount, 'database expected batch count must match persisted batch count');
   push(errors, database?.completedBatchCount === ingestion?.persistedBatchCount, 'every persisted batch must be completed');
+  push(errors, database?.rowsFetchedFromBatches === ingestion?.rowsFetched, 'database fetched row count must match summary');
+  push(errors, database?.rowsStaged === ingestion?.rowsStaged, 'database staged row count must match summary');
+  push(errors, database?.rowsPromoted === ingestion?.rowsPromoted, 'database promoted row count must match summary');
   push(errors, database?.propertyCount === bulk?.accepted, 'database property count must match accepted bulk properties');
-  push(errors, isPositiveInteger(database?.snapshotPropertyCount) && database.snapshotPropertyCount <= bulk?.accepted, 'run snapshot property count must be positive and cannot exceed accepted properties');
+  // Compare complete associations, not just counts or the union of BINs: multiple
+  // accepted properties may share the same BIN and must all be snapshotted.
+  const acceptedResults = (terminalResults ?? []).filter((result) => ['succeeded', 'cached'].includes(result.status));
+  const validMapping = (property) => isNonEmptyString(property?.id) &&
+    Array.isArray(property?.bins) &&
+    property.bins.every((bin) => VALID_BIN.test(bin) && !bin.endsWith('000000')) &&
+    new Set(property.bins).size === property.bins.length;
+  push(errors, acceptedResults.every((result) => validMapping(result.property)), 'accepted results must preserve property IDs and complete valid BIN mappings');
+  const persisted = database?.persistedProperties;
+  const snapshot = database?.snapshotProperties;
+  push(errors, Array.isArray(persisted) && persisted.every((property) => validMapping(property) && VALID_BBL.test(property.bbl)), 'database must preserve every persisted property and its BIN mapping');
+  push(errors, Array.isArray(snapshot) && snapshot.every((property) => validMapping(property) && property.bins.length > 0), 'database must preserve every snapshot property and its BIN mapping');
+  const persistedRows = Array.isArray(persisted) ? persisted : [];
+  const snapshotRows = Array.isArray(snapshot) ? snapshot : [];
+  const acceptedRows = acceptedResults.map((result) => ({ ...result.property, bbl: result.canonicalBbl }));
+  const canonicalMappings = (rows, includeBbl = false) => JSON.stringify(rows.map((row) => [
+    row.id, ...(includeBbl ? [row.bbl] : []), Array.isArray(row.bins) ? [...row.bins].sort() : null,
+  ]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))));
+  for (const [label, rows] of [['accepted', acceptedRows], ['persisted', persistedRows], ['snapshot', snapshotRows]]) {
+    push(errors, new Set(rows.map((row) => row.id)).size === rows.length, `${label} property IDs must be unique`);
+  }
+  push(errors, canonicalMappings(acceptedRows, true) === canonicalMappings(persistedRows, true), 'persisted properties must exactly match accepted property IDs, BBLs and BIN mappings');
+  push(errors, persistedRows.length === bulk?.accepted, 'persisted property mappings must account for every accepted property');
+  const scannable = persistedRows.filter((property) => property.bins?.length > 0);
+  const noValidBin = persistedRows.filter((property) => Array.isArray(property.bins) && property.bins.length === 0);
+  push(errors, canonicalMappings(snapshotRows) === canonicalMappings(scannable), 'snapshot must contain the complete persisted accepted-property watchlist');
+  push(errors, database?.snapshotPropertyCount === snapshotRows.length && snapshotRows.length + noValidBin.length === bulk?.accepted, 'snapshot properties plus exactly identified no-valid-BIN properties must equal accepted properties');
+  push(errors, database?.propertyBinSnapshotCount === snapshotRows.reduce((count, property) => count + (property.bins?.length ?? 0), 0), 'snapshot association count must match preserved mappings');
+  const mappedBins = [...new Set(persistedRows.flatMap((property) => property.bins ?? []))].sort();
+  push(errors, JSON.stringify(mappedBins) === JSON.stringify(registration?.resultAudit?.uniqueBins), 'registered BIN union must match complete persisted property mappings');
   push(errors, database?.snapshotBinCount === ingestion?.uniqueValidBins, 'database snapshot BIN count must match summary');
   push(errors, database?.successfulCoverageCount === database?.snapshotPropertyCount, 'every snapshotted property must have successful coverage for this run');
   push(errors, database?.runId === ingestion?.runId && database?.status === ingestion?.status, 'database run identity/status must match summary');
@@ -226,7 +286,44 @@ export function validateScaleEvidence(evidenceDirectory) {
 
   if (existsSync(workerLogPath)) {
     const workerLog = readFileSync(workerLogPath, 'utf8');
-    const logSummary = extractJsonLines(workerLog).findLast(
+    const capture = readJson(path.join(evidenceDirectory, 'worker-capture.json'), errors, 'worker stream capture');
+    push(errors, capture?.runId === ingestion?.runId && capture?.exitCode === 0, 'worker stream capture must identify the exact successful invocation');
+    push(errors, capture?.byteLength === Buffer.byteLength(workerLog, 'utf8') &&
+      capture?.sha256 === createHash('sha256').update(workerLog, 'utf8').digest('hex'),
+      'raw worker log must match the complete captured stream byte length and SHA-256');
+    const records = extractJsonLines(workerLog);
+    const starts = records.filter((entry) => entry?.msg === 'ECB manual ingestion started');
+    const completions = records.filter((entry) => entry?.msg === 'ECB manual ingestion completed');
+    const start = starts[0];
+    const completion = completions[0];
+    push(errors, starts.length === 1 && start?.triggerType === 'MANUAL', 'raw worker log must retain the manual ingestion start record');
+    push(errors, completions.length === 1 && completion?.runId === ingestion?.runId &&
+      completion?.status === 'COMPLETED' && completion?.outcome === 'COMPLETED', 'raw worker log must retain the exact accepted run completion record');
+    push(errors, workerLog.includes('> node dist/cli/ingest-ecb.js') && workerLog.includes(' ingest:ecb'), 'raw worker log must retain the npm invocation output');
+    push(errors, Number.isFinite(start?.time) && Number.isFinite(completion?.time) &&
+      records.indexOf(start) < records.indexOf(completion) &&
+      start.time >= Date.parse(ingestion?.startedAt) && completion.time <= Date.parse(ingestion?.finishedAt) &&
+      completion.time >= start.time && Math.abs(completion.time - start.time - completion.durationMs) <= 1000,
+      'worker start/completion timestamps and duration must reconcile with the exact run');
+    push(
+      errors,
+      Number.isFinite(Date.parse(ingestion?.startedAt)) &&
+        Number.isFinite(Date.parse(ingestion?.finishedAt)) &&
+        Math.abs(
+          Date.parse(ingestion.finishedAt) -
+            Date.parse(ingestion.startedAt) -
+            completion?.durationMs
+        ) <= 1000,
+      'summary ingestion timestamps must reconcile with the raw worker duration',
+    );
+    push(
+      errors,
+      Number.isFinite(summary?.ingestionWallTimeMs) &&
+        Number.isFinite(completion?.durationMs) &&
+        Math.abs(summary.ingestionWallTimeMs - completion.durationMs) <= 1000,
+      'summary ingestion wall time must reconcile with the raw worker duration',
+    );
+    const logSummary = records.findLast(
       (entry) => entry?.runId === ingestion?.runId && entry?.status !== undefined,
     );
     push(errors, logSummary !== undefined, 'worker log must contain the exact summarized run ID');
@@ -237,6 +334,9 @@ export function validateScaleEvidence(evidenceDirectory) {
       ['socrataTotalCalls', 'socrataTotalCalls'],
       ['rowsFetched', 'rowsFetched'],
       ['failures', 'failures'],
+      ['workerReportedDurationMs', 'durationMs'],
+      ['uniqueValidBins', 'binsScanned'],
+      ['rowsPromoted', 'rowsWritten'],
     ]) {
       push(errors, ingestion?.[summaryField] === logSummary?.[logField], `worker log ${logField} must match summary`);
     }

@@ -1,15 +1,15 @@
- Container nyc-s5-t3-scale-postgres-1  Running
- Container nyc-s5-t3-scale-migrate-1  Recreate
- Container nyc-s5-t3-scale-migrate-1  Recreated
- Container nyc-s5-t3-scale-postgres-1  Waiting
- Container nyc-s5-t3-scale-postgres-1  Healthy
- Container nyc-s5-t3-scale-migrate-1  Starting
- Container nyc-s5-t3-scale-migrate-1  Started
+ Container nyc-s5-t12-scale-postgres-1  Running
+ Container nyc-s5-t12-scale-migrate-1  Recreate
+ Container nyc-s5-t12-scale-migrate-1  Recreated
+ Container nyc-s5-t12-scale-postgres-1  Waiting
+ Container nyc-s5-t12-scale-postgres-1  Healthy
+ Container nyc-s5-t12-scale-migrate-1  Starting
+ Container nyc-s5-t12-scale-migrate-1  Started
 
 > nyc-property-resolver@0.1.0 ingest:ecb
 > node dist/cli/ingest-ecb.js
 
-{"level":30,"time":1789689362614,"pid":20,"hostname":"c0d7e01649ca","triggerType":"MANUAL","msg":"ECB manual ingestion started"}
+{"level":30,"time":1789759883315,"pid":19,"hostname":"4b6992310c28","triggerType":"MANUAL","msg":"ECB manual ingestion started"}
 prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
 Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, add this command to your Dockerfile, or switch to an image that already has OpenSSL installed.
-{"level":30,"time":1789690607267,"pid":20,"hostname":"c0d7e01649ca","outcome":"COMPLETED","runId":"04c66425-65ee-47f6-b26a-84c5b8a51424","status":"COMPLETED","binsScanned":10815,"socrataDataCalls":11,"socrataMetadataCalls":2,"socrataRetryCalls":0,"socrataTotalCalls":13,"rowsFetched":81507,"rowsWritten":81507,"failures":0,"durationMs":1244653,"msg":"ECB manual ingestion completed"}
+{"level":30,"time":1789761194318,"pid":19,"hostname":"4b6992310c28","outcome":"COMPLETED","runId":"ed2f5447-d250-41a9-9caf-53cc0b730825","status":"COMPLETED","binsScanned":10800,"socrataDataCalls":11,"socrataMetadataCalls":2,"socrataRetryCalls":1,"socrataTotalCalls":14,"rowsFetched":81486,"rowsWritten":81486,"failures":0,"durationMs":1311004,"msg":"ECB manual ingestion completed"}

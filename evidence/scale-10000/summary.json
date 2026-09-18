@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "status": "complete",
-  "startedAt": "2026-09-17T23:49:35.618Z",
-  "finishedAt": "2026-09-18T00:16:48.535Z",
-  "wallTimeMs": 1632916,
-  "registrationWallTimeMs": 342869,
-  "ingestionWallTimeMs": 1252442,
+  "startedAt": "2026-09-18T19:25:42.924Z",
+  "finishedAt": "2026-09-18T19:53:14.318Z",
+  "wallTimeMs": 1651394,
+  "registrationWallTimeMs": 310500,
+  "ingestionWallTimeMs": 1311004,
   "sample": {
     "datasetId": "64uk-42ks",
     "communityDistricts": [
@@ -14,7 +14,7 @@
     ],
     "requestedProperties": 10000,
     "requestedUniqueBbls": 10000,
-    "uniqueProperties": 10000
+    "uniqueProperties": 9985
   },
   "bulkRegistration": {
     "endpoint": "/properties/bulk",
@@ -22,10 +22,10 @@
     "httpRequestCount": 50,
     "submitted": 10000,
     "unique": 10000,
-    "succeeded": 10000,
+    "succeeded": 9985,
     "cached": 0,
-    "accepted": 10000,
-    "failed": 0
+    "accepted": 9985,
+    "failed": 15
   },
   "configuredBounds": {
     "batchSize": 1000,
@@ -38,35 +38,39 @@
     "acceptedPublicationTransactionTimeoutMs": 60000
   },
   "ingestion": {
-    "runId": "04c66425-65ee-47f6-b26a-84c5b8a51424",
+    "runId": "ed2f5447-d250-41a9-9caf-53cc0b730825",
     "outcome": "COMPLETED",
     "status": "COMPLETED",
-    "startedAt": "2026-09-17T23:55:55.463Z",
-    "finishedAt": "2026-09-18T00:16:47.905Z",
-    "sourceWatermarkAtStart": "2026-09-17T17:11:00+00:00",
-    "sourceWatermarkAtEnd": "2026-09-17T17:11:00+00:00",
-    "uniqueValidBins": 10815,
+    "startedAt": "2026-09-18T19:31:23.315Z",
+    "finishedAt": "2026-09-18T19:53:14.318Z",
+    "sourceWatermarkAtStart": "2026-09-18T16:58:46+00:00",
+    "sourceWatermarkAtEnd": "2026-09-18T16:58:46+00:00",
+    "uniqueValidBins": 10800,
     "persistedBatchCount": 11,
     "socrataDataCalls": 11,
     "socrataMetadataCalls": 2,
-    "socrataRetryCalls": 0,
-    "socrataTotalCalls": 13,
-    "rowsFetched": 81507,
-    "rowsStaged": 81507,
-    "rowsPromoted": 81507,
+    "socrataRetryCalls": 1,
+    "socrataTotalCalls": 14,
+    "rowsFetched": 81486,
+    "rowsStaged": 81486,
+    "rowsPromoted": 81486,
     "failures": 0,
-    "workerReportedDurationMs": 1244653
+    "workerReportedDurationMs": 1311004
   },
   "callArithmetic": {
     "formula": "total = data-page calls + metadata calls + retry calls",
     "batchFormula": "persisted batches = ceil(unique valid BINs / configured batch size)",
     "minimumDataPageCalls": 11,
     "additionalDataPageCalls": 0,
-    "observedTotalCalls": 13,
-    "substituted": "13 = 11 + 2 + 0"
+    "observedTotalCalls": 14,
+    "substituted": "14 = 11 + 2 + 1"
   },
   "failures": {
-    "bulkRegistration": 0,
+    "bulkRegistration": 15,
+    "bulkRegistrationByCode": {
+      "RESOLVER_FOOTPRINT_MAPPLUTO_BBL_MISMATCH": 1,
+      "RESOLVER_PLUTO_INCOMPLETE": 14
+    },
     "ingestion": 0
   },
   "commands": [
@@ -75,33 +79,33 @@
       "args": [
         "compose",
         "-p",
-        "nyc-s5-t3-scale",
+        "nyc-s5-t12-scale",
         "down",
         "--volumes",
         "--remove-orphans"
       ],
-      "display": "docker compose -p nyc-s5-t3-scale down --volumes --remove-orphans"
+      "display": "docker compose -p nyc-s5-t12-scale down --volumes --remove-orphans"
     },
     {
       "command": "docker",
       "args": [
         "compose",
         "-p",
-        "nyc-s5-t3-scale",
+        "nyc-s5-t12-scale",
         "up",
         "-d",
         "--build",
         "postgres",
         "api"
       ],
-      "display": "docker compose -p nyc-s5-t3-scale up -d --build postgres api"
+      "display": "docker compose -p nyc-s5-t12-scale up -d --build postgres api"
     },
     {
       "command": "docker",
       "args": [
         "compose",
         "-p",
-        "nyc-s5-t3-scale",
+        "nyc-s5-t12-scale",
         "run",
         "--rm",
         "worker",
@@ -109,7 +113,7 @@
         "run",
         "ingest:ecb"
       ],
-      "display": "docker compose -p nyc-s5-t3-scale run --rm worker npm run ingest:ecb"
+      "display": "docker compose -p nyc-s5-t12-scale run --rm worker npm run ingest:ecb"
     }
   ],
   "artifacts": {

@@ -1,16 +1,1 @@
- Container nyc-s5-t3-scale-api-1  Stopping
- Container nyc-s5-t3-scale-api-1  Stopped
- Container nyc-s5-t3-scale-api-1  Removing
- Container nyc-s5-t3-scale-api-1  Removed
- Container nyc-s5-t3-scale-migrate-1  Stopping
- Container nyc-s5-t3-scale-migrate-1  Stopped
- Container nyc-s5-t3-scale-migrate-1  Removing
- Container nyc-s5-t3-scale-migrate-1  Removed
- Container nyc-s5-t3-scale-postgres-1  Stopping
- Container nyc-s5-t3-scale-postgres-1  Stopped
- Container nyc-s5-t3-scale-postgres-1  Removing
- Container nyc-s5-t3-scale-postgres-1  Removed
- Volume nyc-s5-t3-scale_postgres_data  Removing
- Network nyc-s5-t3-scale_default  Removing
- Volume nyc-s5-t3-scale_postgres_data  Removed
- Network nyc-s5-t3-scale_default  Removed
+time="2026-09-18T22:25:44+03:00" level=warning msg="Warning: No resource found to remove for project \"nyc-s5-t12-scale\"."

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
+  appendFileSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -18,11 +20,7 @@ const REPOSITORY_ROOT = path.resolve(SCRIPT_DIRECTORY, '../..');
 const SEED_PATH = path.join(REPOSITORY_ROOT, 'seed/scale-10000-bbls.json');
 const DEFAULT_EVIDENCE_DIRECTORY = path.join(REPOSITORY_ROOT, 'evidence/scale-10000');
 const PLUTO_RESOURCE_URL = 'https://data.cityofnewyork.us/resource/64uk-42ks.json';
-const BUILDING_FOOTPRINTS_RESOURCE_URL = 'https://data.cityofnewyork.us/resource/5zhs-2jue.json';
 const COMMUNITY_DISTRICTS = Object.freeze(['102', '108']);
-const CONDO_UNIT_LOT_MIN = 1001;
-const CONDO_BILLING_LOT_MIN = 7501;
-const FOOTPRINT_LOOKUP_CHUNK_SIZE = 200;
 const REQUIRED_PROPERTY_COUNT = 10_000;
 const BULK_REQUEST_SIZE = 200;
 const VALID_BBL = /^[1-5]\d{9}$/;
@@ -45,12 +43,14 @@ function parseArguments(argv) {
   const options = {
     evidenceDirectory: DEFAULT_EVIDENCE_DIRECTORY,
     apiBaseUrl: 'http://localhost:3000',
-    composeProject: 'nyc-s5-t3-scale',
+    composeProject: 'nyc-s5-t12-scale',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === '--validate-only') {
       options.validateOnly = true;
+    } else if (argument === '--finalize-evidence') {
+      options.finalizeEvidence = true;
     } else if (argument === '--evidence-dir') {
       options.evidenceDirectory = path.resolve(argv[++index]);
     } else if (argument.startsWith('--evidence-dir=')) {
@@ -79,9 +79,28 @@ function parseArguments(argv) {
   return options;
 }
 
+function logProgress(message) {
+  process.stdout.write(`[scale-10000] ${new Date().toISOString()} ${message}\n`);
+}
+
+function startHeartbeat(label) {
+  logProgress(label);
+  const timer = setInterval(() => {
+    logProgress(`still ${label}`);
+  }, 20_000);
+  if (typeof timer.unref === 'function') {
+    timer.unref();
+  }
+  return () => clearInterval(timer);
+}
+
 function writeJson(filePath, value) {
   mkdirSync(path.dirname(filePath), { recursive: true });
   writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+}
+
+function readJsonFile(filePath) {
+  return JSON.parse(readFileSync(filePath, 'utf8'));
 }
 
 function archiveExistingEvidence(directory) {
@@ -143,6 +162,11 @@ function commandEnvironment() {
 
 function runCommand(command, args, { logPath, allowFailure = false } = {}) {
   return new Promise((resolve, reject) => {
+    logProgress(`starting ${command} ${args.join(' ')}`);
+    if (logPath) {
+      mkdirSync(path.dirname(logPath), { recursive: true });
+      writeFileSync(logPath, '', 'utf8');
+    }
     const child = spawn(command, args, {
       cwd: REPOSITORY_ROOT,
       env: commandEnvironment(),
@@ -150,15 +174,23 @@ function runCommand(command, args, { logPath, allowFailure = false } = {}) {
       windowsHide: true,
     });
     const chunks = [];
-    child.stdout.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-    child.stderr.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    const handleChunk = (chunk) => {
+      const buffer = Buffer.from(chunk);
+      chunks.push(buffer);
+      process.stdout.write(buffer);
+      if (logPath) {
+        appendFileSync(logPath, buffer);
+      }
+    };
+    child.stdout.on('data', handleChunk);
+    child.stderr.on('data', handleChunk);
     child.on('error', reject);
     child.on('close', (exitCode, signal) => {
       const output = Buffer.concat(chunks).toString('utf8');
-      if (logPath) {
-        mkdirSync(path.dirname(logPath), { recursive: true });
-        writeFileSync(logPath, output.length > 0 ? output : '[no output]\n', 'utf8');
+      if (logPath && output.length === 0) {
+        writeFileSync(logPath, '[no output]\n', 'utf8');
       }
+      logProgress(`finished ${command} with code ${exitCode}${signal ? ` (${signal})` : ''}`);
       if (!allowFailure && exitCode !== 0) {
         reject(new Error(`${command} exited with code ${exitCode}${signal ? ` (${signal})` : ''}\n${output.slice(-4000)}`));
         return;
@@ -221,176 +253,28 @@ function parseBblComponents(bbl) {
   };
 }
 
-function isCondoUnitLot(lot) {
-  return lot >= CONDO_UNIT_LOT_MIN && lot < CONDO_BILLING_LOT_MIN;
-}
-
-function parsePlutoParcelRecord(record) {
+function parsePlutoSeedRecord(record) {
   const bblMatch = PLUTO_DECIMAL_BBL.exec(String(record?.bbl ?? ''));
   if (!bblMatch) return null;
   const bbl = bblMatch[1];
   const borough = parseSourceInteger(record?.borocode);
   const block = parseSourceInteger(record?.block);
   const lot = parseSourceInteger(record?.lot);
-  const address = typeof record?.address === 'string' ? record.address.trim() : '';
-  if (borough === null || block === null || lot === null || address.length === 0) return null;
+  if (borough === null || block === null || lot === null) return null;
   const components = parseBblComponents(bbl);
   if (components.borough !== borough || components.block !== block || components.lot !== lot) {
     return null;
   }
-  const bldgclass =
-    record?.bldgclass === null || record?.bldgclass === undefined
-      ? null
-      : String(record.bldgclass).trim() || null;
-  return { bbl, borough, block, lot, address, bldgclass };
-}
-
-function parseFootprintBbl(value) {
-  if (value === null || value === undefined) return null;
-  const raw = String(value).trim();
-  if (raw.length === 0) return null;
-  const integerPart = raw.split('.')[0];
-  if (!VALID_BBL.test(integerPart)) return null;
-  return integerPart;
-}
-
-function parseFootprintBin(value) {
-  if (value === null || value === undefined) return null;
-  const raw = String(value).trim();
-  if (raw.length === 0) return null;
-  const integerPart = raw.split('.')[0];
-  if (!VALID_BIN.test(integerPart)) return null;
-  return integerPart;
-}
-
-function parseFootprintCandidate(record) {
-  const bin = parseFootprintBin(record?.bin);
-  const baseBbl = parseFootprintBbl(record?.base_bbl);
-  if (!bin || !baseBbl) return null;
-  if (!Object.prototype.hasOwnProperty.call(record, 'mappluto_bbl')) {
-    return { bin, baseBbl };
-  }
-  const mapplutoBbl = parseFootprintBbl(record?.mappluto_bbl);
-  return { bin, baseBbl, mapplutoBbl };
-}
-
-function validateFootprintCandidate(candidate, canonicalBbl, mode = 'non-condo') {
-  const hasMapplutoEvidence = Object.prototype.hasOwnProperty.call(candidate, 'mapplutoBbl');
-  if (hasMapplutoEvidence) {
-    if (candidate.mapplutoBbl === null || candidate.mapplutoBbl === undefined) {
-      if (mode === 'condo') return 'MAPPLUTO_BBL_MISMATCH';
-      if (candidate.baseBbl !== canonicalBbl) return 'BASE_BBL_MISMATCH';
-    } else if (candidate.mapplutoBbl !== canonicalBbl) {
-      return 'MAPPLUTO_BBL_MISMATCH';
-    }
-  } else if (candidate.baseBbl !== canonicalBbl) {
-    return 'BASE_BBL_MISMATCH';
-  }
-  return 'accepted';
-}
-
-function wouldFailFootprintValidation(candidates, canonicalBbl, mode = 'non-condo') {
-  const accepted = [];
-  const rejected = [];
-  for (const candidate of candidates) {
-    const validation = validateFootprintCandidate(candidate, canonicalBbl, mode);
-    if (validation === 'accepted') accepted.push(candidate);
-    else rejected.push(validation);
-  }
-  if (accepted.length > 0) return false;
-  return rejected.includes('MAPPLUTO_BBL_MISMATCH') || rejected.includes('BASE_BBL_MISMATCH');
-}
-
-function chunkValues(values, chunkSize) {
-  const chunks = [];
-  for (let index = 0; index < values.length; index += chunkSize) {
-    chunks.push(values.slice(index, index + chunkSize));
-  }
-  return chunks;
-}
-
-async function lookupFootprintsByParcelBbls(bbls) {
-  const results = new Map();
-  for (const chunk of chunkValues(bbls, FOOTPRINT_LOOKUP_CHUNK_SIZE)) {
-    const quotedBbls = chunk.map((bbl) => `'${bbl.replace(/'/g, "''")}'`).join(',');
-    const queryUrl = new URL(BUILDING_FOOTPRINTS_RESOURCE_URL);
-    queryUrl.searchParams.set('$select', 'bin,base_bbl,mappluto_bbl');
-    queryUrl.searchParams.set('$where', `base_bbl in (${quotedBbls}) OR mappluto_bbl in (${quotedBbls})`);
-    queryUrl.searchParams.set('$limit', String(Math.max(chunk.length * 50, chunk.length)));
-    const result = await fetchJson(queryUrl, {}, 60_000);
-    if (result.status !== 200 || !Array.isArray(result.body)) {
-      throw new Error(`Building Footprints scale precheck failed with HTTP ${result.status}`);
-    }
-    const candidatesByBbl = new Map();
-    for (const record of result.body) {
-      const candidate = parseFootprintCandidate(record);
-      if (!candidate) continue;
-      for (const bbl of chunk) {
-        if (candidate.baseBbl === bbl || candidate.mapplutoBbl === bbl) {
-          const existing = candidatesByBbl.get(bbl) ?? [];
-          existing.push(candidate);
-          candidatesByBbl.set(bbl, existing);
-        }
-      }
-    }
-    for (const bbl of chunk) {
-      results.set(bbl, candidatesByBbl.get(bbl) ?? []);
-    }
-  }
-  return results;
-}
-
-async function selectResolvableBbls(parcels) {
-  const selected = [];
-  const excluded = {
-    footprintIdentifierConflict: 0,
-  };
-  let pendingNonCondo = [];
-
-  const flushPendingNonCondo = async () => {
-    if (pendingNonCondo.length === 0) return;
-    const batch = pendingNonCondo;
-    pendingNonCondo = [];
-    const footprintResults = await lookupFootprintsByParcelBbls(batch.map((parcel) => parcel.bbl));
-    for (const parcel of batch) {
-      const candidates = footprintResults.get(parcel.bbl) ?? [];
-      if (candidates.length > 0 && wouldFailFootprintValidation(candidates, parcel.bbl)) {
-        excluded.footprintIdentifierConflict += 1;
-        continue;
-      }
-      selected.push(parcel.bbl);
-      if (selected.length === REQUIRED_PROPERTY_COUNT) return true;
-    }
-    return false;
-  };
-
-  for (const parcel of parcels) {
-    const lot = parseBblComponents(parcel.bbl).lot;
-    if (isCondoUnitLot(lot)) {
-      if (pendingNonCondo.length > 0 && (await flushPendingNonCondo())) {
-        return { bbls: selected, excluded };
-      }
-      selected.push(parcel.bbl);
-      if (selected.length === REQUIRED_PROPERTY_COUNT) return { bbls: selected, excluded };
-      continue;
-    }
-
-    pendingNonCondo.push(parcel);
-    if (pendingNonCondo.length >= FOOTPRINT_LOOKUP_CHUNK_SIZE) {
-      if (await flushPendingNonCondo()) return { bbls: selected, excluded };
-    }
-  }
-
-  if (pendingNonCondo.length > 0) await flushPendingNonCondo();
-  return { bbls: selected, excluded };
+  return { bbl, borough, block, lot };
 }
 
 async function selectScaleSeed() {
+  logProgress('selecting 10,000 deterministic PLUTO BBLs');
   const queryParameters = {
-    $select: 'bbl,cd,address,borocode,block,lot,bldgclass',
+    $select: 'bbl,cd,borocode,block,lot',
     $where:
       `cd in (${COMMUNITY_DISTRICTS.map((district) => `'${district}'`).join(',')})` +
-      ' and bbl is not null and address is not null and borocode is not null and block is not null and lot is not null',
+      ' and bbl is not null and borocode is not null and block is not null and lot is not null',
     $order: 'bbl ASC',
     $limit: '50000',
   };
@@ -403,20 +287,20 @@ async function selectScaleSeed() {
     throw new Error(`PLUTO scale selection failed with HTTP ${result.status}`);
   }
 
-  const parcelsByBbl = new Map();
+  const bbls = [];
+  const seen = new Set();
   for (const row of result.body) {
     const communityDistrict = String(row?.cd ?? '').padStart(3, '0');
     if (!COMMUNITY_DISTRICTS.includes(communityDistrict)) continue;
-    const parcel = parsePlutoParcelRecord(row);
-    if (!parcel) continue;
-    if (!parcelsByBbl.has(parcel.bbl)) parcelsByBbl.set(parcel.bbl, parcel);
+    const seedRecord = parsePlutoSeedRecord(row);
+    if (!seedRecord || seen.has(seedRecord.bbl)) continue;
+    seen.add(seedRecord.bbl);
+    bbls.push(seedRecord.bbl);
+    if (bbls.length === REQUIRED_PROPERTY_COUNT) break;
   }
-  const parcels = [...parcelsByBbl.values()].sort((left, right) => left.bbl.localeCompare(right.bbl));
-  const { bbls, excluded } = await selectResolvableBbls(parcels);
   if (bbls.length !== REQUIRED_PROPERTY_COUNT) {
     throw new Error(
-      `Deterministic PLUTO query produced ${bbls.length} resolver-compatible unique BBLs; exactly 10,000 are required ` +
-        `(excluded: ${JSON.stringify(excluded)})`,
+      `Deterministic PLUTO query produced ${bbls.length} unique canonical BBLs; exactly 10,000 are required`,
     );
   }
 
@@ -434,27 +318,27 @@ async function selectScaleSeed() {
       url: queryUrl.toString(),
       parameters: queryParameters,
       selectionRule:
-        'Parse PLUTO parcels with the same address/component checks as bulk registration, preserve bbl ASC order, ' +
-        'exclude non-condo parcels whose Building Footprints candidates would fail identifier agreement, and take the first 10,000.',
+        'Select the first 10,000 unique canonical BBLs from live PLUTO in deterministic bbl ASC order using PLUTO-only parcel identity checks. Do not pre-screen with Building Footprints or downstream resolver success.',
     },
     selection: {
       requestedCount: REQUIRED_PROPERTY_COUNT,
       sourceRecordCount: result.body.length,
-      validUniqueSourceCount: parcels.length,
       selectedCount: bbls.length,
-      excluded,
     },
     bbls,
   };
   writeJson(SEED_PATH, seed);
+  logProgress(`selected ${seed.bbls.length} unique BBLs from ${seed.selection.sourceRecordCount} PLUTO rows`);
   return seed;
 }
 
 async function waitForHealth(apiBaseUrl) {
   const healthUrl = new URL('/health', apiBaseUrl).toString();
   const deadline = Date.now() + 120_000;
+  const stopHeartbeat = startHeartbeat('waiting for API health');
   let lastError;
-  while (Date.now() < deadline) {
+  try {
+    while (Date.now() < deadline) {
     try {
       const result = await fetchJson(healthUrl, {}, 10_000);
       if (result.status === 200 && result.body?.status === 'ok') return result.body;
@@ -465,6 +349,9 @@ async function waitForHealth(apiBaseUrl) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   throw new Error(`API did not become healthy: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
+  } finally {
+    stopHeartbeat();
+  }
 }
 
 async function registerProperties(apiBaseUrl, seed, evidenceDirectory) {
@@ -478,18 +365,27 @@ async function registerProperties(apiBaseUrl, seed, evidenceDirectory) {
 
   for (let offset = 0; offset < seed.bbls.length; offset += BULK_REQUEST_SIZE) {
     const bbls = seed.bbls.slice(offset, offset + BULK_REQUEST_SIZE);
+    const requestNumber = requests.length + 1;
+    const totalRequests = Math.ceil(seed.bbls.length / BULK_REQUEST_SIZE);
     const requestStartedAt = new Date().toISOString();
-    const result = await fetchJson(
-      endpoint,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bbls }),
-      },
-      HTTP_TIMEOUT_MS,
-    );
+    logProgress(`bulk registration request ${requestNumber}/${totalRequests} (${bbls.length} BBLs)`);
+    const stopHeartbeat = startHeartbeat(`bulk registration request ${requestNumber}/${totalRequests}`);
+    let result;
+    try {
+      result = await fetchJson(
+        endpoint,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bbls }),
+        },
+        HTTP_TIMEOUT_MS,
+      );
+    } finally {
+      stopHeartbeat();
+    }
     const requestEvidence = {
-      requestNumber: requests.length + 1,
+      requestNumber,
       startedAt: requestStartedAt,
       finishedAt: new Date().toISOString(),
       bblCount: bbls.length,
@@ -513,6 +409,16 @@ async function registerProperties(apiBaseUrl, seed, evidenceDirectory) {
   const finishedAt = new Date().toISOString();
   const wallTimeMs = Date.now() - startedMs;
   const acceptedResults = results.filter((entry) => entry.status === 'succeeded' || entry.status === 'cached');
+  const terminalResults = results.map((entry) => {
+    const terminalResult = {
+      inputBbl: entry.inputBbl,
+      canonicalBbl: entry.canonicalBbl,
+      status: entry.status,
+    };
+    if (entry.status === 'failed') terminalResult.error = entry.error;
+    else terminalResult.property = { id: entry.property?.id, bins: entry.property?.bins };
+    return terminalResult;
+  });
   const propertyIds = acceptedResults.map((entry) => entry.property?.id).filter(Boolean);
   const allBins = acceptedResults.flatMap((entry) => entry.property?.bins ?? []);
   const uniqueBins = [...new Set(allBins)].sort();
@@ -536,7 +442,8 @@ async function registerProperties(apiBaseUrl, seed, evidenceDirectory) {
       acceptedResultCount: acceptedResults.length,
       uniquePropertyIds: new Set(propertyIds).size,
       uniqueBins,
-      allBinsValid: allBins.every((bin) => VALID_BIN.test(bin)),
+      allBinsValid: acceptedResults.length === 0 || allBins.every((bin) => VALID_BIN.test(bin)),
+      terminalResults,
       failedResults: results.filter((entry) => entry.status === 'failed'),
       failureCountsByCode: Object.fromEntries(
         Object.entries(
@@ -559,23 +466,13 @@ async function registerProperties(apiBaseUrl, seed, evidenceDirectory) {
     responseSummary?.submitted !== REQUIRED_PROPERTY_COUNT ||
     responseSummary?.unique !== REQUIRED_PROPERTY_COUNT ||
     results.length !== REQUIRED_PROPERTY_COUNT ||
-    acceptedResults.length + responseSummary.failed !== REQUIRED_PROPERTY_COUNT ||
+    responseSummary.succeeded + responseSummary.cached + responseSummary.failed !== REQUIRED_PROPERTY_COUNT ||
     new Set(propertyIds).size !== acceptedResults.length
   ) {
     throw new Error(`Bulk registration did not account for all 10,000 unique BBLs: ${JSON.stringify(responseSummary)}`);
   }
-  if (
-    responseSummary.failed !== 0 ||
-    acceptedResults.length !== REQUIRED_PROPERTY_COUNT ||
-    new Set(propertyIds).size !== REQUIRED_PROPERTY_COUNT
-  ) {
-    throw new Error(
-      `Bulk registration did not persist exactly 10,000 unique properties: ${JSON.stringify(responseSummary)}; ` +
-      `failed per-BBL responses are preserved in bulk-registration.json`,
-    );
-  }
-  if (!evidence.resultAudit.allBinsValid || uniqueBins.length === 0) {
-    throw new Error('Bulk registration produced an invalid or empty BIN set');
+  if (acceptedResults.length > 0 && !evidence.resultAudit.allBinsValid) {
+    throw new Error('Bulk registration produced invalid BINs for accepted properties');
   }
   return evidence;
 }
@@ -593,6 +490,15 @@ async function queryDatabase(project, runId) {
       'failureStage', r.failure_stage,
       'lastError', r.last_error,
       'propertyCount', (SELECT count(*) FROM properties),
+      'persistedProperties', (SELECT COALESCE(json_agg(p ORDER BY p.id), '[]'::json) FROM (
+        SELECT p.id, p.bbl,
+          ARRAY(SELECT pb.bin FROM property_bins pb WHERE pb.property_id = p.id ORDER BY pb.bin) AS bins
+        FROM properties p
+      ) p),
+      'snapshotProperties', (SELECT COALESCE(json_agg(s ORDER BY s.id), '[]'::json) FROM (
+        SELECT property_id AS id, array_agg(bin ORDER BY bin) AS bins
+        FROM ingestion_run_property_bins WHERE run_id = r.id GROUP BY property_id
+      ) s),
       'snapshotPropertyCount', (SELECT count(DISTINCT property_id) FROM ingestion_run_property_bins WHERE run_id = r.id),
       'snapshotBinCount', (SELECT count(DISTINCT bin) FROM ingestion_run_property_bins WHERE run_id = r.id),
       'propertyBinSnapshotCount', (SELECT count(*) FROM ingestion_run_property_bins WHERE run_id = r.id),
@@ -621,9 +527,51 @@ async function queryDatabase(project, runId) {
     sql,
   );
   const result = await runCommand('docker', args);
-  const line = result.output.trim().split(/\r?\n/).findLast((candidate) => candidate.trim().startsWith('{'));
-  if (!line) throw new Error('Database evidence query did not return JSON');
-  return JSON.parse(line);
+
+  // runCommand intentionally preserves the combined stdout/stderr stream for
+  // human diagnostics. Docker/psql diagnostics can therefore be adjacent to
+  // the machine-readable JSON. Extract one complete balanced JSON object
+  // instead of assuming the entire physical line is JSON.
+  for (let start = result.output.indexOf('{'); start >= 0; start = result.output.indexOf('{', start + 1)) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let index = start; index < result.output.length; index += 1) {
+      const character = result.output[index];
+
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (character === '\\') {
+          escaped = true;
+        } else if (character === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (character === '"') {
+        inString = true;
+      } else if (character === '{') {
+        depth += 1;
+      } else if (character === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          const candidate = result.output.slice(start, index + 1);
+          try {
+            const parsed = JSON.parse(candidate);
+            if (parsed?.runId === runId) return parsed;
+          } catch {
+            // This brace-delimited fragment was not the psql JSON row.
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  throw new Error('Database evidence query did not return parseable JSON for the requested run');
 }
 
 async function captureApiLogs(project, evidenceDirectory) {
@@ -680,18 +628,40 @@ async function runBenchmark(options) {
       'ingest:ecb',
     );
     commands.push(commandDocument('docker', ingestionArgs));
-    const ingestionStartedAt = new Date().toISOString();
-    const ingestionStartedMs = Date.now();
-    const ingestionExecution = await runCommand('docker', ingestionArgs, {
-      logPath: path.join(options.evidenceDirectory, 'worker.log'),
-      allowFailure: true,
-    });
-    const ingestionFinishedAt = new Date().toISOString();
-    const ingestionWallTimeMs = Date.now() - ingestionStartedMs;
-    const workerSummary = extractJsonLines(ingestionExecution.output).findLast(
+    const stopIngestHeartbeat = startHeartbeat('ECB ingestion');
+    let ingestionExecution;
+    try {
+      ingestionExecution = await runCommand('docker', ingestionArgs, {
+        logPath: path.join(options.evidenceDirectory, 'worker.log'),
+        allowFailure: true,
+      });
+    } finally {
+      stopIngestHeartbeat();
+    }
+    const workerRecords = extractJsonLines(ingestionExecution.output);
+    const workerStart = workerRecords.find(
+      (entry) => entry?.msg === 'ECB manual ingestion started',
+    );
+    const workerSummary = workerRecords.findLast(
       (entry) => entry?.runId && entry?.status && entry?.rowsFetched !== undefined,
     );
     if (!workerSummary) throw new Error('Worker did not emit its fixed-field structured run summary');
+    if (!Number.isFinite(workerStart?.time) || !Number.isFinite(workerSummary?.time)) {
+      throw new Error('Worker log did not preserve measured ingestion start/completion timestamps');
+    }
+    const ingestionStartedAt = new Date(workerStart.time).toISOString();
+    const ingestionFinishedAt = new Date(workerSummary.time).toISOString();
+    const ingestionWallTimeMs =
+      Number.isFinite(workerSummary.durationMs) && workerSummary.durationMs > 0
+        ? Math.round(workerSummary.durationMs)
+        : Math.max(1, workerSummary.time - workerStart.time);
+    // Seal the complete captured stream before any post-run evidence processing.
+    writeJson(path.join(options.evidenceDirectory, 'worker-capture.json'), {
+      runId: workerSummary.runId,
+      exitCode: ingestionExecution.exitCode,
+      byteLength: Buffer.byteLength(ingestionExecution.output, 'utf8'),
+      sha256: createHash('sha256').update(ingestionExecution.output, 'utf8').digest('hex'),
+    });
     const database = await queryDatabase(options.composeProject, workerSummary.runId);
     writeJson(path.join(options.evidenceDirectory, 'database-run.json'), database);
 
@@ -755,6 +725,7 @@ async function runBenchmark(options) {
       },
       failures: {
         bulkRegistration: registration.responseSummary.failed,
+        bulkRegistrationByCode: registration.resultAudit.failureCountsByCode,
         ingestion: workerSummary.failures,
       },
       commands,
@@ -791,11 +762,145 @@ async function runBenchmark(options) {
   }
 }
 
+async function finalizeFromExistingRun(options) {
+  logProgress('finalizing scale evidence from the existing registration and worker log');
+  const seed = readJsonFile(SEED_PATH);
+  const registration = readJsonFile(path.join(options.evidenceDirectory, 'bulk-registration.json'));
+  const workerLogPath = path.join(options.evidenceDirectory, 'worker.log');
+  if (!existsSync(workerLogPath)) {
+    throw new Error(`worker log is missing at ${workerLogPath}`);
+  }
+  const workerLog = readFileSync(workerLogPath, 'utf8');
+  const workerRecords = extractJsonLines(workerLog);
+  const workerStart = workerRecords.find(
+    (entry) => entry?.msg === 'ECB manual ingestion started',
+  );
+  const workerSummary = workerRecords.findLast(
+    (entry) => entry?.runId && entry?.status && entry?.rowsFetched !== undefined,
+  );
+  if (!workerSummary) {
+    throw new Error('Worker did not emit its fixed-field structured run summary');
+  }
+  if (!Number.isFinite(workerStart?.time) || !Number.isFinite(workerSummary?.time)) {
+    throw new Error('Worker log did not preserve measured ingestion start/completion timestamps');
+  }
+
+  await captureApiLogs(options.composeProject, options.evidenceDirectory);
+  const database = await queryDatabase(options.composeProject, workerSummary.runId);
+  writeJson(path.join(options.evidenceDirectory, 'database-run.json'), database);
+
+  const benchmarkStartedAt = seed.requestedAt ?? registration.startedAt;
+  const benchmarkStartedMs = Date.parse(benchmarkStartedAt);
+  const ingestionStartedAt = new Date(workerStart.time).toISOString();
+  const ingestionFinishedAt = new Date(workerSummary.time).toISOString();
+  const ingestionWallTimeMs =
+    Number.isFinite(workerSummary.durationMs) && workerSummary.durationMs > 0
+      ? Math.round(workerSummary.durationMs)
+      : Math.max(1, workerSummary.time - workerStart.time);
+  const commands = [
+    commandDocument('docker', composeArgs(options.composeProject, 'down', '--volumes', '--remove-orphans')),
+    commandDocument('docker', composeArgs(options.composeProject, 'up', '-d', '--build', 'postgres', 'api')),
+    commandDocument(
+      'docker',
+      composeArgs(options.composeProject, 'run', '--rm', 'worker', 'npm', 'run', 'ingest:ecb'),
+    ),
+  ];
+
+  const accepted = registration.responseSummary.succeeded + registration.responseSummary.cached;
+  const uniqueValidBins = registration.resultAudit.uniqueBins.length;
+  const persistedBatchCount = Number(database.persistedBatchCount);
+  const summary = {
+    schemaVersion: 1,
+    status: 'complete',
+    startedAt: benchmarkStartedAt,
+    finishedAt: ingestionFinishedAt,
+    wallTimeMs: Number.isFinite(benchmarkStartedMs)
+      ? Math.max(1, Date.parse(ingestionFinishedAt) - benchmarkStartedMs)
+      : registration.wallTimeMs + ingestionWallTimeMs,
+    registrationWallTimeMs: registration.wallTimeMs,
+    ingestionWallTimeMs,
+    sample: {
+      datasetId: seed.dataset.id,
+      communityDistricts: seed.communityDistricts,
+      requestedProperties: seed.bbls.length,
+      requestedUniqueBbls: new Set(seed.bbls).size,
+      uniqueProperties: accepted,
+    },
+    bulkRegistration: {
+      endpoint: '/properties/bulk',
+      bulkRequestSize: BULK_REQUEST_SIZE,
+      httpRequestCount: registration.requests.length,
+      submitted: registration.responseSummary.submitted,
+      unique: registration.responseSummary.unique,
+      succeeded: registration.responseSummary.succeeded,
+      cached: registration.responseSummary.cached,
+      accepted,
+      failed: registration.responseSummary.failed,
+    },
+    configuredBounds: CONFIGURED_BOUNDS,
+    ingestion: {
+      runId: workerSummary.runId,
+      outcome: workerSummary.outcome,
+      status: database.status,
+      startedAt: ingestionStartedAt,
+      finishedAt: ingestionFinishedAt,
+      sourceWatermarkAtStart: database.sourceWatermarkAtStart,
+      sourceWatermarkAtEnd: database.sourceWatermarkAtEnd,
+      uniqueValidBins,
+      persistedBatchCount,
+      socrataDataCalls: workerSummary.socrataDataCalls,
+      socrataMetadataCalls: workerSummary.socrataMetadataCalls,
+      socrataRetryCalls: workerSummary.socrataRetryCalls,
+      socrataTotalCalls: workerSummary.socrataTotalCalls,
+      rowsFetched: workerSummary.rowsFetched,
+      rowsStaged: Number(database.rowsStaged),
+      rowsPromoted: Number(database.rowsPromoted),
+      failures: workerSummary.failures,
+      workerReportedDurationMs: workerSummary.durationMs,
+    },
+    callArithmetic: {
+      formula: 'total = data-page calls + metadata calls + retry calls',
+      batchFormula: 'persisted batches = ceil(unique valid BINs / configured batch size)',
+      minimumDataPageCalls: persistedBatchCount,
+      additionalDataPageCalls: workerSummary.socrataDataCalls - persistedBatchCount,
+      observedTotalCalls: workerSummary.socrataTotalCalls,
+      substituted: `${workerSummary.socrataTotalCalls} = ${workerSummary.socrataDataCalls} + ${workerSummary.socrataMetadataCalls} + ${workerSummary.socrataRetryCalls}`,
+    },
+    failures: {
+      bulkRegistration: registration.responseSummary.failed,
+      bulkRegistrationByCode: registration.resultAudit.failureCountsByCode,
+      ingestion: workerSummary.failures,
+    },
+    commands,
+    artifacts: {
+      seed: 'seed/scale-10000-bbls.json',
+      registration: 'evidence/scale-10000/bulk-registration.json',
+      workerLog: 'evidence/scale-10000/worker.log',
+      applicationLog: 'evidence/scale-10000/api.log',
+      databaseRun: 'evidence/scale-10000/database-run.json',
+    },
+  };
+  writeJson(path.join(options.evidenceDirectory, 'summary.json'), summary);
+  if (
+    workerSummary.outcome !== 'COMPLETED' ||
+    database.status !== 'COMPLETED' ||
+    workerSummary.failures !== 0
+  ) {
+    throw new Error(`Scale ingestion did not reach an accepted terminal state: ${JSON.stringify(workerSummary)}`);
+  }
+  assertValidScaleEvidence(options.evidenceDirectory);
+  console.log(JSON.stringify(summary, null, 2));
+}
+
 async function main() {
   const options = parseArguments(process.argv.slice(2));
   if (options.validateOnly) {
     assertValidScaleEvidence(options.evidenceDirectory);
     console.log(`Scale evidence is complete and internally consistent: ${options.evidenceDirectory}`);
+    return;
+  }
+  if (options.finalizeEvidence) {
+    await finalizeFromExistingRun(options);
     return;
   }
   await runBenchmark(options);

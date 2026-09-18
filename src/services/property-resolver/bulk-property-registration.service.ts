@@ -4,7 +4,7 @@ import type { BuildingFootprintsClient } from '../../clients/building-footprints
 import type { CondoUnitsClient } from '../../clients/condo-units.client';
 import type { CondominiumsClient } from '../../clients/condominiums.client';
 import type { GeoSearchClient } from '../../clients/geosearch.client';
-import type { PlutoClient, PlutoParcelRecord, PlutoLookupResult } from '../../clients/pluto.client';
+import type { PlutoClient, PlutoParcelRecord } from '../../clients/pluto.client';
 import { AppError } from '../../errors';
 import {
   type BulkPropertyInputResult,
@@ -31,6 +31,7 @@ import {
   createPropertyIdentityService,
 } from './property-identity.service';
 import { persistResolutionInput } from './property-input.service';
+import { requirePlutoParcel } from './require-pluto-parcel';
 
 export const BULK_SOURCE_QUERY_CHUNK_SIZE = 500;
 
@@ -138,29 +139,6 @@ function uniqueCanonicalBbls(parsedInputs: readonly ParsedBulkInput[]): Canonica
   }
 
   return [...unique].sort();
-}
-
-function requirePlutoParcel(
-  canonicalBbl: CanonicalBbl,
-  lookup: PlutoLookupResult | undefined,
-): PlutoParcelRecord {
-  if (lookup === undefined || lookup.status === 'not_found') {
-    throw new AppError({
-      code: 'RESOLVER_PLUTO_NOT_FOUND',
-      message: `PLUTO did not contain parcel ${canonicalBbl}`,
-      statusCode: 422,
-    });
-  }
-
-  if (lookup.status === 'multiple') {
-    throw new AppError({
-      code: 'RESOLVER_PLUTO_MULTIPLE',
-      message: `PLUTO returned multiple parcels for BBL ${canonicalBbl}`,
-      statusCode: 422,
-    });
-  }
-
-  return lookup.parcel;
 }
 
 function resolveNonCondoBins(

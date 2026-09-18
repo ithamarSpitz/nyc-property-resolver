@@ -20,6 +20,14 @@ export const PLUTO_ERROR_CODES = {
   MALFORMED_RESPONSE: 'PLUTO_MALFORMED_RESPONSE',
 } as const;
 
+export type PlutoIncompleteReason =
+  | 'missing_address'
+  | 'missing_bbl'
+  | 'missing_borocode'
+  | 'missing_block'
+  | 'missing_lot'
+  | 'identifier_mismatch';
+
 export type PlutoParcelRecord = {
   bbl: CanonicalBbl;
   borough: number;
@@ -31,6 +39,7 @@ export type PlutoParcelRecord = {
 
 export type PlutoLookupResult =
   | { status: 'not_found' }
+  | { status: 'incomplete'; reasons: PlutoIncompleteReason[] }
   | { status: 'found'; parcel: PlutoParcelRecord }
   | { status: 'multiple'; parcels: PlutoParcelRecord[] };
 
@@ -43,6 +52,10 @@ export type PlutoClientDependencies = {
 };
 
 type PlutoSourceRecord = Record<string, unknown>;
+
+type PlutoRecordAssessment =
+  | { kind: 'complete'; parcel: PlutoParcelRecord }
+  | { kind: 'incomplete'; reasons: PlutoIncompleteReason[]; rawBbl: CanonicalBbl | null };
 
 function isAbortError(error: unknown): boolean {
   return (
@@ -110,33 +123,66 @@ function parseSourceBldgclass(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function parsePlutoParcelRecord(record: PlutoSourceRecord): PlutoParcelRecord | null {
+function mergeIncompleteReasons(
+  left: readonly PlutoIncompleteReason[],
+  right: readonly PlutoIncompleteReason[],
+): PlutoIncompleteReason[] {
+  return [...new Set([...left, ...right])];
+}
+
+export function assessPlutoRecord(record: PlutoSourceRecord): PlutoRecordAssessment {
+  const reasons: PlutoIncompleteReason[] = [];
   const bbl = parseSourceBbl(record.bbl);
   const borough = parseSourceInteger(record.borocode);
   const block = parseSourceInteger(record.block);
   const lot = parseSourceInteger(record.lot);
   const address = parseSourceAddress(record.address);
 
-  if (bbl === null || borough === null || block === null || lot === null || address === null) {
-    return null;
+  if (bbl === null) {
+    reasons.push('missing_bbl');
+  }
+  if (borough === null) {
+    reasons.push('missing_borocode');
+  }
+  if (block === null) {
+    reasons.push('missing_block');
+  }
+  if (lot === null) {
+    reasons.push('missing_lot');
+  }
+  if (address === null) {
+    reasons.push('missing_address');
   }
 
-  const components = parseBblComponents(bbl);
-  if (
-    components.borough !== borough ||
-    components.block !== block ||
-    components.lot !== lot
-  ) {
-    return null;
+  if (bbl !== null && borough !== null && block !== null && lot !== null) {
+    const components = parseBblComponents(bbl);
+    if (
+      components.borough !== borough ||
+      components.block !== block ||
+      components.lot !== lot
+    ) {
+      reasons.push('identifier_mismatch');
+    }
+  }
+
+  if (reasons.length > 0) {
+    return {
+      kind: 'incomplete',
+      reasons,
+      rawBbl: bbl,
+    };
   }
 
   return {
-    bbl,
-    borough,
-    block,
-    lot,
-    address,
-    bldgclass: parseSourceBldgclass(record.bldgclass),
+    kind: 'complete',
+    parcel: {
+      bbl: bbl!,
+      borough: borough!,
+      block: block!,
+      lot: lot!,
+      address: address!,
+      bldgclass: parseSourceBldgclass(record.bldgclass),
+    },
   };
 }
 
@@ -170,6 +216,53 @@ function classifyPlutoParcels(parcels: PlutoParcelRecord[]): PlutoLookupResult {
     status: 'multiple',
     parcels,
   };
+}
+
+function classifyRawPlutoRecords(records: readonly PlutoSourceRecord[]): PlutoLookupResult {
+  const parcels: PlutoParcelRecord[] = [];
+  let incompleteReasons: PlutoIncompleteReason[] = [];
+
+  for (const record of records) {
+    const assessment = assessPlutoRecord(record);
+    if (assessment.kind === 'complete') {
+      parcels.push(assessment.parcel);
+      continue;
+    }
+
+    incompleteReasons = mergeIncompleteReasons(incompleteReasons, assessment.reasons);
+  }
+
+  if (parcels.length > 0) {
+    return classifyPlutoParcels(parcels);
+  }
+
+  if (incompleteReasons.length > 0) {
+    return {
+      status: 'incomplete',
+      reasons: incompleteReasons,
+    };
+  }
+
+  return { status: 'not_found' };
+}
+
+function classifyBulkPlutoLookup(
+  _bbl: CanonicalBbl,
+  parcels: readonly PlutoParcelRecord[],
+  incompleteReasons: readonly PlutoIncompleteReason[],
+): PlutoLookupResult {
+  if (parcels.length > 0) {
+    return classifyPlutoParcels([...parcels]);
+  }
+
+  if (incompleteReasons.length > 0) {
+    return {
+      status: 'incomplete',
+      reasons: [...incompleteReasons],
+    };
+  }
+
+  return { status: 'not_found' };
 }
 
 function assertJsonArray(payload: unknown): PlutoSourceRecord[] {
@@ -274,32 +367,7 @@ export class PlutoClient {
       }
 
       const records = assertJsonArray(payload);
-      if (records.length === 0) {
-        return { status: 'not_found' };
-      }
-
-      const parcels = records
-        .map((record) => parsePlutoParcelRecord(record))
-        .filter((parcel): parcel is PlutoParcelRecord => parcel !== null);
-
-      if (parcels.length === 0) {
-        throw new AppError({
-          code: PLUTO_ERROR_CODES.MALFORMED_RESPONSE,
-          message: 'PLUTO response did not contain any parseable parcel records',
-        });
-      }
-
-      if (parcels.length === 1) {
-        return {
-          status: 'found',
-          parcel: parcels[0],
-        };
-      }
-
-      return {
-        status: 'multiple',
-        parcels,
-      };
+      return classifyRawPlutoRecords(records);
     } catch (error) {
       if (isAbortError(error)) {
         throw new AppError({
@@ -396,21 +464,38 @@ export class PlutoClient {
 
       const records = assertJsonArray(payload);
       const parcelsByBbl = new Map<CanonicalBbl, PlutoParcelRecord[]>();
+      const incompleteByBbl = new Map<CanonicalBbl, PlutoIncompleteReason[]>();
 
       for (const record of records) {
-        const parcel = parsePlutoParcelRecord(record);
-        if (parcel === null) {
+        const assessment = assessPlutoRecord(record);
+        if (assessment.kind === 'complete') {
+          const existing = parcelsByBbl.get(assessment.parcel.bbl) ?? [];
+          existing.push(assessment.parcel);
+          parcelsByBbl.set(assessment.parcel.bbl, existing);
           continue;
         }
 
-        const existing = parcelsByBbl.get(parcel.bbl) ?? [];
-        existing.push(parcel);
-        parcelsByBbl.set(parcel.bbl, existing);
+        if (assessment.rawBbl === null) {
+          continue;
+        }
+
+        const existingReasons = incompleteByBbl.get(assessment.rawBbl) ?? [];
+        incompleteByBbl.set(
+          assessment.rawBbl,
+          mergeIncompleteReasons(existingReasons, assessment.reasons),
+        );
       }
 
       const chunkResults = new Map<CanonicalBbl, PlutoLookupResult>();
       for (const bbl of bbls) {
-        chunkResults.set(bbl, classifyPlutoParcels(parcelsByBbl.get(bbl) ?? []));
+        chunkResults.set(
+          bbl,
+          classifyBulkPlutoLookup(
+            bbl,
+            parcelsByBbl.get(bbl) ?? [],
+            incompleteByBbl.get(bbl) ?? [],
+          ),
+        );
       }
 
       return chunkResults;

@@ -16,6 +16,7 @@ import {
   collectValidatedBins,
   validateFootprintCandidates,
 } from './footprint-validation';
+import { requirePlutoParcel } from './require-pluto-parcel';
 
 export type CondoResolutionClients = {
   condoUnits: CondoUnitsClient;
@@ -72,31 +73,6 @@ export function resolveCondoBaseContextFromParcelBbl(parcelBbl: CanonicalBbl): C
   }
 
   return parcelBbl;
-}
-
-async function lookupPlutoParcel(
-  pluto: PlutoClient,
-  bbl: CanonicalBbl,
-): Promise<PlutoParcelRecord> {
-  const lookup = await pluto.lookupByBbl(bbl);
-
-  if (lookup.status === 'not_found') {
-    throw new AppError({
-      code: 'RESOLVER_PLUTO_NOT_FOUND',
-      message: `PLUTO did not contain parcel ${bbl}`,
-      statusCode: 422,
-    });
-  }
-
-  if (lookup.status === 'multiple') {
-    throw new AppError({
-      code: 'RESOLVER_PLUTO_MULTIPLE',
-      message: `PLUTO returned multiple parcels for BBL ${bbl}`,
-      statusCode: 422,
-    });
-  }
-
-  return lookup.parcel;
 }
 
 async function resolveCondoBillingBbl(
@@ -175,7 +151,7 @@ export async function resolveCondoUnitBbl(
 
   const condoBaseBbl = unitLookup.matches[0].condoBaseBbl;
   const condoBillingBbl = await resolveCondoBillingBbl(clients.condominiums, condoBaseBbl);
-  const parcel = await lookupPlutoParcel(clients.pluto, unitBbl);
+  const parcel = requirePlutoParcel(unitBbl, await clients.pluto.lookupByBbl(unitBbl));
   const candidateBins = await resolveFootprintBinsForCondoBase(
     clients.buildingFootprints,
     condoBaseBbl,
