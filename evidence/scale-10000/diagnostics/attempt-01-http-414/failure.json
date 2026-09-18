@@ -1,0 +1,33 @@
+{
+  "failedAt": "2026-09-17T22:58:20.026Z",
+  "errorType": "Error",
+  "errorMessage": "Bulk registration returned HTTP 414",
+  "commands": [
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "-p",
+        "nyc-s5-t3-scale",
+        "down",
+        "--volumes",
+        "--remove-orphans"
+      ],
+      "display": "docker compose -p nyc-s5-t3-scale down --volumes --remove-orphans"
+    },
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "-p",
+        "nyc-s5-t3-scale",
+        "up",
+        "-d",
+        "--build",
+        "postgres",
+        "api"
+      ],
+      "display": "docker compose -p nyc-s5-t3-scale up -d --build postgres api"
+    }
+  ]
+}

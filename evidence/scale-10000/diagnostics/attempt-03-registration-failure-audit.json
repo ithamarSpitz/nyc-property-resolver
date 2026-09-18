@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "auditedAt": "2026-09-17T23:44:41.7754040Z",
+  "originalRun": {
+    "startedAt": "2026-09-17T23:06:50.263Z",
+    "bulkRegistrationAccepted": 9985,
+    "bulkRegistrationFailed": 15
+  },
+  "auditMethod": {
+    "description": "Replayed only the eight 200-BBL request chunks that reported failures against the retained nyc-s5-t3-scale Compose state. Previously accepted properties were cached; the unresolved BBLs were sent through the same POST /properties/bulk application path again.",
+    "preservedFromOriginalResponse": false,
+    "endpoint": "http://localhost:3000/properties/bulk",
+    "requestNumbers": [3, 6, 9, 11, 14, 17, 33, 37]
+  },
+  "failedResults": [
+    {
+      "requestNumber": 3,
+      "inputBbl": "1004730032",
+      "canonicalBbl": "1004730032",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1004730032"
+      }
+    },
+    {
+      "requestNumber": 6,
+      "inputBbl": "1005000033",
+      "canonicalBbl": "1005000033",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005000033"
+      }
+    },
+    {
+      "requestNumber": 9,
+      "inputBbl": "1005290009",
+      "canonicalBbl": "1005290009",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005290009"
+      }
+    },
+    {
+      "requestNumber": 9,
+      "inputBbl": "1005290060",
+      "canonicalBbl": "1005290060",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005290060"
+      }
+    },
+    {
+      "requestNumber": 9,
+      "inputBbl": "1005300008",
+      "canonicalBbl": "1005300008",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005300008"
+      }
+    },
+    {
+      "requestNumber": 9,
+      "inputBbl": "1005310016",
+      "canonicalBbl": "1005310016",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005310016"
+      }
+    },
+    {
+      "requestNumber": 11,
+      "inputBbl": "1005440057",
+      "canonicalBbl": "1005440057",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005440057"
+      }
+    },
+    {
+      "requestNumber": 11,
+      "inputBbl": "1005500015",
+      "canonicalBbl": "1005500015",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005500015"
+      }
+    },
+    {
+      "requestNumber": 14,
+      "inputBbl": "1005790045",
+      "canonicalBbl": "1005790045",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005790045"
+      }
+    },
+    {
+      "requestNumber": 14,
+      "inputBbl": "1005850019",
+      "canonicalBbl": "1005850019",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005850019"
+      }
+    },
+    {
+      "requestNumber": 17,
+      "inputBbl": "1005950060",
+      "canonicalBbl": "1005950060",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1005950060"
+      }
+    },
+    {
+      "requestNumber": 17,
+      "inputBbl": "1006060066",
+      "canonicalBbl": "1006060066",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1006060066"
+      }
+    },
+    {
+      "requestNumber": 17,
+      "inputBbl": "1006060079",
+      "canonicalBbl": "1006060079",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1006060079"
+      }
+    },
+    {
+      "requestNumber": 33,
+      "inputBbl": "1014297501",
+      "canonicalBbl": "1014297501",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_PLUTO_NOT_FOUND",
+        "message": "PLUTO did not contain parcel 1014297501"
+      }
+    },
+    {
+      "requestNumber": 37,
+      "inputBbl": "1014730042",
+      "canonicalBbl": "1014730042",
+      "status": "failed",
+      "error": {
+        "code": "RESOLVER_FOOTPRINT_MAPPLUTO_BBL_MISMATCH",
+        "message": "Building Footprints MAPPLUTO_BBL does not match the canonical parcel BBL"
+      }
+    }
+  ],
+  "liveSourceObservations": {
+    "observedAt": "2026-09-17T23:44:41.7754040Z",
+    "plutoDataset": "64uk-42ks",
+    "plutoRowsMissingAddress": [
+      "1004730032",
+      "1005000033",
+      "1005290009",
+      "1005290060",
+      "1005300008",
+      "1005310016",
+      "1005440057",
+      "1005500015",
+      "1005790045",
+      "1005850019",
+      "1005950060",
+      "1006060066",
+      "1006060079",
+      "1014297501"
+    ],
+    "buildingFootprintsDataset": "5zhs-2jue",
+    "footprintMismatch": {
+      "selectedBbl": "1014730042",
+      "bin": "1046035",
+      "baseBbl": "1014730042",
+      "mapplutoBbl": "1014737504"
+    }
+  }
+}

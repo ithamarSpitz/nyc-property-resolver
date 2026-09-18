@@ -1,0 +1,33 @@
+{
+  "failedAt": "2026-09-17T23:05:55.104Z",
+  "errorType": "Error",
+  "errorMessage": "Bulk registration did not accept exactly 10,000 unique properties: {\"submitted\":10000,\"unique\":10000,\"succeeded\":9985,\"failed\":15,\"cached\":0}",
+  "commands": [
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "-p",
+        "nyc-s5-t3-scale",
+        "down",
+        "--volumes",
+        "--remove-orphans"
+      ],
+      "display": "docker compose -p nyc-s5-t3-scale down --volumes --remove-orphans"
+    },
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "-p",
+        "nyc-s5-t3-scale",
+        "up",
+        "-d",
+        "--build",
+        "postgres",
+        "api"
+      ],
+      "display": "docker compose -p nyc-s5-t3-scale up -d --build postgres api"
+    }
+  ]
+}

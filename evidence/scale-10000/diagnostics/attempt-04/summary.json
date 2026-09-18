@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "status": "failed",
+  "startedAt": "2026-09-17T23:06:50.263Z",
+  "finishedAt": "2026-09-17T23:35:19.658Z",
+  "wallTimeMs": 1709395,
+  "registrationWallTimeMs": 341715,
+  "ingestionWallTimeMs": 1346588,
+  "sample": {
+    "datasetId": "64uk-42ks",
+    "communityDistricts": [
+      "102",
+      "108"
+    ],
+    "requestedProperties": 10000,
+    "requestedUniqueBbls": 10000,
+    "uniqueProperties": 9985
+  },
+  "bulkRegistration": {
+    "endpoint": "/properties/bulk",
+    "bulkRequestSize": 200,
+    "httpRequestCount": 50,
+    "submitted": 10000,
+    "unique": 10000,
+    "succeeded": 9985,
+    "cached": 0,
+    "accepted": 9985,
+    "failed": 15
+  },
+  "configuredBounds": {
+    "batchSize": 1000,
+    "pageSize": 50000,
+    "maxPagesPerBatch": 100,
+    "concurrency": 10,
+    "requestTimeoutMs": 15000,
+    "maxRetries": 3,
+    "maxBatchAttemptsPerRun": 3,
+    "acceptedPublicationTransactionTimeoutMs": 60000
+  },
+  "ingestion": {
+    "runId": "a8d868d2-8149-4092-9667-a09218b3898b",
+    "outcome": "COMPLETED",
+    "status": "COMPLETED",
+    "startedAt": "2026-09-17T23:12:52.517Z",
+    "finishedAt": "2026-09-17T23:35:19.105Z",
+    "sourceWatermarkAtStart": "2026-09-17T17:11:00+00:00",
+    "sourceWatermarkAtEnd": "2026-09-17T17:11:00+00:00",
+    "uniqueValidBins": 10800,
+    "persistedBatchCount": 11,
+    "socrataDataCalls": 11,
+    "socrataMetadataCalls": 2,
+    "socrataRetryCalls": 4,
+    "socrataTotalCalls": 17,
+    "rowsFetched": 81485,
+    "rowsStaged": 81485,
+    "rowsPromoted": 81485,
+    "failures": 0,
+    "workerReportedDurationMs": 1338823
+  },
+  "callArithmetic": {
+    "formula": "total = data-page calls + metadata calls + retry calls",
+    "batchFormula": "persisted batches = ceil(unique valid BINs / configured batch size)",
+    "minimumDataPageCalls": 11,
+    "additionalDataPageCalls": 0,
+    "observedTotalCalls": 17,
+    "substituted": "17 = 11 + 2 + 4"
+  },
+  "failures": {
+    "bulkRegistration": 15,
+    "ingestion": 0
+  },
+  "commands": [
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "-p",
+        "nyc-s5-t3-scale",
+        "down",
+        "--volumes",
+        "--remove-orphans"
+      ],
+      "display": "docker compose -p nyc-s5-t3-scale down --volumes --remove-orphans"
+    },
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "-p",
+        "nyc-s5-t3-scale",
+        "up",
+        "-d",
+        "--build",
+        "postgres",
+        "api"
+      ],
+      "display": "docker compose -p nyc-s5-t3-scale up -d --build postgres api"
+    },
+    {
+      "command": "docker",
+      "args": [
+        "compose",
+        "-p",
+        "nyc-s5-t3-scale",
+        "run",
+        "--rm",
+        "worker",
+        "npm",
+        "run",
+        "ingest:ecb"
+      ],
+      "display": "docker compose -p nyc-s5-t3-scale run --rm worker npm run ingest:ecb"
+    }
+  ],
+  "artifacts": {
+    "seed": "seed/scale-10000-bbls.json",
+    "registration": "evidence/scale-10000/bulk-registration.json",
+    "workerLog": "evidence/scale-10000/worker.log",
+    "applicationLog": "evidence/scale-10000/api.log",
+    "databaseRun": "evidence/scale-10000/database-run.json"
+  }
+}

@@ -1,0 +1,146 @@
+Compose can now delegate builds to bake for better performance.
+ To do so, set COMPOSE_BAKE=true.
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [migrate internal] load build definition from Dockerfile
+#1 transferring dockerfile: 322B done
+#1 DONE 0.0s
+
+#2 [migrate internal] load metadata for docker.io/library/node:22-bookworm-slim
+#2 DONE 0.9s
+
+#3 [migrate internal] load .dockerignore
+#3 transferring context: 671B done
+#3 DONE 0.0s
+
+#4 [migrate internal] load build context
+#4 transferring context: 10.24kB 0.0s done
+#4 DONE 0.1s
+
+#5 [migrate  1/10] FROM docker.io/library/node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5
+#5 resolve docker.io/library/node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5
+#5 resolve docker.io/library/node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5 0.1s done
+#5 DONE 0.1s
+
+#6 [migrate  9/10] RUN npm run build
+#6 CACHED
+
+#7 [migrate  4/10] RUN npm ci
+#7 CACHED
+
+#8 [migrate  2/10] WORKDIR /app
+#8 CACHED
+
+#9 [migrate  8/10] COPY src ./src
+#9 CACHED
+
+#10 [migrate  5/10] COPY prisma ./prisma
+#10 CACHED
+
+#11 [migrate  6/10] RUN npx prisma generate
+#11 CACHED
+
+#12 [migrate  7/10] COPY tsconfig.json tsconfig.build.json jest.config.cjs ./
+#12 CACHED
+
+#13 [migrate  3/10] COPY package.json package-lock.json ./
+#13 CACHED
+
+#14 [migrate 10/10] COPY tests ./tests
+#14 CACHED
+
+#15 [migrate] exporting to image
+#15 exporting layers done
+#15 exporting manifest sha256:a51b4ed0bf05e0e3da5c3351bc98cbf78f88ad91e3407fc9d45ab59f7dca5a9b 0.0s done
+#15 exporting config sha256:f201b5a28b376a143185917c52a9a5839dfc30b73bd3f97e3b27f533f58448b5 0.0s done
+#15 exporting attestation manifest sha256:abf5c8feaf113f5ed328061285084c712d8cb17af96c93e1e1b584b401482e82 0.1s done
+#15 exporting manifest list sha256:66d2fd4c6e0407fb01e7a1a7f9a81ab876c242cc0611953c6c6aecc39d026c26
+#15 exporting manifest list sha256:66d2fd4c6e0407fb01e7a1a7f9a81ab876c242cc0611953c6c6aecc39d026c26 0.0s done
+#15 naming to docker.io/library/nyc-property-resolver:local done
+#15 unpacking to docker.io/library/nyc-property-resolver:local 0.0s done
+#15 DONE 0.2s
+
+#16 [migrate] resolving provenance for metadata file
+#16 DONE 0.0s
+
+#17 [api internal] load build definition from Dockerfile
+#17 transferring dockerfile: 322B done
+#17 DONE 0.0s
+
+#2 [api internal] load metadata for docker.io/library/node:22-bookworm-slim
+#2 DONE 1.2s
+
+#18 [api internal] load .dockerignore
+#18 transferring context: 671B done
+#18 DONE 0.0s
+
+#19 [api internal] load build context
+#19 transferring context: 10.24kB 0.0s done
+#19 DONE 0.1s
+
+#5 [api  1/10] FROM docker.io/library/node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5
+#5 resolve docker.io/library/node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5 0.1s done
+#5 DONE 0.2s
+
+#8 [api  2/10] WORKDIR /app
+#8 CACHED
+
+#20 [api  4/10] RUN npm ci
+#20 CACHED
+
+#21 [api  5/10] COPY prisma ./prisma
+#21 CACHED
+
+#22 [api  6/10] RUN npx prisma generate
+#22 CACHED
+
+#23 [api  3/10] COPY package.json package-lock.json ./
+#23 CACHED
+
+#24 [api  9/10] RUN npm run build
+#24 CACHED
+
+#25 [api  8/10] COPY src ./src
+#25 CACHED
+
+#26 [api  7/10] COPY tsconfig.json tsconfig.build.json jest.config.cjs ./
+#26 CACHED
+
+#27 [api 10/10] COPY tests ./tests
+#27 CACHED
+
+#28 [api] exporting to image
+#28 exporting layers done
+#28 exporting manifest sha256:12db33051e527a221528d71478b94c98a44e07af42ae11744989a62b8dea5d9a done
+#28 exporting config sha256:52564fe7f5a118bf1e19d7ce28e27fc26293df1e4c39816cd1bec05069ef0bf3 done
+#28 exporting attestation manifest sha256:5bc67e51ce246d194300258fd37cf0e03cfbddf10aff7d47366792e16b3fc22f 0.1s done
+#28 exporting manifest list sha256:2b3c9ec4b992ed0ef5346d94c9f5d78dcbfafb1f7fcd6765cabd0e0ff6d323b1
+#28 exporting manifest list sha256:2b3c9ec4b992ed0ef5346d94c9f5d78dcbfafb1f7fcd6765cabd0e0ff6d323b1 0.0s done
+#28 naming to docker.io/library/nyc-property-resolver:local done
+#28 unpacking to docker.io/library/nyc-property-resolver:local 0.0s done
+#28 DONE 0.2s
+
+#29 [api] resolving provenance for metadata file
+#29 DONE 0.0s
+ api  Built
+ migrate  Built
+ Network nyc-s5-t3-scale_default  Creating
+ Network nyc-s5-t3-scale_default  Created
+ Volume "nyc-s5-t3-scale_postgres_data"  Creating
+ Volume "nyc-s5-t3-scale_postgres_data"  Created
+ Container nyc-s5-t3-scale-postgres-1  Creating
+ Container nyc-s5-t3-scale-postgres-1  Created
+ Container nyc-s5-t3-scale-migrate-1  Creating
+ Container nyc-s5-t3-scale-migrate-1  Created
+ Container nyc-s5-t3-scale-api-1  Creating
+ Container nyc-s5-t3-scale-api-1  Created
+ Container nyc-s5-t3-scale-postgres-1  Starting
+ Container nyc-s5-t3-scale-postgres-1  Started
+ Container nyc-s5-t3-scale-postgres-1  Waiting
+ Container nyc-s5-t3-scale-postgres-1  Healthy
+ Container nyc-s5-t3-scale-migrate-1  Starting
+ Container nyc-s5-t3-scale-migrate-1  Started
+ Container nyc-s5-t3-scale-migrate-1  Waiting
+ Container nyc-s5-t3-scale-migrate-1  Exited
+ Container nyc-s5-t3-scale-api-1  Starting
+ Container nyc-s5-t3-scale-api-1  Started

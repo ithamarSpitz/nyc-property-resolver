@@ -1,0 +1,7 @@
+{
+  "failedAt": "2026-09-17T23:44:41.7754040Z",
+  "errorType": "ScaleAcceptanceFailure",
+  "errorMessage": "Bulk registration persisted 9,985 of the required 10,000 unique properties; 15 per-BBL application failures make this run invalid as 10,000-property acceptance evidence.",
+  "registrationEvidence": "evidence/scale-10000/bulk-registration.json",
+  "failureAudit": "evidence/scale-10000/diagnostics/attempt-03-registration-failure-audit.json"
+}
