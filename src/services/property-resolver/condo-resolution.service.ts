@@ -152,7 +152,10 @@ export async function resolveCondoUnitBbl(
 
   const condoBaseBbl = unitLookup.matches[0].condoBaseBbl;
   const condoBillingBbl = await resolveCondoBillingBbl(clients.condominiums, condoBaseBbl);
-  const parcel = requirePlutoParcel(unitBbl, await clients.pluto.lookupByBbl(unitBbl));
+  const parcel = requirePlutoParcel(
+    condoBillingBbl,
+    await clients.pluto.lookupByBbl(condoBillingBbl),
+  );
   const candidateBins = await resolveFootprintBinsForCondoBase(
     clients.buildingFootprints,
     condoBaseBbl,

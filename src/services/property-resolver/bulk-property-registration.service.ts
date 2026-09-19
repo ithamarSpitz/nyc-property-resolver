@@ -200,7 +200,6 @@ export class BulkPropertyRegistrationService {
       const condoUnitBbls = uncachedBbls.filter((bbl) => isCondoUnitLot(parseBblComponents(bbl).lot));
       const nonCondoBbls = uncachedBbls.filter((bbl) => !isCondoUnitLot(parseBblComponents(bbl).lot));
 
-      const plutoResults = await this.clients.pluto.lookupByBbls(uncachedBbls);
       const parcelFootprintResults = await this.clients.buildingFootprints.lookupByParcelBbls(
         nonCondoBbls,
       );
@@ -216,6 +215,17 @@ export class BulkPropertyRegistrationService {
 
       const condoBillingResults = await this.clients.condominiums.lookupByCondoBaseBbls([
         ...condoBaseBbls,
+      ]);
+      const condoBillingBbls = new Set<CanonicalBbl>();
+      for (const lookup of condoBillingResults.values()) {
+        if (lookup.matchCount === 'one') {
+          condoBillingBbls.add(lookup.matches[0].condoBillingBbl);
+        }
+      }
+
+      const plutoResults = await this.clients.pluto.lookupByBbls([
+        ...nonCondoBbls,
+        ...condoBillingBbls,
       ]);
       const condoBaseFootprintResults = await this.clients.buildingFootprints.lookupByBaseBbls([
         ...condoBaseBbls,
@@ -285,7 +295,10 @@ export class BulkPropertyRegistrationService {
           }
 
           const condoBillingBbl = billingLookup!.matches[0].condoBillingBbl;
-          const parcel = requirePlutoParcel(unitBbl, plutoResults.get(unitBbl));
+          const parcel = requirePlutoParcel(
+            condoBillingBbl,
+            plutoResults.get(condoBillingBbl),
+          );
           const footprintLookup = condoBaseFootprintResults.get(condoBaseBbl);
           const candidateBins =
             footprintLookup?.status === 'found'
@@ -432,15 +445,16 @@ export class BulkPropertyRegistrationService {
   }
 
   private async persistCondoProperty(payload: ResolvedCondoPayload): Promise<PropertyWithRelations> {
+    const unitComponents = parseBblComponents(payload.unitBbl);
     const property = await this.propertyIdentity.findOrCreateProperty({
       bbl: payload.unitBbl,
       candidateBins: payload.candidateBins,
       normalizedAddress: payload.parcel.address,
       condoBaseBbl: payload.condoBaseBbl,
       condoBillingBbl: payload.condoBillingBbl,
-      borough: payload.parcel.borough,
-      block: payload.parcel.block,
-      lot: payload.parcel.lot,
+      borough: unitComponents.borough,
+      block: unitComponents.block,
+      lot: unitComponents.lot,
     });
 
     const refreshed =
