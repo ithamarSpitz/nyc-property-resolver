@@ -7,59 +7,52 @@ ECB Violations are fetched only for BINs that belong to tracked properties.
 
 ### 6.1 Measured Scale
 
-Testing showed that the watchlist strategy is efficient at the required scale:
+Two measurement sets exist in the project history and they serve different purposes.
 
-- The tested watchlist transferred approximately 0.86 MB compared with approximately 12.55 MB for citywide changes over the same window.
-- The watchlist data pull completed in approximately 5.5 seconds with concurrency 10.
-- A 10,000-property PLUTO sample produced 10,087 BINs.
-- The complete initial ECB history for those BINs was approximately 2,879 rows, 3.23 MB, and 11 ECB data-page requests.
-- The initial data backfill completed in approximately 4.5 seconds.
+The **early planning probe** compared watchlist-shaped retrieval with broader citywide retrieval before the final acceptance run:
 
-The implemented architecture additionally performs one dataset-metadata request at the start and one at the end of each run.
+- approximately 0.86 MB for the tested watchlist versus approximately 12.55 MB for citywide changes over the same window;
+- approximately 5.5 seconds for the tested watchlist pull at concurrency 10;
+- a 10,000-BBL PLUTO planning sample that yielded 10,087 BINs;
+- approximately 2,879 ECB rows (3.23 MB) and 11 ECB data-page requests;
+- approximately 4.5 seconds for that initial probe backfill.
 
-Therefore, with no retries and one data page per BIN batch:
+Those probe numbers are retained only as exploratory evidence for the watchlist-vs-mirror decision. They are **superseded for submission sizing and scale claims** by the deterministic final acceptance evidence below.
+
+The final acceptance run submitted **10,000 PLUTO BBLs**. Fifteen source/resolver-quality inputs failed registration, leaving **9,985 registered properties** and **10,800 valid BINs**. Accepted ingestion completed with:
 
 ```text
-10,087 BINs:
-  data-page calls = 11
-  metadata calls  = 2
-  baseline total  = 13
-
+11 data calls + 2 metadata calls + 1 retry = 14 observed Socrata calls
+81,486 rows fetched/staged/promoted
+0 ingestion failures
+1,311.004 s ingestion
+1,651.394 s end to end
 ```
 
-Retries and additional pagination pages are counted on top of these baseline totals.
+At that accepted shape, the no-retry baseline is **13 Socrata calls** (11 data + 2 metadata); retries and additional pagination pages are counted on top.
 
-The watchlist therefore remains small enough to query directly in batches while avoiding storage and transfer of unrelated citywide data.
-
+The watchlist therefore remains small enough to query directly in bounded batches while avoiding storage and transfer of unrelated citywide data.
 
 ### 20,000-Property Projection
 
-The assignment scale target is expressed in **properties**, not BINs.
-
-Measured:
+The assignment scale target is expressed in **properties**, not BINs. Using the final acceptance ratio as a linear planning estimate for **20,000 successfully registered properties**:
 
 ```text
-10,000 properties
--> 10,087 unique valid BINs
--> 1.0087 BINs/property in this sample
-```
+10,800 / 9,985 = 1.08162 BINs/property
+20,000 properties -> ~21,632 BINs
 
-If that observed ratio is used only as a planning estimate:
+ceil(21,632 / 1,000)
+= 22 data batches
 
-```text
-20,000 properties
-x 1.0087 BINs/property
-≈ 20,174 unique valid BINs
-
-ceil(20,174 / 1,000)
-= 21 data batches
-
-21 data-page calls
+22 data-page calls
 + 2 metadata calls
-= ~23 baseline Socrata calls
+= ~24 baseline Socrata calls
+
+81,486 / 9,985 * 20,000 = ~163,217 rows
+1,311.004 / 9,985 * 20,000 = ~2,625.947 s (~43m 46s)
 ```
 
-This is an estimate, not a measured 20,000-property result. The actual value depends on the property sample, shared BINs, multi-building lots, and deduplication.
+These are estimates, not measured 20,000-property results. Property mix, shared BINs, pagination, latency, and retries can change them.
 
 The general formula is:
 
@@ -76,27 +69,19 @@ Retries are counted separately.
 
 The implemented strategy is **Watchlist Pull**.
 
-At the assignment scale, the measured data strongly favors watchlist ingestion:
+At the final acceptance scale:
 
 ```text
-10,000 properties
--> 10,087 unique valid BINs
+10,000 PLUTO BBL inputs
+-> 9,985 registered properties
+-> 10,800 unique valid BINs
 -> 11 ECB data-page requests
--> +2 metadata requests in the implemented run
--> 13 baseline Socrata requests before retries/additional pages
-```
-
-Using the measured BIN/property ratio only as a planning estimate:
-
-```text
-20,000 properties
--> ~20,174 unique valid BINs
--> 21 data-page requests
 -> +2 metadata requests
--> ~23 baseline Socrata requests
+-> +1 observed retry
+-> 14 observed Socrata requests
 ```
 
-The 20,000-property figure is a projection, not a measured result.
+For 20,000 successfully registered properties, the same measured BIN/property ratio gives a planning estimate of **~21,632 BINs** and **~24 baseline Socrata calls** before retries/additional pages.
 
 #### Rejected strategy: full dataset mirror
 
@@ -118,18 +103,9 @@ without maintaining unrelated NYC rows.
 
 The decision should be re-evaluated **per NYC dataset**, not globally at a fixed property count.
 
-At 20,000 properties, ECB remains comfortably in watchlist territory based on the measured/projection call counts and transfer volumes.
+At 20,000 properties, ECB remains comfortably in watchlist territory based on the measured/projection call counts and relevant-row volume.
 
-Adding ten NYC data points does **not** imply multiplying ECB's cost by ten. Different datasets have different:
-
-```text
-- row density
-- update frequency
-- queryability
-- identifiers
-- payload sizes
-- historical depth
-```
+For **one versus ten NYC data points**, ten hypothetical ECB-shaped sources at the 20k estimate would be roughly **240 baseline calls, 1.63M relevant rows, and 7h 18m of serial ingestion**. This is an illustrative reference only: real datasets differ in density, update frequency, queryability, identifiers, payload size, and historical depth.
 
 A dataset becomes a candidate for mirror ingestion when one or more of the following become true:
 
