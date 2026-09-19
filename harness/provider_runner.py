@@ -12,7 +12,7 @@ from .usage import UsageRecorder
 
 
 class ProviderAgentRunner:
-    """Codex-first router with additive Cursor fallback."""
+    """Provider router with optional Cursor fallback."""
 
     manages_model_routing = True
 
@@ -110,6 +110,8 @@ class ProviderAgentRunner:
                             model=model, reasoning_effort=reasoning_effort, env=env,
                         )
                         if self._provider_unavailable(result):
+                            if not self.config.cursor.enabled:
+                                return result
                             reason = (f"quota:{result.quota_scope or 'unspecified'}" if result.quota_exhausted else ("auth" if result.auth_failure else "model_unavailable"))
                             self._mark_codex_disabled(task, reason)
                         elif result.capacity_exhausted or result.transient_error:
@@ -118,8 +120,18 @@ class ProviderAgentRunner:
                             self._consume_provider_attempt(task, "codex")
                             return result
                 else:
+                    if not self.config.cursor.enabled:
+                        return AgentResult(
+                            False, "", "Codex CLI/auth unavailable and Cursor fallback is disabled",
+                            provider="codex", auth_failure=True,
+                        )
                     self._mark_codex_disabled(task, "auth_or_cli_unavailable")
             except Exception as exc:
+                if not self.config.cursor.enabled:
+                    return AgentResult(
+                        False, "", f"Codex integration error: {type(exc).__name__}",
+                        provider="codex", transient_error=True,
+                    )
                 self._mark_codex_disabled(task, f"integration_error:{type(exc).__name__}")
 
         if not self.config.cursor.enabled:
@@ -151,13 +163,25 @@ class ProviderAgentRunner:
                         model=self.config.codex.review_model, env=env,
                     )
                     if self._provider_unavailable(result):
+                        if not self.config.cursor.enabled:
+                            return result
                         reason = (f"quota:{result.quota_scope or 'unspecified'}" if result.quota_exhausted else ("auth" if result.auth_failure else "model_unavailable"))
                         self._mark_codex_disabled(task, reason)
                     else:
                         return result
                 else:
+                    if not self.config.cursor.enabled:
+                        return AgentResult(
+                            False, "", "Codex CLI/auth unavailable and Cursor fallback is disabled",
+                            provider="codex", auth_failure=True,
+                        )
                     self._mark_codex_disabled(task, "auth_or_cli_unavailable")
             except Exception as exc:
+                if not self.config.cursor.enabled:
+                    return AgentResult(
+                        False, "", f"Codex integration error: {type(exc).__name__}",
+                        provider="codex", transient_error=True,
+                    )
                 self._mark_codex_disabled(task, f"integration_error:{type(exc).__name__}")
         if not self.config.cursor.enabled:
             return AgentResult(
@@ -180,13 +204,25 @@ class ProviderAgentRunner:
                         model=self.config.codex.planner_model, env=env,
                     )
                     if self._provider_unavailable(result):
+                        if not self.config.cursor.enabled:
+                            return result
                         reason = (f"quota:{result.quota_scope or 'unspecified'}" if result.quota_exhausted else ("auth" if result.auth_failure else "model_unavailable"))
                         self._mark_codex_disabled(task, reason)
                     else:
                         return result
                 else:
+                    if not self.config.cursor.enabled:
+                        return AgentResult(
+                            False, "", "Codex CLI/auth unavailable and Cursor fallback is disabled",
+                            provider="codex", auth_failure=True,
+                        )
                     self._mark_codex_disabled(task, "auth_or_cli_unavailable")
             except Exception as exc:
+                if not self.config.cursor.enabled:
+                    return AgentResult(
+                        False, "", f"Codex integration error: {type(exc).__name__}",
+                        provider="codex", transient_error=True,
+                    )
                 self._mark_codex_disabled(task, f"integration_error:{type(exc).__name__}")
         if not self.config.cursor.enabled:
             return AgentResult(
