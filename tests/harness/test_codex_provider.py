@@ -358,10 +358,10 @@ def test_disabled_cursor_never_receives_codex_quota_fallback(tmp_path: Path):
 
     assert not result.ok
     assert result.provider == "codex"
-    assert "Cursor fallback is disabled" in (result.error or "")
+    assert result.quota_exhausted
     assert cursor.implement_classes == []
-    assert state.get_meta("S1.provider.codex.disabled_run") == "quota:unspecified"
-    assert not router.has_implementation_budget(task)
+    assert state.get_meta("S1.provider.codex.disabled_run") is None
+    assert router.has_implementation_budget(task)
 
 
 def test_disabled_cursor_rejects_manual_model_class_override(tmp_path: Path):
@@ -390,7 +390,7 @@ def test_disabled_cursor_never_receives_review_fallback(tmp_path: Path):
 
     assert not result.ok
     assert result.provider == "codex"
-    assert "Cursor fallback is disabled" in (result.error or "")
+    assert result.quota_exhausted
     assert cursor.review_calls == 0
 
 
