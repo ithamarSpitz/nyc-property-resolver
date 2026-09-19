@@ -38,9 +38,13 @@ class ProviderAgentRunner:
             normalized = provider.strip().casefold()
             if normalized == "codex" and self._codex_enabled_for(task):
                 return "codex"
-            if normalized == "cursor":
+            if normalized == "cursor" and self.config.cursor.enabled:
                 return "cursor"
-        return "cursor"
+        if self._codex_enabled_for(task):
+            return "codex"
+        if self.config.cursor.enabled:
+            return "cursor"
+        return "none"
 
     def _mark_codex_disabled(self, task: TaskSpec, reason: str) -> None:
         self.state.set_meta(self._disable_key(task.sprint), reason)
@@ -60,6 +64,8 @@ class ProviderAgentRunner:
 
     def active_provider(self, task: TaskSpec, *, model_class_override: str | None = None) -> str:
         if model_class_override is not None:
+            if not self.config.cursor.enabled:
+                raise RuntimeError("Cursor is disabled in harness.yaml; remove --model-class or explicitly re-enable Cursor")
             return "cursor"
         return self._preferred_provider(task)
 
@@ -111,6 +117,15 @@ class ProviderAgentRunner:
             except Exception as exc:
                 self._mark_codex_disabled(task, f"integration_error:{type(exc).__name__}")
 
+        if not self.config.cursor.enabled:
+            return AgentResult(
+                False,
+                "",
+                "Codex is unavailable and Cursor fallback is disabled in harness.yaml",
+                provider="codex",
+                auth_failure=True,
+            )
+
         model_class = self._cursor_model_class(task, model_class_override=model_class_override)
         result = self.cursor.implement(
             task, workspace, timeout_minutes, attempt, previous_failure,
@@ -139,6 +154,14 @@ class ProviderAgentRunner:
                     self._mark_codex_disabled(task, "auth_or_cli_unavailable")
             except Exception as exc:
                 self._mark_codex_disabled(task, f"integration_error:{type(exc).__name__}")
+        if not self.config.cursor.enabled:
+            return AgentResult(
+                False,
+                "",
+                "Codex review is unavailable and Cursor fallback is disabled in harness.yaml",
+                provider="codex",
+                auth_failure=True,
+            )
         return self.cursor.review(task, workspace, base_ref, verification_summary, timeout_minutes, env=env)
 
     def plan_change(self, task: TaskSpec, workspace: Path, failure_summary: str, timeout_minutes: int,
@@ -160,6 +183,14 @@ class ProviderAgentRunner:
                     self._mark_codex_disabled(task, "auth_or_cli_unavailable")
             except Exception as exc:
                 self._mark_codex_disabled(task, f"integration_error:{type(exc).__name__}")
+        if not self.config.cursor.enabled:
+            return AgentResult(
+                False,
+                "",
+                "Codex plan repair is unavailable and Cursor fallback is disabled in harness.yaml",
+                provider="codex",
+                auth_failure=True,
+            )
         return self.cursor.plan_change(
             task, workspace, failure_summary, timeout_minutes, model_class=model_class, env=env
         )
