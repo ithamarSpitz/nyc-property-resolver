@@ -126,6 +126,8 @@ Invoke-RestMethod `
 
 Scan current ECB results across all watched properties without one request per property. `unpaidOnly=true`, `updatedSince=<ISO timestamp>`, `limit=1..100`, and the returned cursor are optional:
 
+The portfolio endpoint returns current accepted violations only; per-property freshness and coverage are exposed by `GET /properties/<property-id>/ecb-violations`.
+
 **Linux / macOS — Bash/zsh (POSIX shell):**
 
 ```bash
