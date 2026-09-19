@@ -33,6 +33,7 @@ class WorktreeConfig:
 
 @dataclass(slots=True)
 class CursorConfig:
+    enabled: bool = True
     command: str = "agent"
     output_format: str = "text"
     # Headless Cursor requires workspace trust. The harness only supplies --trust
