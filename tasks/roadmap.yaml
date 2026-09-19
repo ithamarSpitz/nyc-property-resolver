@@ -465,6 +465,17 @@ sprints:
       '1':
       - npm ci
       - npm run typecheck
+  S8-condo-pluto-billing-validation:
+    name: Condo Billing PLUTO Validation Repair
+    tasks:
+      S8-T1:
+        file: tasks/sprint-08-condo-pluto-billing-validation/01-condo-billing-pluto-validation.md
+        stage: 1
+        depends_on: []
+    stage_verification:
+      '1':
+      - npm run typecheck
+      - npm run verify:property-resolution
   demo:
     name: Harness demo DAG
     tasks:
