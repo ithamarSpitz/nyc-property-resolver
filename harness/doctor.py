@@ -63,23 +63,32 @@ class Doctor:
         git_ok, git_detail = self._command_version("git")
         checks.append(DoctorCheck("git", git_ok, git_detail))
 
-        cursor_parts = split_command(self.config.cursor.command)
+        cursor_parts = split_command(self.config.cursor.command) if self.config.cursor.enabled else []
         cursor_path = locate_executable(cursor_parts[0]) if cursor_parts else None
-        checks.append(DoctorCheck("cursor-agent", cursor_path is not None, cursor_path or "missing"))
+        if self.config.cursor.enabled:
+            checks.append(DoctorCheck("cursor-agent", cursor_path is not None, cursor_path or "missing"))
+        else:
+            checks.append(DoctorCheck("cursor-agent", True, "disabled by configuration", required=False))
         try:
             self.worktrees.ensure_repo()
             checks.append(DoctorCheck("git-root", True, str(self.root)))
         except Exception as exc:
             checks.append(DoctorCheck("git-root", False, str(exc)))
 
-        if cursor_path:
+        if self.config.cursor.enabled and cursor_path:
             ok, detail = self._command_version(self.config.cursor.command)
             checks.append(DoctorCheck("cursor-version", ok, detail))
 
         codex_parts = split_command(self.config.codex.command) if self.config.codex.enabled else []
         codex_path = locate_codex_executable(codex_parts[0]) if codex_parts else None
         if self.config.codex.enabled:
-            checks.append(DoctorCheck("codex-cli", codex_path is not None, codex_path or "missing; Cursor fallback remains available", required=False))
+            codex_required = not self.config.cursor.enabled
+            checks.append(DoctorCheck(
+                "codex-cli",
+                codex_path is not None,
+                codex_path or ("missing; Cursor fallback remains available" if self.config.cursor.enabled else "missing; Cursor fallback is disabled"),
+                required=codex_required,
+            ))
             if codex_path:
                 try:
                     version_proc = subprocess.run(
@@ -87,7 +96,7 @@ class Doctor:
                         text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=15,
                     )
                     version_text = ((version_proc.stdout or "") + ("\n" + version_proc.stderr if version_proc.stderr else "")).strip()
-                    checks.append(DoctorCheck("codex-version", version_proc.returncode == 0, version_text[:300] or codex_path, required=False))
+                    checks.append(DoctorCheck("codex-version", version_proc.returncode == 0, version_text[:300] or codex_path, required=not self.config.cursor.enabled))
                     proc = subprocess.run(
                         prepare_external_argv(resolve_codex_argv(self.config.codex.command, "login", "status")), cwd=self.root,
                         text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=20,
@@ -95,9 +104,14 @@ class Doctor:
                     output = ((proc.stdout or "") + ("\n" + proc.stderr if proc.stderr else "")).strip()
                     required = self.config.codex.auth_required_substring
                     logged = proc.returncode == 0 and (not required or required.casefold() in output.casefold())
-                    checks.append(DoctorCheck("codex-chatgpt-auth", logged, output[:300] or "not authenticated; Cursor fallback remains available", required=False))
+                    checks.append(DoctorCheck(
+                        "codex-chatgpt-auth",
+                        logged,
+                        output[:300] or ("not authenticated; Cursor fallback remains available" if self.config.cursor.enabled else "not authenticated; Cursor fallback is disabled"),
+                        required=not self.config.cursor.enabled,
+                    ))
                 except (OSError, subprocess.TimeoutExpired) as exc:
-                    checks.append(DoctorCheck("codex-chatgpt-auth", False, str(exc), required=False))
+                    checks.append(DoctorCheck("codex-chatgpt-auth", False, str(exc), required=not self.config.cursor.enabled))
 
         if not full:
             return checks
@@ -178,7 +192,7 @@ class Doctor:
                     )
                 )
 
-        if cursor_path and self.config.doctor.check_cursor_models:
+        if self.config.cursor.enabled and cursor_path and self.config.doctor.check_cursor_models:
             try:
                 proc = subprocess.run(
                     prepare_external_argv([*cursor_parts, "models"]),
