@@ -35,6 +35,7 @@ def _write_config(tmp_path: Path, codex_command: str) -> HarnessConfig:
             "watchdog_poll_seconds": 0.1,
         },
         "cursor": {
+            "enabled": True,
             "command": "agent",
             "models": {
                 "worker": "composer-2.5",
@@ -343,6 +344,54 @@ def test_codex_substantive_ladder_is_sol_medium_sol_medium_sol_high_astra_medium
     assert state.get(task.id).provider_attempts == {"codex": 4}
     assert not router.has_implementation_budget(task)
     assert cursor.implement_classes == []
+
+
+def test_disabled_cursor_never_receives_codex_quota_fallback(tmp_path: Path):
+    codex = _FakeCodex([AgentResult(False, "", "limit", quota_exhausted=True, provider="codex")])
+    cursor = _FakeCursor([AgentResult(True, "cursor should not run", provider="cursor")])
+    router, state, _ = _router(tmp_path, codex, cursor)
+    router.config.cursor.enabled = False
+    task = _task(tmp_path)
+    workspace = tmp_path / "w"; workspace.mkdir()
+
+    result = router.implement(task, workspace, 1, 1, None)
+
+    assert not result.ok
+    assert result.provider == "codex"
+    assert "Cursor fallback is disabled" in (result.error or "")
+    assert cursor.implement_classes == []
+    assert state.get_meta("S1.provider.codex.disabled_run") == "quota:unspecified"
+    assert not router.has_implementation_budget(task)
+
+
+def test_disabled_cursor_rejects_manual_model_class_override(tmp_path: Path):
+    router, _, _ = _router(tmp_path, _FakeCodex(), _FakeCursor())
+    router.config.cursor.enabled = False
+    task = _task(tmp_path)
+
+    assert not router.has_implementation_budget(task, model_class_override="worker")
+    try:
+        router.active_provider(task, model_class_override="worker")
+    except RuntimeError as exc:
+        assert "Cursor is disabled" in str(exc)
+    else:
+        raise AssertionError("disabled Cursor must require explicit re-enable before --model-class")
+
+
+def test_disabled_cursor_never_receives_review_fallback(tmp_path: Path):
+    codex = _FakeCodex([AgentResult(False, "", "limit", quota_exhausted=True, provider="codex")])
+    cursor = _FakeCursor([AgentResult(True, "VERDICT: PASS\n", provider="cursor")])
+    router, _, _ = _router(tmp_path, codex, cursor)
+    router.config.cursor.enabled = False
+    task = _task(tmp_path)
+    workspace = tmp_path / "w"; workspace.mkdir()
+
+    result = router.review(task, workspace, "base", "verification ok", 1)
+
+    assert not result.ok
+    assert result.provider == "codex"
+    assert "Cursor fallback is disabled" in (result.error or "")
+    assert cursor.review_calls == 0
 
 
 def test_codex_quota_switches_to_cursor_same_attempt_and_preserves_task_attempt(tmp_path: Path):
