@@ -4,9 +4,11 @@ This service resolves NYC addresses or BBLs once, stores canonical parcel/buildi
 
 ## Run it
 
-The application path requires only Docker with Compose (and `curl` for the examples). From a clean checkout:
+The application path requires only Docker with Compose. From a clean checkout, run this command in either Linux / macOS (Bash/zsh or an equivalent POSIX shell) or Windows PowerShell.
 
-```bash
+**Cross-platform (Linux / macOS and Windows PowerShell):**
+
+```text
 docker compose up --build
 ```
 
@@ -24,7 +26,9 @@ SOCRATA_APP_TOKEN=your-token-here
 
 Other bounded ingestion controls are documented in `.env.example`. Trigger exactly one ingestion run without waiting for the scheduler:
 
-```bash
+**Cross-platform (Linux / macOS and Windows PowerShell):**
+
+```text
 docker compose run --rm worker npm run ingest:ecb
 ```
 
@@ -32,9 +36,11 @@ Address resolution uses GeoSearch for address-to-parcel candidates, PLUTO for ca
 
 ## API by example
 
-All responses are JSON. Replace `<property-id>` and `<cursor>` with values returned by the preceding call. The `curl` examples below use POSIX shell quoting (Bash/zsh). On Windows PowerShell, prefer `Invoke-RestMethod` for JSON request bodies; PowerShell's native argument handling can mangle JSON passed to `curl.exe`.
+All responses are JSON. Replace `<property-id>` and `<cursor>` with values returned by the preceding call. Linux / macOS examples target Bash/zsh (or an equivalent POSIX shell). Windows examples target Windows PowerShell. For JSON request bodies, the PowerShell examples use `Invoke-RestMethod` because PowerShell 5.1 can mangle JSON passed to `curl.exe`.
 
 Create or resolve one property (exactly one of `address` or `bbl`; repeated input is idempotent):
+
+**Linux / macOS — Bash/zsh (POSIX shell):**
 
 ```bash
 curl -sS -X POST http://localhost:3000/properties \
@@ -42,7 +48,7 @@ curl -sS -X POST http://localhost:3000/properties \
   -d '{"address":"350 5th Avenue, Manhattan, NY"}'
 ```
 
-Windows PowerShell equivalent:
+**Windows PowerShell:**
 
 ```powershell
 Invoke-RestMethod `
@@ -58,8 +64,16 @@ Invoke-RestMethod `
 
 Get the stored property:
 
+**Linux / macOS — Bash/zsh (POSIX shell):**
+
 ```bash
 curl -sS http://localhost:3000/properties/<property-id>
+```
+
+**Windows PowerShell:**
+
+```powershell
+curl.exe -sS "http://localhost:3000/properties/<property-id>"
 ```
 
 ```json
@@ -68,8 +82,16 @@ curl -sS http://localhost:3000/properties/<property-id>
 
 Get that property's locally stored ECB rows. Results are newest first; `openOnly=true`, `unpaidOnly=true`, `limit=1..100`, and the opaque `cursor` are optional:
 
+**Linux / macOS — Bash/zsh (POSIX shell):**
+
 ```bash
 curl -sS 'http://localhost:3000/properties/<property-id>/ecb-violations?openOnly=false&unpaidOnly=false&limit=1'
+```
+
+**Windows PowerShell:**
+
+```powershell
+curl.exe -sS "http://localhost:3000/properties/<property-id>/ecb-violations?openOnly=false&unpaidOnly=false&limit=1"
 ```
 
 ```json
@@ -78,13 +100,15 @@ curl -sS 'http://localhost:3000/properties/<property-id>/ecb-violations?openOnly
 
 Register BBLs in bulk (1–10,000 per request; results are per input so source-data failures remain visible):
 
+**Linux / macOS — Bash/zsh (POSIX shell):**
+
 ```bash
 curl -sS -X POST http://localhost:3000/properties/bulk \
   -H 'content-type: application/json' \
   -d '{"bbls":["1008350041"]}'
 ```
 
-Windows PowerShell equivalent:
+**Windows PowerShell:**
 
 ```powershell
 Invoke-RestMethod `
@@ -100,8 +124,16 @@ Invoke-RestMethod `
 
 Scan current ECB results across all watched properties without one request per property. `unpaidOnly=true`, `updatedSince=<ISO timestamp>`, `limit=1..100`, and the returned cursor are optional:
 
+**Linux / macOS — Bash/zsh (POSIX shell):**
+
 ```bash
 curl -sS 'http://localhost:3000/ecb-violations?unpaidOnly=true&limit=1'
+```
+
+**Windows PowerShell:**
+
+```powershell
+curl.exe -sS "http://localhost:3000/ecb-violations?unpaidOnly=true&limit=1"
 ```
 
 ```json
@@ -126,7 +158,9 @@ Deterministic Empire State walkthrough: start Compose, `POST /properties` with t
 
 The five-property fixture is [`seed/acceptance-properties.json`](seed/acceptance-properties.json); it includes the Empire State Building, a Queens hyphenated number, a condo unit, a two-family house, and an unpaid-balance property. With the API running, Node 22 is needed only for the optional evidence runner:
 
-```bash
+**Cross-platform (Linux / macOS and Windows PowerShell):**
+
+```text
 npm run acceptance:small
 ```
 
