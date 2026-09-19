@@ -275,7 +275,7 @@ describe('PropertyResolverService integration', () => {
     });
     pluto.lookupByBbl.mockResolvedValue({
       status: 'found',
-      parcel: plutoParcel(CONDO_UNIT_BBL, '419 E 84 St Apt 12C', { lot: 5678 }),
+      parcel: plutoParcel(CONDO_BILLING_BBL, '419 E 84 St'),
     });
     buildingFootprints.lookupByBaseBbl.mockResolvedValue({
       status: 'found',
@@ -296,9 +296,56 @@ describe('PropertyResolverService integration', () => {
       bbl: CONDO_UNIT_BBL,
       condoBaseBbl: CONDO_BASE_BBL,
       condoBillingBbl: CONDO_BILLING_BBL,
+      borough: 1,
+      block: 1234,
+      lot: 5678,
+      normalizedAddress: '419 E 84 St',
     });
     expect(result.property.bins.map((row) => row.bin)).toEqual(['1045678']);
+    expect(pluto.lookupByBbl).toHaveBeenCalledWith(CONDO_BILLING_BBL);
+    expect(pluto.lookupByBbl).not.toHaveBeenCalledWith(CONDO_UNIT_BBL);
     expect(geoSearch.searchByAddress).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      lookup: { status: 'not_found' as const },
+      expectedCode: 'RESOLVER_PLUTO_NOT_FOUND',
+    },
+    {
+      lookup: { status: 'incomplete' as const, reasons: ['missing_address' as const] },
+      expectedCode: 'RESOLVER_PLUTO_INCOMPLETE',
+    },
+  ])('reports the authoritative billing BBL when condo PLUTO is $lookup.status', async ({
+    lookup,
+    expectedCode,
+  }) => {
+    condoUnits.lookupByUnitBbl.mockResolvedValue({
+      matchCount: 'one',
+      matches: [
+        {
+          unitBbl: CONDO_UNIT_BBL,
+          condoBaseBbl: CONDO_BASE_BBL,
+          unitDesignation: '12C',
+        },
+      ],
+    });
+    condominiums.lookupByCondoBaseBbl.mockResolvedValue({
+      matchCount: 'one',
+      matches: [
+        {
+          condoBaseBbl: CONDO_BASE_BBL,
+          condoBillingBbl: CONDO_BILLING_BBL,
+        },
+      ],
+    });
+    pluto.lookupByBbl.mockResolvedValue(lookup);
+
+    await expect(resolver.resolveBbl(CONDO_UNIT_BBL)).rejects.toMatchObject({
+      code: expectedCode,
+      message: expect.stringContaining(CONDO_BILLING_BBL),
+    });
+    expect(pluto.lookupByBbl).toHaveBeenCalledWith(CONDO_BILLING_BBL);
   });
 
   it('resolves a unit-aware address when exactly one condo unit matches', async () => {
@@ -340,7 +387,7 @@ describe('PropertyResolverService integration', () => {
     });
     pluto.lookupByBbl.mockResolvedValue({
       status: 'found',
-      parcel: plutoParcel(CONDO_UNIT_BBL, '419 E 84 St Apt 12C', { lot: 5678 }),
+      parcel: plutoParcel(CONDO_BILLING_BBL, '419 E 84 St'),
     });
     buildingFootprints.lookupByBaseBbl.mockResolvedValue({
       status: 'found',
@@ -414,7 +461,7 @@ describe('PropertyResolverService integration', () => {
     });
     pluto.lookupByBbl.mockResolvedValue({
       status: 'found',
-      parcel: plutoParcel(unitBbl, '20 WEST STREET', { lot: 1137 }),
+      parcel: plutoParcel(billingBbl, '20 WEST STREET'),
     });
     buildingFootprints.lookupByBaseBbl.mockResolvedValue({
       status: 'found',
@@ -429,8 +476,14 @@ describe('PropertyResolverService integration', () => {
       bbl: unitBbl,
       condoBaseBbl: authoritativeBaseBbl,
       condoBillingBbl: billingBbl,
+      borough: 1,
+      block: 15,
+      lot: 1137,
+      normalizedAddress: '20 WEST STREET',
     });
     expect(result.property.bins.map((row) => row.bin)).toEqual([bin]);
+    expect(pluto.lookupByBbl).toHaveBeenCalledWith(billingBbl);
+    expect(pluto.lookupByBbl).not.toHaveBeenCalledWith(unitBbl);
     expect(condominiums.lookupByCondoBillingBbl).toHaveBeenCalledWith(billingBbl);
     expect(condoUnits.lookupByCondoBaseAndUnitDesignation).toHaveBeenCalledWith(
       authoritativeBaseBbl,
@@ -559,9 +612,7 @@ describe('PropertyResolverService integration', () => {
       });
       pluto.lookupByBbl.mockResolvedValueOnce({
         status: 'found',
-        parcel: plutoParcel(unitBbl, `419 E 84 St Apt ${unitDesignation}`, {
-          lot: Number.parseInt(unitBbl.slice(6, 10), 10),
-        }),
+        parcel: plutoParcel(CONDO_BILLING_BBL, '419 E 84 St'),
       });
       buildingFootprints.lookupByBaseBbl.mockResolvedValueOnce({
         status: 'found',

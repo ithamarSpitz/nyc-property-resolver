@@ -208,7 +208,7 @@ export function mockCondoUnitAddressResolution(clients: MockResolverClients): vo
   });
   clients.pluto.lookupByBbl.mockResolvedValue({
     status: 'found',
-    parcel: plutoParcel(CONDO_UNIT_BBL, '419 E 84 St Apt 12C', { lot: 5678 }),
+    parcel: plutoParcel(CONDO_BILLING_BBL, '419 E 84 St'),
   });
   clients.buildingFootprints.lookupByBaseBbl.mockResolvedValue({
     status: 'found',

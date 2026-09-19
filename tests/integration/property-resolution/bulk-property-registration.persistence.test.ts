@@ -230,12 +230,10 @@ describe('bulk property registration persistence', () => {
   it('persists condo unit BBLs through the bulk condo mapping flow', async () => {
     pluto.lookupByBbls.mockImplementation(async (inputs: readonly string[]) => {
       const results = new Map<string, PlutoLookupResult>();
-      for (const input of inputs) {
-        results.set(input, {
+      if (inputs.includes(CONDO_BILLING_BBL)) {
+        results.set(CONDO_BILLING_BBL, {
           status: 'found',
-          parcel: plutoParcel(input, '419 E 84 St Apt 12C', {
-            lot: Number.parseInt(input.slice(6, 10), 10),
-          }),
+          parcel: plutoParcel(CONDO_BILLING_BBL, '419 E 84 St'),
         });
       }
       return results;
@@ -302,9 +300,17 @@ describe('bulk property registration persistence', () => {
         bbl: CONDO_UNIT_BBL,
         condoBaseBbl: CONDO_BASE_BBL,
         condoBillingBbl: CONDO_BILLING_BBL,
+        borough: 1,
+        block: 1234,
+        lot: 5678,
+        normalizedAddress: '419 E 84 St',
         bins: ['1045678'],
       },
     });
+    expect(pluto.lookupByBbls).toHaveBeenCalledWith([CONDO_BILLING_BBL]);
+    expect(pluto.lookupByBbls).not.toHaveBeenCalledWith(
+      expect.arrayContaining([CONDO_UNIT_BBL]),
+    );
 
     const input = await prisma.propertyResolutionInput.findUnique({
       where: {

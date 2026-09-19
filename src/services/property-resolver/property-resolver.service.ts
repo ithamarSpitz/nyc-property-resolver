@@ -444,15 +444,16 @@ export class PropertyResolverService {
     normalizedInput: string,
     geosearchCandidate?: GeoSearchCandidate,
   ): Promise<ResolvePropertyResult> {
+    const unitComponents = parseBblComponents(payload.unitBbl);
     const property = await this.propertyIdentity.findOrCreateProperty({
       bbl: payload.unitBbl,
       candidateBins: payload.candidateBins,
       normalizedAddress: payload.parcel.address,
       condoBaseBbl: payload.condoBaseBbl,
       condoBillingBbl: payload.condoBillingBbl,
-      borough: payload.parcel.borough,
-      block: payload.parcel.block,
-      lot: payload.parcel.lot,
+      borough: unitComponents.borough,
+      block: unitComponents.block,
+      lot: unitComponents.lot,
     });
 
     const refreshed =
