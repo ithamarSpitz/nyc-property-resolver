@@ -434,6 +434,25 @@ sprints:
       - node -e "const fs=require('fs'); for (const f of ['README.md','DESIGN.md','RUN_LOG.md']) if (!fs.existsSync(f)) process.exit(1)"
       '10':
       - npm run verify:submission
+  S6-clean-run-repairs:
+    name: Clean-Run Resolver Repair and Cross-Platform README
+    tasks:
+      S6-T1:
+        file: tasks/sprint-06-clean-run-repairs/01-condo-billing-base-reverse-lookup.md
+        stage: 1
+        depends_on: []
+      S6-T2:
+        file: tasks/sprint-06-clean-run-repairs/02-readme-shell-specific-walkthrough.md
+        stage: 2
+        depends_on:
+        - S6-T1
+    stage_verification:
+      '1':
+      - npm run typecheck
+      - npm run verify:property-resolution
+      '2':
+      - node -e "const fs=require('fs'); const s=fs.readFileSync('README.md','utf8'); for (const x of ['Linux / macOS','Windows PowerShell','Invoke-RestMethod','docker compose up --build','docker compose run --rm worker npm run ingest:ecb','npm run acceptance:small']) if (!s.includes(x)) { console.error('README missing: '+x); process.exit(1) }"
+      - npm run verify:submission
   demo:
     name: Harness demo DAG
     tasks:
