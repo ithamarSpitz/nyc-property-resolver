@@ -32,7 +32,7 @@ Address resolution uses GeoSearch for address-to-parcel candidates, PLUTO for ca
 
 ## API by example
 
-All responses are JSON. Replace `<property-id>` and `<cursor>` with values returned by the preceding call.
+All responses are JSON. Replace `<property-id>` and `<cursor>` with values returned by the preceding call. The `curl` examples below use POSIX shell quoting (Bash/zsh). On Windows PowerShell, prefer `Invoke-RestMethod` for JSON request bodies; PowerShell's native argument handling can mangle JSON passed to `curl.exe`.
 
 Create or resolve one property (exactly one of `address` or `bbl`; repeated input is idempotent):
 
@@ -40,6 +40,16 @@ Create or resolve one property (exactly one of `address` or `bbl`; repeated inpu
 curl -sS -X POST http://localhost:3000/properties \
   -H 'content-type: application/json' \
   -d '{"address":"350 5th Avenue, Manhattan, NY"}'
+```
+
+Windows PowerShell equivalent:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:3000/properties" `
+  -ContentType "application/json" `
+  -Body '{"address":"350 5th Avenue, Manhattan, NY"}'
 ```
 
 ```json
@@ -72,6 +82,16 @@ Register BBLs in bulk (1–10,000 per request; results are per input so source-d
 curl -sS -X POST http://localhost:3000/properties/bulk \
   -H 'content-type: application/json' \
   -d '{"bbls":["1008350041"]}'
+```
+
+Windows PowerShell equivalent:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://localhost:3000/properties/bulk" `
+  -ContentType "application/json" `
+  -Body '{"bbls":["1008350041"]}'
 ```
 
 ```json
