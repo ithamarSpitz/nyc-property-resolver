@@ -74,10 +74,15 @@ class ProviderAgentRunner:
 
     def has_implementation_budget(self, task: TaskSpec, *, model_class_override: str | None = None) -> bool:
         if model_class_override is not None:
+            if not self.config.cursor.enabled:
+                return False
             return self._provider_attempt(task, "cursor") < 1
-        if self.active_provider(task) == "codex":
+        provider = self.active_provider(task)
+        if provider == "codex":
             return self._provider_attempt(task, "codex") < len(self.config.codex.implementation_sequence)
-        return self._provider_attempt(task, "cursor") < max(1, len(self.config.retry.sequence))
+        if provider == "cursor":
+            return self._provider_attempt(task, "cursor") < max(1, len(self.config.retry.sequence))
+        return False
 
     def _cursor_model_class(self, task: TaskSpec, *, model_class_override: str | None = None) -> str:
         if model_class_override is not None:
