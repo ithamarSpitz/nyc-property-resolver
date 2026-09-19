@@ -374,7 +374,10 @@ export class PropertyResolverService {
       geoSearchResult.candidates,
       geoSearchResult.queriedAddress,
     );
-    const condoBaseBbl = resolveCondoBaseContextFromParcelBbl(selected.canonicalBbl);
+    const condoBaseBbl = await resolveCondoBaseContextFromParcelBbl(
+      selected.canonicalBbl,
+      this.clients.condominiums,
+    );
     const condoResolution = await resolveCondoUnitByAddressContext(
       condoBaseBbl,
       normalized.normalizedUnitDesignation!,

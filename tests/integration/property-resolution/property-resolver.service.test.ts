@@ -78,6 +78,7 @@ describe('PropertyResolverService integration', () => {
   };
   let condominiums: {
     lookupByCondoBaseBbl: jest.Mock<Promise<CondominiumBillingLookupResult>, [string]>;
+    lookupByCondoBillingBbl: jest.Mock<Promise<CondominiumBillingLookupResult>, [string]>;
   };
 
   beforeAll(async () => {
@@ -111,6 +112,15 @@ describe('PropertyResolverService integration', () => {
     };
     condominiums = {
       lookupByCondoBaseBbl: jest.fn(),
+      lookupByCondoBillingBbl: jest.fn().mockResolvedValue({
+        matchCount: 'one',
+        matches: [
+          {
+            condoBaseBbl: CONDO_BASE_BBL,
+            condoBillingBbl: CONDO_BILLING_BBL,
+          },
+        ],
+      }),
     };
 
     resolver = createPropertyResolverService({
@@ -354,6 +364,116 @@ describe('PropertyResolverService integration', () => {
     );
   });
 
+  it('reverse maps a GeoSearch billing BBL before looking up the condo unit', async () => {
+    const billingBbl = '1000157502';
+    const authoritativeBaseBbl = '1000150019';
+    const arithmeticArtifactBbl = '1000150002';
+    const unitBbl = '1000151137';
+    const bin = '1087243';
+
+    geoSearch.searchByAddress.mockResolvedValue({
+      queriedAddress: '20 West Street, Manhattan, NY',
+      candidates: [
+        {
+          label: '20 WEST STREET, New York, NY, USA',
+          name: '20 WEST STREET',
+          layer: 'venue',
+          confidence: 0.8,
+          bbl: billingBbl,
+          bin,
+          borough: 'Manhattan',
+          sourceId: 'feature-west-street',
+        },
+      ],
+    });
+    condominiums.lookupByCondoBillingBbl.mockResolvedValue({
+      matchCount: 'one',
+      matches: [
+        {
+          condoBaseBbl: authoritativeBaseBbl,
+          condoBillingBbl: billingBbl,
+        },
+      ],
+    });
+    condoUnits.lookupByCondoBaseAndUnitDesignation.mockResolvedValue({
+      matchCount: 'one',
+      matches: [{ unitBbl, condoBaseBbl: authoritativeBaseBbl, unitDesignation: '12C' }],
+    });
+    condoUnits.lookupByUnitBbl.mockResolvedValue({
+      matchCount: 'one',
+      matches: [{ unitBbl, condoBaseBbl: authoritativeBaseBbl, unitDesignation: '12C' }],
+    });
+    condominiums.lookupByCondoBaseBbl.mockResolvedValue({
+      matchCount: 'one',
+      matches: [
+        {
+          condoBaseBbl: authoritativeBaseBbl,
+          condoBillingBbl: billingBbl,
+        },
+      ],
+    });
+    pluto.lookupByBbl.mockResolvedValue({
+      status: 'found',
+      parcel: plutoParcel(unitBbl, '20 WEST STREET', { lot: 1137 }),
+    });
+    buildingFootprints.lookupByBaseBbl.mockResolvedValue({
+      status: 'found',
+      queriedBbl: authoritativeBaseBbl,
+      lookupMode: 'base',
+      candidates: [{ bin, baseBbl: authoritativeBaseBbl, mapplutoBbl: billingBbl }],
+    });
+
+    const result = await resolver.resolveAddress('20 West Street, Manhattan, NY Apt 12C');
+
+    expect(result.property).toMatchObject({
+      bbl: unitBbl,
+      condoBaseBbl: authoritativeBaseBbl,
+      condoBillingBbl: billingBbl,
+    });
+    expect(result.property.bins.map((row) => row.bin)).toEqual([bin]);
+    expect(condominiums.lookupByCondoBillingBbl).toHaveBeenCalledWith(billingBbl);
+    expect(condoUnits.lookupByCondoBaseAndUnitDesignation).toHaveBeenCalledWith(
+      authoritativeBaseBbl,
+      '12C',
+    );
+    expect(condoUnits.lookupByCondoBaseAndUnitDesignation).not.toHaveBeenCalledWith(
+      arithmeticArtifactBbl,
+      expect.anything(),
+    );
+  });
+
+  it.each([
+    {
+      matchCount: 'zero' as const,
+      matches: [],
+      expectedCode: 'RESOLVER_CONDO_BASE_NOT_FOUND',
+    },
+    {
+      matchCount: 'multiple' as const,
+      matches: [
+        { condoBaseBbl: '1000150019', condoBillingBbl: '1000157502' },
+        { condoBaseBbl: '1000150020', condoBillingBbl: '1000157502' },
+      ],
+      expectedCode: 'RESOLVER_CONDO_BASE_AMBIGUOUS',
+    },
+  ])('fails explicitly for $matchCount billing-to-base mappings', async (lookup) => {
+    geoSearch.searchByAddress.mockResolvedValue(
+      geoSearchResult('419 E 84 St', {
+        bbl: CONDO_BILLING_BBL,
+        label: '419 E 84 St, Manhattan',
+      }),
+    );
+    condominiums.lookupByCondoBillingBbl.mockResolvedValue({
+      matchCount: lookup.matchCount,
+      matches: lookup.matches,
+    } as CondominiumBillingLookupResult);
+
+    await expect(resolver.resolveAddress('419 E 84 St Apt 12C')).rejects.toMatchObject({
+      code: lookup.expectedCode,
+    });
+    expect(condoUnits.lookupByCondoBaseAndUnitDesignation).not.toHaveBeenCalled();
+  });
+
   it('fails explicitly when a unit-aware address has zero matching condo units', async () => {
     geoSearch.searchByAddress.mockResolvedValue(
       geoSearchResult('419 E 84 St', {
@@ -512,6 +632,7 @@ describe('PropertyResolverService integration', () => {
     expect(buildingFootprints.lookupByParcelBbl).toBeDefined();
     expect(condoUnits.lookupByUnitBbl).toBeDefined();
     expect(condominiums.lookupByCondoBaseBbl).toBeDefined();
+    expect(condominiums.lookupByCondoBillingBbl).toBeDefined();
   });
 
   it('resolves the uniquely supported parcel from a multi-BBL GeoSearch response', async () => {

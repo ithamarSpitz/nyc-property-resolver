@@ -45,34 +45,35 @@ export function isCondoBillingLot(lot: number): boolean {
   return lot >= CONDO_BILLING_LOT_MIN;
 }
 
-function formatBbl(borough: number, block: number, lot: number): CanonicalBbl {
-  return assertValidBbl(
-    `${borough}${String(block).padStart(5, '0')}${String(lot).padStart(4, '0')}`,
-  );
-}
-
-export function deriveCondoBaseBblFromBillingBbl(billingBbl: CanonicalBbl): CanonicalBbl {
-  const components = parseBblComponents(billingBbl);
+export async function resolveCondoBaseContextFromParcelBbl(
+  parcelBbl: CanonicalBbl,
+  condominiums: CondominiumsClient,
+): Promise<CanonicalBbl> {
+  const components = parseBblComponents(parcelBbl);
 
   if (!isCondoBillingLot(components.lot)) {
+    return parcelBbl;
+  }
+
+  const lookup = await condominiums.lookupByCondoBillingBbl(parcelBbl);
+
+  if (lookup.matchCount === 'zero') {
     throw new AppError({
-      code: 'RESOLVER_INVALID_CONDO_BILLING_BBL',
-      message: 'Expected a condo billing BBL with lot >= 7501',
+      code: 'RESOLVER_CONDO_BASE_NOT_FOUND',
+      message: `No condo base BBL was found for condo billing BBL ${parcelBbl}`,
       statusCode: 422,
     });
   }
 
-  return formatBbl(components.borough, components.block, components.lot - 7500);
-}
-
-export function resolveCondoBaseContextFromParcelBbl(parcelBbl: CanonicalBbl): CanonicalBbl {
-  const components = parseBblComponents(parcelBbl);
-
-  if (isCondoBillingLot(components.lot)) {
-    return deriveCondoBaseBblFromBillingBbl(parcelBbl);
+  if (lookup.matchCount === 'multiple') {
+    throw new AppError({
+      code: 'RESOLVER_CONDO_BASE_AMBIGUOUS',
+      message: `Multiple condo base BBLs were found for condo billing BBL ${parcelBbl}`,
+      statusCode: 422,
+    });
   }
 
-  return parcelBbl;
+  return lookup.matches[0].condoBaseBbl;
 }
 
 async function resolveCondoBillingBbl(

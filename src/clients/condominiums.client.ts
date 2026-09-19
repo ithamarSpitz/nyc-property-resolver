@@ -150,6 +150,18 @@ export class CondominiumsClient {
     return classifyLookupResult(matches);
   }
 
+  async lookupByCondoBillingBbl(
+    condoBillingBblInput: string,
+  ): Promise<CondominiumBillingLookupResult> {
+    const condoBillingBbl = canonicalizeBbl(condoBillingBblInput);
+    const whereClause = `condo_billing_bbl='${escapeSoqlString(condoBillingBbl)}'`;
+
+    const rows = await this.fetchCondominiumRows(whereClause);
+    const matches = sortCondominiumRecords(rows.map(parseCondominiumRow));
+
+    return classifyLookupResult(matches);
+  }
+
   async lookupByCondoBaseBbls(
     condoBaseBblInputs: readonly string[],
   ): Promise<Map<CanonicalBbl, CondominiumBillingLookupResult>> {
