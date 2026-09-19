@@ -79,7 +79,8 @@ The starter also intentionally does not include a vector DB, embeddings, long-te
 - Git
 - Node.js 22+ for the NYC project tasks
 - Docker Desktop / Docker Engine with Compose v2 for Docker-backed tasks
-- Cursor CLI (`agent`) authenticated to the intended account
+- Codex CLI authenticated to the intended account when `codex.enabled: true`
+- Cursor CLI (`agent`) only when `cursor.enabled: true`; this repository currently keeps Cursor disabled
 - A Git repository with the harness files committed before an automated run
 
 Install Python dependencies:
@@ -96,6 +97,8 @@ Check the environment:
 ```bash
 python harness.py doctor --full
 ```
+
+Provider enablement is explicit in `harness.yaml`. This repository currently sets `cursor.enabled: false`, so implementations, reviews, and plan repair stay on Codex and `doctor` does not require or probe Cursor. Re-enabling Cursor requires an intentional config change to `cursor.enabled: true`; the existing Cursor model/fallback configuration is retained in Git for that purpose.
 
 For Cursor specifically, verify once outside the project that `agent status`, `agent models`, and a tiny headless `agent -p ... --trust` smoke call succeed. Real harness runs do not trust the integration checkout; `--trust` is injected only for registered harness-owned task worktrees.
 
