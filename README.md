@@ -34,6 +34,8 @@ docker compose run --rm worker npm run ingest:ecb
 
 Address resolution uses GeoSearch for address-to-parcel candidates, PLUTO for canonical parcel attributes, the Condominium Units/Condominiums datasets for unit-to-building mapping, and Building Footprints for validated BINs. ECB scans then use those stored BINs in batches.
 
+This split keeps each source in the role where it is strongest: GeoSearch resolves free-text address candidates, PLUTO anchors parcel identity, the condo datasets bridge unit lots to the building parcel, and Building Footprints provides building-level BIN validation, including multi-building lots.
+
 ## API by example
 
 All responses are JSON. Replace `<property-id>` and `<cursor>` with values returned by the preceding call. Linux / macOS examples target Bash/zsh (or an equivalent POSIX shell). Windows examples target Windows PowerShell. For JSON request bodies, the PowerShell examples use `Invoke-RestMethod` because PowerShell 5.1 can mangle JSON passed to `curl.exe`.
@@ -140,7 +142,7 @@ curl.exe -sS "http://localhost:3000/ecb-violations?unpaidOnly=true&limit=1"
 {"violations":[{"id":"af7ca7d3-bb39-4d73-aa3f-8735bfe9b936","sourceId":"1671991","socrataRowId":"row-atgj~8tec~94sg","bin":"4015377","violationNumber":"39195205J","issueDate":"2026-07-08","ecbViolationStatus":"ACTIVE","balanceDue":"6250.00","sourceRowUpdatedAt":"2026-09-16T16:59:22.394Z","lastSuccessRunId":"796d778e-f98f-4ceb-813d-801e3091f10c","isCurrent":true}],"page":{"limit":1,"hasMore":true,"nextCursor":"<cursor>"}}
 ```
 
-The manual trigger is the CLI command above. Its representative terminal record is:
+The manual trigger is the CLI command above. The representative record below is for the full five-property acceptance seed (6 BINs, 297 rows); the Empire State walkthrough below is scoped to that single property (241 rows).
 
 ```json
 {"outcome":"COMPLETED","runId":"796d778e-f98f-4ceb-813d-801e3091f10c","status":"COMPLETED","binsScanned":6,"socrataDataCalls":1,"socrataMetadataCalls":2,"socrataRetryCalls":0,"socrataTotalCalls":3,"rowsFetched":297,"rowsWritten":297,"failures":0,"durationMs":7086}
@@ -166,4 +168,4 @@ npm run acceptance:small
 
 It writes a new timestamped evidence directory, registers the seed, performs two manual runs, and audits duplicates; BIS checks remain manual. The committed run is indexed in [`RUN_LOG.md`](RUN_LOG.md). On 2026-09-17, BIS and local totals matched for Empire State (241 vs 241) and 37-15 82nd Street (10 vs 10), as recorded in [`spot-checks.json`](evidence/acceptance-small/run/bis/spot-checks.json).
 
-Scale headline: a deterministic 10,000-BBL PLUTO sample yielded 9,985 registered properties and 10,800 valid BINs. The accepted ingestion completed in 1,311.004 s, made 14 Socrata calls including one retry, promoted 81,486 rows, and had zero ingestion failures. The 15 registration failures are retained, not hidden. See [`RUN_LOG.md`](RUN_LOG.md) and [`evidence/scale-10000/summary.json`](evidence/scale-10000/summary.json).
+Scale headline: a deterministic 10,000-BBL PLUTO sample yielded 9,985 registered properties and 10,800 valid BINs. All 10,000 source BBLs were submitted for registration; the 15 source/resolver-quality failures were retained rather than pre-filtered. The accepted ingestion completed in 1,311.004 s, made 14 Socrata calls including one retry, promoted 81,486 rows, and had zero ingestion failures. The 15 registration failures are retained, not hidden. See [`RUN_LOG.md`](RUN_LOG.md) and [`evidence/scale-10000/summary.json`](evidence/scale-10000/summary.json).
