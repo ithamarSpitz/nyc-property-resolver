@@ -15,7 +15,8 @@ context:
   - architecture.testing
 environment: null
 verification:
-  - node -e "const fs=require('fs'); const s=fs.readFileSync('README.md','utf8'); for (const x of ['Linux / macOS','Windows PowerShell','Invoke-RestMethod','docker compose up --build','docker compose run --rm worker npm run ingest:ecb','npm run acceptance:small']) if (!s.includes(x)) { console.error('README missing: '+x); process.exit(1) }"
+  - >-
+    node -e "const fs=require('fs'); const s=fs.readFileSync('README.md','utf8'); for (const x of ['Linux / macOS','Windows PowerShell','Invoke-RestMethod','docker compose up --build','docker compose run --rm worker npm run ingest:ecb','npm run acceptance:small']) if (!s.includes(x)) { console.error('README missing: '+x); process.exit(1) }"
 ---
 
 # Goal
