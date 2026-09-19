@@ -139,6 +139,74 @@ describe('CondominiumsClient', () => {
     });
   });
 
+  describe('lookupByCondoBillingBbl', () => {
+    it('builds a condo_billing_bbl request and returns its authoritative base mapping', async () => {
+      const fetchImpl = jest.fn(async (input) => {
+        const url = parseRequestUrl(input);
+
+        expect(url.origin + url.pathname).toBe(
+          `${TEST_BASE_URL}/${CONDOMINIUMS_DATASET_ID}.json`,
+        );
+        expect(url.searchParams.get('$select')).toBe('condo_base_bbl,condo_billing_bbl');
+        expect(url.searchParams.get('$where')).toBe("condo_billing_bbl='1000157502'");
+        expect(url.searchParams.get('$limit')).toBe('25');
+
+        return jsonResponse([
+          {
+            condo_base_bbl: '1000150019',
+            condo_billing_bbl: '1000157502',
+          },
+        ]);
+      });
+
+      const client = createClient(fetchImpl);
+
+      await expect(client.lookupByCondoBillingBbl('1000157502')).resolves.toEqual({
+        matchCount: 'one',
+        matches: [
+          {
+            condoBaseBbl: '1000150019',
+            condoBillingBbl: '1000157502',
+          },
+        ],
+      });
+    });
+
+    it('returns zero mappings without deriving a base BBL', async () => {
+      const client = createClient(jest.fn(async () => jsonResponse([])));
+
+      await expect(client.lookupByCondoBillingBbl('1000157502')).resolves.toEqual({
+        matchCount: 'zero',
+        matches: [],
+      });
+    });
+
+    it('returns multiple mappings without selecting one arbitrarily', async () => {
+      const client = createClient(
+        jest.fn(async () =>
+          jsonResponse([
+            {
+              condo_base_bbl: '1000150019',
+              condo_billing_bbl: '1000157502',
+            },
+            {
+              condo_base_bbl: '1000150020',
+              condo_billing_bbl: '1000157502',
+            },
+          ]),
+        ),
+      );
+
+      const result = await client.lookupByCondoBillingBbl('1000157502');
+
+      expect(result.matchCount).toBe('multiple');
+      expect(result.matches.map((match) => match.condoBaseBbl)).toEqual([
+        '1000150019',
+        '1000150020',
+      ]);
+    });
+  });
+
   describe('transport and response validation', () => {
     it('surfaces non-2xx HTTP responses explicitly', async () => {
       const fetchImpl = jest.fn(async () => jsonResponse({ message: 'upstream failure' }, 500));

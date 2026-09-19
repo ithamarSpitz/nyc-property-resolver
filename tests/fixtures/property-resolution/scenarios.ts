@@ -68,6 +68,7 @@ export type MockResolverClients = {
   };
   condominiums: {
     lookupByCondoBaseBbl: jest.Mock<Promise<CondominiumBillingLookupResult>, [string]>;
+    lookupByCondoBillingBbl: jest.Mock<Promise<CondominiumBillingLookupResult>, [string]>;
   };
 };
 
@@ -89,6 +90,15 @@ export function createMockResolverClients(): MockResolverClients {
     },
     condominiums: {
       lookupByCondoBaseBbl: jest.fn(),
+      lookupByCondoBillingBbl: jest.fn().mockResolvedValue({
+        matchCount: 'one',
+        matches: [
+          {
+            condoBaseBbl: CONDO_BASE_BBL,
+            condoBillingBbl: CONDO_BILLING_BBL,
+          },
+        ],
+      }),
     },
   };
 }
@@ -158,6 +168,15 @@ export function mockCondoUnitAddressResolution(clients: MockResolverClients): vo
       label: '419 E 84 St, Manhattan',
     }),
   );
+  clients.condominiums.lookupByCondoBillingBbl.mockResolvedValue({
+    matchCount: 'one',
+    matches: [
+      {
+        condoBaseBbl: CONDO_BASE_BBL,
+        condoBillingBbl: CONDO_BILLING_BBL,
+      },
+    ],
+  });
   clients.condoUnits.lookupByCondoBaseAndUnitDesignation.mockResolvedValue({
     matchCount: 'one',
     matches: [
