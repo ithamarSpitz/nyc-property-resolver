@@ -454,6 +454,17 @@ sprints:
       - >-
         node -e "const fs=require('fs'); const s=fs.readFileSync('README.md','utf8'); for (const x of ['Linux / macOS','Windows PowerShell','Invoke-RestMethod','docker compose up --build','docker compose run --rm worker npm run ingest:ecb','npm run acceptance:small']) if (!s.includes(x)) { console.error('README missing: '+x); process.exit(1) }"
       - npm run verify:submission
+  S7-clean-host-bootstrap:
+    name: Clean Host Prisma Bootstrap
+    tasks:
+      S7-T1:
+        file: tasks/sprint-07-clean-host-bootstrap/01-prisma-client-bootstrap.md
+        stage: 1
+        depends_on: []
+    stage_verification:
+      '1':
+      - npm ci
+      - npm run typecheck
   demo:
     name: Harness demo DAG
     tasks:
