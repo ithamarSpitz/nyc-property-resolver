@@ -22,6 +22,7 @@
     "acceptance:small:validate-evidence": "node scripts/acceptance/validate-small-evidence.mjs",
     "acceptance:scale": "node scripts/acceptance/scale-10000.mjs",
     "acceptance:scale:validate-evidence": "node scripts/acceptance/validate-scale-evidence.mjs",
+    "verify:submission": "node --test tests/submission/final-submission-gate.test.mjs && node scripts/final-submission-gate.mjs",
     "ingest:ecb": "node dist/cli/ingest-ecb.js",
     "start:api": "node dist/server.js",
     "start:worker": "node dist/workers/ingestion.worker.js"
