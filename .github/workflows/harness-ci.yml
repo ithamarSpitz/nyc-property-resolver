@@ -57,7 +57,7 @@ jobs:
       - name: Lint harness
         run: ruff check harness harness.py tests/harness
       - name: Type-check harness core
-        run: mypy harness harness.py
+        run: mypy harness
       - name: Check generated architecture contexts
         run: python scripts/generate-architecture-contexts.py --check
       - name: Validate project sprint blueprint

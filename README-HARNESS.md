@@ -362,7 +362,7 @@ For the same lint/type-check steps used by CI, install the optional development 
 ```bash
 pip install -r requirements-harness-dev.txt
 ruff check harness harness.py tests/harness
-mypy harness harness.py
+mypy harness
 ```
 
 `scripts/check-harness.sh` runs these checks when the tools are installed and otherwise still runs compile validation, task/roadmap validation and the full test suite. GitHub Actions always installs the dev requirements, so CI always executes lint + type-check.

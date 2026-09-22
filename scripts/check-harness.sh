@@ -7,7 +7,7 @@ else
   echo "SKIP  ruff not installed (install requirements-harness-dev.txt for local lint)"
 fi
 if python -c 'import mypy' >/dev/null 2>&1; then
-  python -m mypy harness harness.py
+  python -m mypy harness
 else
   echo "SKIP  mypy not installed (install requirements-harness-dev.txt for local type-check)"
 fi
