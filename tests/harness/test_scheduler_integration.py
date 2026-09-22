@@ -5,7 +5,7 @@ from pathlib import Path
 
 from harness.config import HarnessConfig
 from harness.git_worktree import WorktreeManager
-from harness.models import TaskStatus
+from harness.models import TaskSpec, TaskStatus
 from harness.roadmap import Roadmap
 from harness.runner import AgentResult
 from harness.scheduler import Scheduler
@@ -168,6 +168,42 @@ sprints:
     assert scheduler.run_sprint(roadmap.sprint("s1"))
     assert state.get("A").status == TaskStatus.DONE
     assert (tmp_path / ".harness/logs/A-worktree-setup.log").exists()
+
+def test_worktree_setup_timeout_decodes_captured_bytes_and_blocks_cleanly(tmp_path: Path, monkeypatch):
+    write(tmp_path / "harness.yaml", """
+worktree:
+  setup_commands: [fake-setup]
+  setup_timeout_minutes: 1
+cursor: {command: agent, output_format: text, models: {}}
+verification: {global_task_commands: [], stage_commands: []}
+paths: {protected: [], review_required: []}
+""")
+    config = HarnessConfig.load(tmp_path / "harness.yaml")
+    state = StateStore(tmp_path / ".harness/state.json")
+    worktrees = WorktreeManager(tmp_path, tmp_path / ".harness")
+    verifier = Verifier(config, tmp_path / ".harness/logs", worktrees)
+    scheduler = Scheduler(tmp_path, config, state, worktrees, FakeRunner(), verifier)
+    task = TaskSpec(id="A", file=Path("tasks/A.md"), sprint="s1", stage=1)
+
+    def fake_run(*args, **kwargs):
+        raise subprocess.TimeoutExpired(
+            cmd="fake-setup",
+            timeout=60,
+            output=b"partial stdout \xff",
+            stderr=b"partial stderr \xfe",
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    ok, error = scheduler._setup_worktree(task, tmp_path, {})
+
+    assert not ok
+    assert error == "Worktree setup timed out: fake-setup"
+    log = (tmp_path / ".harness/logs/A-worktree-setup.log").read_text(encoding="utf-8")
+    assert "TIMEOUT" in log
+    assert "partial stdout �" in log
+    assert "partial stderr �" in log
+
 
 def test_review_required_forces_review_even_when_task_disables_it(tmp_path: Path):
     _init_repo(tmp_path)
