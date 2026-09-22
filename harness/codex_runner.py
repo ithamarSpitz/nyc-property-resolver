@@ -50,17 +50,22 @@ class CodexAgentRunner:
             except (OSError, subprocess.TimeoutExpired):
                 pass
         else:
-            try:
-                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-                proc.wait(timeout=5)
-                return
-            except (OSError, ProcessLookupError, subprocess.TimeoutExpired):
-                pass
-            try:
-                os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-                return
-            except (OSError, ProcessLookupError):
-                pass
+            killpg = getattr(os, "killpg", None)
+            getpgid = getattr(os, "getpgid", None)
+            sigkill = getattr(signal, "SIGKILL", None)
+            if killpg is not None and getpgid is not None:
+                try:
+                    killpg(getpgid(proc.pid), signal.SIGTERM)
+                    proc.wait(timeout=5)
+                    return
+                except (OSError, ProcessLookupError, subprocess.TimeoutExpired):
+                    pass
+                if sigkill is not None:
+                    try:
+                        killpg(getpgid(proc.pid), sigkill)
+                        return
+                    except (OSError, ProcessLookupError):
+                        pass
         try:
             proc.kill()
         except OSError:

@@ -45,7 +45,10 @@ class KeepAwake(AbstractContextManager["KeepAwake"]):
         with self._lock:
             if self.__class__._depth == 0:
                 try:
-                    result = ctypes.windll.kernel32.SetThreadExecutionState(  # type: ignore[attr-defined]
+                    windll = getattr(ctypes, "windll", None)
+                    if windll is None:
+                        return self
+                    result = windll.kernel32.SetThreadExecutionState(
                         self.ES_CONTINUOUS | self.ES_SYSTEM_REQUIRED
                     )
                     self.__class__._windows_active = bool(result)
@@ -63,7 +66,9 @@ class KeepAwake(AbstractContextManager["KeepAwake"]):
             self.__class__._depth = max(0, self.__class__._depth - 1)
             if self.__class__._depth == 0 and self.__class__._windows_active:
                 try:
-                    ctypes.windll.kernel32.SetThreadExecutionState(self.ES_CONTINUOUS)  # type: ignore[attr-defined]
+                    windll = getattr(ctypes, "windll", None)
+                    if windll is not None:
+                        windll.kernel32.SetThreadExecutionState(self.ES_CONTINUOUS)
                 except Exception:
                     pass
                 self.__class__._windows_active = False
