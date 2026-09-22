@@ -333,7 +333,8 @@ def test_codex_substantive_ladder_is_sol_medium_sol_medium_sol_high_astra_medium
     cursor = _FakeCursor()
     router, state, _ = _router(tmp_path, codex, cursor)
     task = _task(tmp_path)
-    workspace = tmp_path / "w"; workspace.mkdir()
+    workspace = tmp_path / "w"
+    workspace.mkdir()
 
     for attempt in range(1, 5):
         result = router.implement(task, workspace, 1, attempt, None)
@@ -352,7 +353,8 @@ def test_disabled_cursor_never_receives_codex_quota_fallback(tmp_path: Path):
     router, state, _ = _router(tmp_path, codex, cursor)
     router.config.cursor.enabled = False
     task = _task(tmp_path)
-    workspace = tmp_path / "w"; workspace.mkdir()
+    workspace = tmp_path / "w"
+    workspace.mkdir()
 
     result = router.implement(task, workspace, 1, 1, None)
 
@@ -384,7 +386,8 @@ def test_disabled_cursor_never_receives_review_fallback(tmp_path: Path):
     router, _, _ = _router(tmp_path, codex, cursor)
     router.config.cursor.enabled = False
     task = _task(tmp_path)
-    workspace = tmp_path / "w"; workspace.mkdir()
+    workspace = tmp_path / "w"
+    workspace.mkdir()
 
     result = router.review(task, workspace, "base", "verification ok", 1)
 
@@ -399,7 +402,8 @@ def test_codex_quota_switches_to_cursor_same_attempt_and_preserves_task_attempt(
     cursor = _FakeCursor([AgentResult(True, "cursor ok", provider="cursor")])
     router, state, usage = _router(tmp_path, codex, cursor)
     task = _task(tmp_path)
-    workspace = tmp_path / "w"; workspace.mkdir()
+    workspace = tmp_path / "w"
+    workspace.mkdir()
     state.get(task.id).attempt = 7
     state.save()
 
@@ -424,7 +428,8 @@ def test_codex_capacity_and_transient_retry_same_model_without_consuming_provide
     ])
     router, state, _ = _router(tmp_path, codex, _FakeCursor())
     task = _task(tmp_path)
-    workspace = tmp_path / "w"; workspace.mkdir()
+    workspace = tmp_path / "w"
+    workspace.mkdir()
 
     r1 = router.implement(task, workspace, 1, 1, None)
     r2 = router.implement(task, workspace, 1, 1, None)
@@ -444,7 +449,8 @@ def test_codex_review_quota_falls_back_to_cursor_without_reimplementation(tmp_pa
     cursor = _FakeCursor([AgentResult(True, "VERDICT: PASS\n", provider="cursor")])
     router, state, _ = _router(tmp_path, codex, cursor)
     task = _task(tmp_path)
-    workspace = tmp_path / "w"; workspace.mkdir()
+    workspace = tmp_path / "w"
+    workspace.mkdir()
 
     result = router.review(task, workspace, "base", "verification ok", 1)
 
@@ -476,7 +482,8 @@ def test_codex_adapter_exception_falls_back_to_cursor_without_losing_state(tmp_p
     cursor = _FakeCursor([AgentResult(True, "cursor ok", provider="cursor")])
     router, state, _ = _router(tmp_path, _ExplodingCodex(), cursor)
     task = _task(tmp_path)
-    workspace = tmp_path / "w"; workspace.mkdir()
+    workspace = tmp_path / "w"
+    workspace.mkdir()
 
     result = router.implement(task, workspace, 1, 1, None)
 
@@ -492,7 +499,8 @@ def test_provider_priority_can_explicitly_choose_cursor_first(tmp_path: Path):
     router, state, _ = _router(tmp_path, codex, cursor)
     router.config.providers.priority = ["cursor", "codex"]
     task = _task(tmp_path)
-    workspace = tmp_path / "w"; workspace.mkdir()
+    workspace = tmp_path / "w"
+    workspace.mkdir()
 
     result = router.implement(task, workspace, 1, 1, None)
 
