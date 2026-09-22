@@ -223,7 +223,8 @@ class CodexAgentRunner:
 
         tout = threading.Thread(target=read, args=(proc.stdout, stdout_lines), daemon=True)
         terr = threading.Thread(target=read, args=(proc.stderr, stderr_lines), daemon=True)
-        tout.start(); terr.start()
+        tout.start()
+        terr.start()
         hard_timeout = max(0.01, float(timeout_minutes)) * 60.0
         stall_timeout = max(0.0, float(self.config.execution.stall_timeout_minutes)) * 60.0
         poll = max(0.1, float(self.config.execution.watchdog_poll_seconds))
@@ -248,7 +249,8 @@ class CodexAgentRunner:
         except subprocess.TimeoutExpired:
             self._stop_process(proc)
             return_code = proc.poll()
-        tout.join(timeout=2); terr.join(timeout=2)
+        tout.join(timeout=2)
+        terr.join(timeout=2)
         duration = time.monotonic() - started
         with lock:
             raw_stdout = "".join(stdout_lines)
