@@ -327,7 +327,10 @@ class PlanChangeManager:
                 runtime.waiting_phase = None
         self.state.save()
 
-        pending = set(str(x) for x in (self.state.get_meta("plan.pending_revalidation", []) or []))
+        pending_value = self.state.get_meta("plan.pending_revalidation", [])
+        if not isinstance(pending_value, list):
+            raise RuntimeError("Invalid plan.pending_revalidation state; expected a list")
+        pending = {str(x) for x in pending_value}
         pending.update(revalidate)
         self.state.set_meta("plan.pending_revalidation", sorted(pending))
 
