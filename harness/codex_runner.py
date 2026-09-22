@@ -249,7 +249,8 @@ class CodexAgentRunner:
             return_code = proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             self._stop_process(proc)
-            return_code = proc.poll()
+            polled_return_code = proc.poll()
+            return_code = polled_return_code if polled_return_code is not None else -1
         tout.join(timeout=2)
         terr.join(timeout=2)
         duration = time.monotonic() - started
