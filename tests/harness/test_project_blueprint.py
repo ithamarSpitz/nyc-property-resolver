@@ -30,12 +30,22 @@ def test_generated_architecture_contexts_are_current() -> None:
     assert "10 files" in result.stdout
 
 
-def test_s0_through_s5_project_sprints_are_executable_and_match_blueprint_stages() -> None:
+def test_project_sprints_are_executable_and_s0_through_s5_match_blueprint_stages() -> None:
     import yaml
 
     roadmap = yaml.safe_load((ROOT / "tasks" / "roadmap.yaml").read_text(encoding="utf-8"))
     project_sprints = {k: v for k, v in (roadmap.get("sprints") or {}).items() if k != "demo"}
-    assert set(project_sprints) == {"S0-foundation", "S1-property-resolution", "S2-ingestion-lifecycle", "S3-ingestion-publication", "S4-api-operations", "S5-acceptance-submission"}
+    assert set(project_sprints) == {
+        "S0-foundation",
+        "S1-property-resolution",
+        "S2-ingestion-lifecycle",
+        "S3-ingestion-publication",
+        "S4-api-operations",
+        "S5-acceptance-submission",
+        "S6-clean-run-repairs",
+        "S7-clean-host-bootstrap",
+        "S8-condo-pluto-billing-validation",
+    }
 
     s0 = project_sprints["S0-foundation"]
     s0_tasks = s0["tasks"]
@@ -101,6 +111,26 @@ def test_s0_through_s5_project_sprints_are_executable_and_match_blueprint_stages
     assert s5_tasks["S5-T3"]["depends_on"] == ["S5-T2"]
     assert s5_tasks["S5-T4"]["depends_on"] == ["S5-T3"]
     assert s5_tasks["S5-T5"]["depends_on"] == ["S5-T4"]
+
+    s6 = project_sprints["S6-clean-run-repairs"]
+    s6_tasks = s6["tasks"]
+    assert set(s6_tasks) == {"S6-T1", "S6-T2"}
+    assert s6_tasks["S6-T1"]["stage"] == 1
+    assert s6_tasks["S6-T1"]["depends_on"] == []
+    assert s6_tasks["S6-T2"]["stage"] == 2
+    assert s6_tasks["S6-T2"]["depends_on"] == ["S6-T1"]
+
+    s7 = project_sprints["S7-clean-host-bootstrap"]
+    s7_tasks = s7["tasks"]
+    assert set(s7_tasks) == {"S7-T1"}
+    assert s7_tasks["S7-T1"]["stage"] == 1
+    assert s7_tasks["S7-T1"]["depends_on"] == []
+
+    s8 = project_sprints["S8-condo-pluto-billing-validation"]
+    s8_tasks = s8["tasks"]
+    assert set(s8_tasks) == {"S8-T1"}
+    assert s8_tasks["S8-T1"]["stage"] == 1
+    assert s8_tasks["S8-T1"]["depends_on"] == []
 
 
 
