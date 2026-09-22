@@ -87,18 +87,18 @@ class RunManifestManager:
         if isinstance(run_id, str):
             existing = self.runs_root / run_id / "manifest.json"
             if existing.exists():
-                payload = json.loads(existing.read_text(encoding="utf-8"))
-                payload["status"] = "RUNNING"
-                payload.setdefault("resumed_at", []).append(datetime.now(timezone.utc).isoformat())
+                existing_payload = json.loads(existing.read_text(encoding="utf-8"))
+                existing_payload["status"] = "RUNNING"
+                existing_payload.setdefault("resumed_at", []).append(datetime.now(timezone.utc).isoformat())
                 current_revision = _plan_revision(self.state)
-                if payload.get("plan_revision") != current_revision:
-                    payload.setdefault("plan_revision_history", []).append({
+                if existing_payload.get("plan_revision") != current_revision:
+                    existing_payload.setdefault("plan_revision_history", []).append({
                         "at": datetime.now(timezone.utc).isoformat(),
-                        "from": payload.get("plan_revision"),
+                        "from": existing_payload.get("plan_revision"),
                         "to": current_revision,
                     })
-                    payload["plan_revision"] = current_revision
-                existing.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                    existing_payload["plan_revision"] = current_revision
+                existing.write_text(json.dumps(existing_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
                 return existing
 
         # New run: try Codex again. Resume of an active run preserves a prior

@@ -5,7 +5,7 @@ import json
 import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from .failure import FailureRecord, FailureStore
 from .logging_utils import utc_now
@@ -79,7 +79,7 @@ class PlanChangeManager:
     def revision(self) -> int:
         value = self.state.get_meta("plan.revision", 1)
         try:
-            return max(1, int(value))
+            return max(1, int(cast(Any, value)))
         except (TypeError, ValueError):
             return 1
 

@@ -193,6 +193,7 @@ class CodexAgentRunner:
         last_output = [started]
         timed_out = False
         stalled = False
+        creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) if os.name == "nt" else 0
         try:
             proc = subprocess.Popen(
                 prepare_external_argv(command), cwd=workspace,
@@ -200,7 +201,7 @@ class CodexAgentRunner:
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 bufsize=1, env=env,
                 start_new_session=(os.name != "nt"),
-                creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0),
+                creationflags=creationflags,
             )
             assert proc.stdin is not None
             proc.stdin.write(prompt)
@@ -281,7 +282,7 @@ class CodexAgentRunner:
             "model_unavailable": diagnostics or f"Codex model unavailable: {model}",
         }
         result = AgentResult(
-            ok=ok, output=final_message, error=errors.get(kind), timed_out=timed_out, stalled=stalled,
+            ok=ok, output=final_message, error=(errors.get(kind) if kind is not None else None), timed_out=timed_out, stalled=stalled,
             duration_seconds=duration, model=model, quota_exhausted=bool(kind and kind.startswith("quota")),
             quota_scope=("5h" if kind == "quota_5h" else ("weekly" if kind == "quota_weekly" else ("unspecified" if kind == "quota" else None))),
             capacity_exhausted=(kind == "capacity"), transient_error=(kind == "transient"),
