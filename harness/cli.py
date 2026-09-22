@@ -194,7 +194,10 @@ def _prepare_sprint_base(
 
 
 def _run_pending_revalidations(runtime: Runtime, current_sprint: str) -> bool:
-    pending = [str(x) for x in (runtime.state.get_meta("plan.pending_revalidation", []) or [])]
+    pending_value = runtime.state.get_meta("plan.pending_revalidation", [])
+    if not isinstance(pending_value, list):
+        raise RuntimeError("Invalid plan.pending_revalidation state; expected a list")
+    pending = [str(x) for x in pending_value]
     if not pending:
         return True
     remaining = list(pending)
@@ -530,7 +533,11 @@ def cmd_rerun_blocker(
         return 0
     kind = str(record.get("kind"))
     if kind == "TASK_BLOCKED":
-        task_ids = [str(x) for x in (record.get("task_ids") or [])]
+        task_ids_value = record.get("task_ids")
+        if not isinstance(task_ids_value, list):
+            print("Task-blocked failure record has invalid task_ids.", file=sys.stderr)
+            return 2
+        task_ids = [str(x) for x in task_ids_value]
         if task_id is not None:
             if task_id not in task_ids:
                 print(
@@ -551,11 +558,11 @@ def cmd_rerun_blocker(
         return cmd_run_task(runtime, selected, model_class=model_class, fresh_budget=True)
     if kind == "STAGE_BARRIER":
         stage = record.get("stage")
-        if stage is None:
-            print("Stage failure record has no stage number.", file=sys.stderr)
+        if not isinstance(stage, int) or isinstance(stage, bool):
+            print("Stage failure record has no valid stage number.", file=sys.stderr)
             return 2
         sprint = runtime.roadmap.sprint(sprint_id)
-        ok = runtime.scheduler.rerun_stage_barrier(sprint, int(stage))
+        ok = runtime.scheduler.rerun_stage_barrier(sprint, stage)
         if ok:
             print(f"Stage {stage} barrier passed. Run `python harness.py resume {sprint_id}` to continue with the next stage.")
             return 0

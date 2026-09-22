@@ -5,7 +5,7 @@ import json
 import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from .failure import FailureRecord, FailureStore
 from .logging_utils import utc_now
@@ -79,7 +79,7 @@ class PlanChangeManager:
     def revision(self) -> int:
         value = self.state.get_meta("plan.revision", 1)
         try:
-            return max(1, int(value))
+            return max(1, int(cast(Any, value)))
         except (TypeError, ValueError):
             return 1
 
@@ -327,7 +327,10 @@ class PlanChangeManager:
                 runtime.waiting_phase = None
         self.state.save()
 
-        pending = set(str(x) for x in (self.state.get_meta("plan.pending_revalidation", []) or []))
+        pending_value = self.state.get_meta("plan.pending_revalidation", [])
+        if not isinstance(pending_value, list):
+            raise RuntimeError("Invalid plan.pending_revalidation state; expected a list")
+        pending = {str(x) for x in pending_value}
         pending.update(revalidate)
         self.state.set_meta("plan.pending_revalidation", sorted(pending))
 

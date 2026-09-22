@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 
 from harness.process_utils import prepare_external_argv, split_command

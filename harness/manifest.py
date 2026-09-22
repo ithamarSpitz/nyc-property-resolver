@@ -49,6 +49,18 @@ def _safe_command(args: list[str], cwd: Path) -> str | None:
     return proc.stdout.strip() or proc.stderr.strip() or None
 
 
+def _plan_revision(state: StateStore) -> int:
+    value = state.get_meta("plan.revision", 1)
+    if isinstance(value, bool):
+        return 1
+    if isinstance(value, (int, float, str, bytes, bytearray)):
+        try:
+            return int(value or 1)
+        except (TypeError, ValueError):
+            pass
+    raise RuntimeError("Invalid plan.revision state; expected an integer")
+
+
 class RunManifestManager:
     def __init__(self, root: Path, runtime_root: Path, state: StateStore):
         self.root = root.resolve()
@@ -75,18 +87,18 @@ class RunManifestManager:
         if isinstance(run_id, str):
             existing = self.runs_root / run_id / "manifest.json"
             if existing.exists():
-                payload = json.loads(existing.read_text(encoding="utf-8"))
-                payload["status"] = "RUNNING"
-                payload.setdefault("resumed_at", []).append(datetime.now(timezone.utc).isoformat())
-                current_revision = int(self.state.get_meta("plan.revision", 1) or 1)
-                if payload.get("plan_revision") != current_revision:
-                    payload.setdefault("plan_revision_history", []).append({
+                existing_payload = json.loads(existing.read_text(encoding="utf-8"))
+                existing_payload["status"] = "RUNNING"
+                existing_payload.setdefault("resumed_at", []).append(datetime.now(timezone.utc).isoformat())
+                current_revision = _plan_revision(self.state)
+                if existing_payload.get("plan_revision") != current_revision:
+                    existing_payload.setdefault("plan_revision_history", []).append({
                         "at": datetime.now(timezone.utc).isoformat(),
-                        "from": payload.get("plan_revision"),
+                        "from": existing_payload.get("plan_revision"),
                         "to": current_revision,
                     })
-                    payload["plan_revision"] = current_revision
-                existing.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                    existing_payload["plan_revision"] = current_revision
+                existing.write_text(json.dumps(existing_payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
                 return existing
 
         # New run: try Codex again. Resume of an active run preserves a prior
@@ -123,7 +135,7 @@ class RunManifestManager:
             "cursor_version": cursor_version,
             "codex_version": codex_version,
             "models": {"codex": config.codex.implementation_sequence, "cursor": config.cursor.models},
-            "plan_revision": int(self.state.get_meta("plan.revision", 1) or 1),
+            "plan_revision": _plan_revision(self.state),
             "hashes": {
                 "roadmap": _sha256_file(roadmap_path),
                 "harness_config": _sha256_file(config_path),

@@ -16,6 +16,14 @@ from .state import StateStore
 from .verifier import Verifier
 
 
+def _subprocess_text(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
+
+
 @dataclass(slots=True)
 class TaskOutcome:
     task_id: str
@@ -232,7 +240,9 @@ class Scheduler:
                     write_log(self.verifier.log_dir, f"{task.id}-worktree-setup.log", "\n\n".join(outputs))
                     return False, error
             except subprocess.TimeoutExpired as exc:
-                rendered = (exc.stdout or "") + ("\n" + exc.stderr if exc.stderr else "")
+                stdout = _subprocess_text(exc.stdout)
+                stderr = _subprocess_text(exc.stderr)
+                rendered = stdout + (f"\n{stderr}" if stderr else "")
                 outputs.append(f"$ {command}\nTIMEOUT\n{rendered}".rstrip())
                 write_log(self.verifier.log_dir, f"{task.id}-worktree-setup.log", "\n\n".join(outputs))
                 return False, f"Worktree setup timed out: {command}"

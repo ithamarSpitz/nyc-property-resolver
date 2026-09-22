@@ -1,3 +1,7 @@
+from pathlib import Path
+
+from harness.models import TaskSpec
+from harness.scheduler import Scheduler
 from harness.verifier import _matches
 
 
@@ -10,11 +14,6 @@ def test_scope_glob_prefix():
 def test_exact_path():
     assert _matches("package.json", "package.json")
     assert not _matches("package-lock.json", "package.json")
-
-from harness.models import TaskSpec
-from harness.scheduler import Scheduler
-from pathlib import Path
-
 
 def _task(task_id: str, patterns: list[str]) -> TaskSpec:
     return TaskSpec(id=task_id, file=Path("x"), sprint="s", stage=1, allowed_paths=patterns)
@@ -50,8 +49,6 @@ paths:
 
 
 def test_verification_env_supplies_missing_database_url_without_overriding_real_env(tmp_path, monkeypatch):
-    import subprocess
-
     from harness.config import HarnessConfig
     from harness.git_worktree import WorktreeManager
     from harness.verifier import Verifier

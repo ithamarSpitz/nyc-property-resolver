@@ -48,11 +48,20 @@ class FailureStore:
         return json.loads(path.read_text(encoding="utf-8"))
 
 
+    @staticmethod
+    def _task_ids(record: dict[str, object]) -> list[object]:
+        value = record.get("task_ids")
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise ValueError("Invalid failure record task_ids; expected a list")
+        return value
+
     def resolve_task(self, sprint: str, task_id: str) -> None:
         record = self.get(sprint)
         if record is None or record.get("kind") != "TASK_BLOCKED":
             return
-        task_ids = [str(x) for x in (record.get("task_ids") or []) if str(x) != task_id]
+        task_ids = [str(x) for x in self._task_ids(record) if str(x) != task_id]
         if not task_ids:
             self.clear(sprint)
             return
@@ -79,7 +88,7 @@ class FailureStore:
         ]
         if record.get("stage") is not None:
             lines.append(f"Stage: {record.get('stage')}")
-        task_ids = record.get("task_ids") or []
+        task_ids = FailureStore._task_ids(record)
         if task_ids:
             lines.append("Tasks: " + ", ".join(str(x) for x in task_ids))
         lines.append("Reason: " + str(record.get("message") or "unknown"))

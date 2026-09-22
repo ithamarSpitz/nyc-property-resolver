@@ -50,17 +50,22 @@ class CodexAgentRunner:
             except (OSError, subprocess.TimeoutExpired):
                 pass
         else:
-            try:
-                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-                proc.wait(timeout=5)
-                return
-            except (OSError, ProcessLookupError, subprocess.TimeoutExpired):
-                pass
-            try:
-                os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-                return
-            except (OSError, ProcessLookupError):
-                pass
+            killpg = getattr(os, "killpg", None)
+            getpgid = getattr(os, "getpgid", None)
+            sigkill = getattr(signal, "SIGKILL", None)
+            if killpg is not None and getpgid is not None:
+                try:
+                    killpg(getpgid(proc.pid), signal.SIGTERM)
+                    proc.wait(timeout=5)
+                    return
+                except (OSError, ProcessLookupError, subprocess.TimeoutExpired):
+                    pass
+                if sigkill is not None:
+                    try:
+                        killpg(getpgid(proc.pid), sigkill)
+                        return
+                    except (OSError, ProcessLookupError):
+                        pass
         try:
             proc.kill()
         except OSError:
@@ -193,6 +198,7 @@ class CodexAgentRunner:
         last_output = [started]
         timed_out = False
         stalled = False
+        creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) if os.name == "nt" else 0
         try:
             proc = subprocess.Popen(
                 prepare_external_argv(command), cwd=workspace,
@@ -200,7 +206,7 @@ class CodexAgentRunner:
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 bufsize=1, env=env,
                 start_new_session=(os.name != "nt"),
-                creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0),
+                creationflags=creationflags,
             )
             assert proc.stdin is not None
             proc.stdin.write(prompt)
@@ -223,7 +229,8 @@ class CodexAgentRunner:
 
         tout = threading.Thread(target=read, args=(proc.stdout, stdout_lines), daemon=True)
         terr = threading.Thread(target=read, args=(proc.stderr, stderr_lines), daemon=True)
-        tout.start(); terr.start()
+        tout.start()
+        terr.start()
         hard_timeout = max(0.01, float(timeout_minutes)) * 60.0
         stall_timeout = max(0.0, float(self.config.execution.stall_timeout_minutes)) * 60.0
         poll = max(0.1, float(self.config.execution.watchdog_poll_seconds))
@@ -247,8 +254,10 @@ class CodexAgentRunner:
             return_code = proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             self._stop_process(proc)
-            return_code = proc.poll()
-        tout.join(timeout=2); terr.join(timeout=2)
+            polled_return_code = proc.poll()
+            return_code = polled_return_code if polled_return_code is not None else -1
+        tout.join(timeout=2)
+        terr.join(timeout=2)
         duration = time.monotonic() - started
         with lock:
             raw_stdout = "".join(stdout_lines)
@@ -279,7 +288,7 @@ class CodexAgentRunner:
             "model_unavailable": diagnostics or f"Codex model unavailable: {model}",
         }
         result = AgentResult(
-            ok=ok, output=final_message, error=errors.get(kind), timed_out=timed_out, stalled=stalled,
+            ok=ok, output=final_message, error=(errors.get(kind) if kind is not None else None), timed_out=timed_out, stalled=stalled,
             duration_seconds=duration, model=model, quota_exhausted=bool(kind and kind.startswith("quota")),
             quota_scope=("5h" if kind == "quota_5h" else ("weekly" if kind == "quota_weekly" else ("unspecified" if kind == "quota" else None))),
             capacity_exhausted=(kind == "capacity"), transient_error=(kind == "transient"),
