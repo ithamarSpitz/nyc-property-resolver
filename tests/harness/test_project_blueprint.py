@@ -30,7 +30,7 @@ def test_generated_architecture_contexts_are_current() -> None:
     assert "10 files" in result.stdout
 
 
-def test_project_sprints_are_executable_and_s0_through_s5_match_blueprint_stages() -> None:
+def test_project_sprints_are_executable_and_have_expected_task_graphs() -> None:
     import yaml
 
     roadmap = yaml.safe_load((ROOT / "tasks" / "roadmap.yaml").read_text(encoding="utf-8"))
@@ -92,7 +92,7 @@ def test_project_sprints_are_executable_and_s0_through_s5_match_blueprint_stages
 
     s4 = project_sprints["S4-api-operations"]
     s4_tasks = s4["tasks"]
-    assert set(s4_tasks) == {f"S4-T{i}" for i in range(1, 9)}
+    assert set(s4_tasks) == {f"S4-T{i}" for i in range(1, 11)}
     assert {s4_tasks[f"S4-T{i}"]["stage"] for i in range(1, 5)} == {1}
     assert s4_tasks["S4-T5"]["stage"] == 2
     assert set(s4_tasks["S4-T5"]["depends_on"]) == {"S4-T1", "S4-T4"}
@@ -102,14 +102,34 @@ def test_project_sprints_are_executable_and_s0_through_s5_match_blueprint_stages
     assert set(s4_tasks["S4-T7"]["depends_on"]) == {"S4-T3", "S4-T5", "S4-T6"}
     assert s4_tasks["S4-T8"]["stage"] == 4
     assert s4_tasks["S4-T8"]["depends_on"] == ["S4-T7"]
+    assert s4_tasks["S4-T9"]["stage"] == 5
+    assert s4_tasks["S4-T9"]["depends_on"] == ["S4-T8"]
+    assert s4_tasks["S4-T10"]["stage"] == 6
+    assert s4_tasks["S4-T10"]["depends_on"] == ["S4-T9"]
     s5 = project_sprints["S5-acceptance-submission"]
     s5_tasks = s5["tasks"]
-    assert set(s5_tasks) == {f"S5-T{i}" for i in range(1, 6)}
-    assert [s5_tasks[f"S5-T{i}"]["stage"] for i in range(1, 6)] == [1, 2, 3, 4, 5]
+    assert set(s5_tasks) == {f"S5-T{i}" for i in range(1, 13)}
+    assert s5_tasks["S5-T1"]["stage"] == 1
     assert s5_tasks["S5-T1"]["depends_on"] == []
-    assert s5_tasks["S5-T2"]["depends_on"] == ["S5-T1"]
-    assert s5_tasks["S5-T3"]["depends_on"] == ["S5-T2"]
-    assert s5_tasks["S5-T4"]["depends_on"] == ["S5-T3"]
+    assert {s5_tasks["S5-T6"]["stage"], s5_tasks["S5-T7"]["stage"]} == {2}
+    assert s5_tasks["S5-T6"]["depends_on"] == ["S5-T1"]
+    assert s5_tasks["S5-T7"]["depends_on"] == ["S5-T1"]
+    assert s5_tasks["S5-T2"]["stage"] == 3
+    assert set(s5_tasks["S5-T2"]["depends_on"]) == {"S5-T6", "S5-T7"}
+    assert s5_tasks["S5-T8"]["stage"] == 4
+    assert s5_tasks["S5-T8"]["depends_on"] == ["S5-T2"]
+    assert {s5_tasks["S5-T9"]["stage"], s5_tasks["S5-T10"]["stage"]} == {5}
+    assert s5_tasks["S5-T9"]["depends_on"] == ["S5-T8"]
+    assert s5_tasks["S5-T10"]["depends_on"] == ["S5-T8"]
+    assert s5_tasks["S5-T11"]["stage"] == 6
+    assert set(s5_tasks["S5-T11"]["depends_on"]) == {"S5-T9", "S5-T10"}
+    assert s5_tasks["S5-T3"]["stage"] == 7
+    assert s5_tasks["S5-T3"]["depends_on"] == ["S5-T11"]
+    assert s5_tasks["S5-T12"]["stage"] == 8
+    assert s5_tasks["S5-T12"]["depends_on"] == ["S5-T3"]
+    assert s5_tasks["S5-T4"]["stage"] == 9
+    assert s5_tasks["S5-T4"]["depends_on"] == ["S5-T12"]
+    assert s5_tasks["S5-T5"]["stage"] == 10
     assert s5_tasks["S5-T5"]["depends_on"] == ["S5-T4"]
 
     s6 = project_sprints["S6-clean-run-repairs"]
