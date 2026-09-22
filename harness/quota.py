@@ -7,7 +7,6 @@ import threading
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 from .config import HarnessConfig
 from .state import StateStore
